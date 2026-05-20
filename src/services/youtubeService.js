@@ -4,7 +4,7 @@ const API_BASE =
   import.meta.env.VITE_BACKEND_URL ||
   'http://127.0.0.1:8000'
 
-const TIMEOUT_MS = 15000
+const TIMEOUT_MS = 45000
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
