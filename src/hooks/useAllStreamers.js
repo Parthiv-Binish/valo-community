@@ -14,7 +14,7 @@ export function useAllStreamers() {
     try {
       setError(null)
 
-      // Anti-sleep ping to prevent Render Web Service from auto-suspending due to idle web traffic
+      // Anti-sleep ping to keep Render Web Service awake
       fetch('https://valo-community-backend.onrender.com/').catch(() => {});
 
       const { data: rows, error: dbError } = await supabase
@@ -135,13 +135,39 @@ export function useAllStreamers() {
     }
   }, [])
 
+  // Initial Fetch
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
 
+  // Periodic Backup Polling
   useEffect(() => {
     const id = setInterval(fetchAll, REFRESH_INTERVAL)
     return () => clearInterval(id)
+  }, [fetchAll])
+
+  // =================================================
+  // REALTIME SUBSCRIPTION LAYER
+  // =================================================
+  useEffect(() => {
+    // Listen to changes on both tables to catch adds or live changes instantly
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'streamers' },
+        () => { fetchAll() }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'streamer_data' },
+        () => { fetchAll() }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [fetchAll])
 
   return { streamers, isLoading, error, refresh: fetchAll, lastRefreshed }
