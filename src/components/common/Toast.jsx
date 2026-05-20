@@ -1,3 +1,4 @@
+// Toast.jsx
 import { useState, useEffect } from 'react'
 
 export function useToast() {
@@ -19,18 +20,16 @@ export default function ToastContainer({ toasts }) {
         <div
           key={t.id}
           className={`
-            px-4 py-3 rounded shadow-xl border text-sm font-body font-medium animate-slide-up
+            px-4 py-3 rounded-lg shadow-xl text-sm font-medium animate-slide-up backdrop-blur-md
             ${t.type === 'error'
-              ? 'bg-red-900/90 border-red-700 text-red-100'
-              : 'bg-valo-card border-valo-red/30 text-valo-text'
+              ? 'bg-red-950/90 border border-red-800 text-red-200'
+              : 'bg-neutral-900/90 border border-neutral-800 text-white'
             }
           `}
         >
-          {t.type === 'success' && <span className="text-green-400 mr-2">✓</span>}
-          {t.type === 'error' && <span className="text-red-400 mr-2">✕</span>}
           {t.message}
         </div>
       ))}
     </div>
   )
-}
+} 

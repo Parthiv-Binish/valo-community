@@ -6,16 +6,16 @@ import AdminLoginPage from './pages/AdminLoginPage'
 import AdminStreamersPage from './pages/AdminStreamersPage'
 import AdminSubmissionsPage from './pages/AdminSubmissionsPage'
 import ProtectedRoute from './components/common/ProtectedRoute'
+import AboutPage from './pages/AboutPage'
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path="/"           element={<HomePage />} />
-        <Route path="/streamers"  element={<AllStreamersPage />} />
+        <Route path="/"  element={<AllStreamersPage />} />
         <Route path="/submit"     element={<SubmitPage />} />
-
+<Route path='/about' element={<AboutPage />} />
         {/* Admin Auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
 

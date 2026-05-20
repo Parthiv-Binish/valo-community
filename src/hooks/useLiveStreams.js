@@ -1,73 +1,211 @@
-import { useState, useEffect, useCallback } from 'react'
-import { getEnabledStreamers } from '../services/streamerService'
-import { getYouTubeLiveStream } from '../services/youtubeService'
-import { getKickLiveStream } from '../services/kickService'
 
-const REFRESH_INTERVAL = 60_000 // 60 seconds
+import { useState, useEffect, useCallback } from 'react'
+
+import { getKickLiveStream }
+  from '../services/kickService'
+
+const API_BASE =
+  import.meta.env.VITE_BACKEND_URL ||
+  'http://127.0.0.1:8000'
+
+const REFRESH_INTERVAL = 60_000
 
 export function useLiveStreams() {
-  const [streams, setStreams] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [lastRefreshed, setLastRefreshed] = useState(null)
+
+  const [streams, setStreams] =
+    useState([])
+
+  const [isLoading, setIsLoading] =
+    useState(true)
+
+  const [error, setError] =
+    useState(null)
+
+  const [lastRefreshed, setLastRefreshed] =
+    useState(null)
 
   const fetchAll = useCallback(async () => {
+
     try {
+
       setError(null)
 
-      // 1. Load streamers from Supabase (only ids/usernames — no live data stored)
-      const streamers = await getEnabledStreamers()
-      if (!streamers || streamers.length === 0) {
-        setStreams([])
-        setIsLoading(false)
-        setLastRefreshed(new Date())
-        return
+      // =====================================================
+      // YOUTUBE LIVE STREAMS
+      // =====================================================
+
+      const response = await fetch(
+        `${API_BASE}/all-live`
+      )
+
+      if (!response.ok) {
+
+        throw new Error(
+          `HTTP ${response.status}`
+        )
       }
 
-      // 2. Fetch live status from APIs in parallel
-      const promises = streamers.map(async (s) => {
-        try {
-          if (s.platform === 'youtube' && s.youtube_channel_id) {
-            const live = await getYouTubeLiveStream(s.youtube_channel_id)
-            if (!live) return null
-            return { ...live, dbId: s.id }
-          }
+      const data =
+        await response.json()
 
-          if (s.platform === 'kick' && s.kick_username) {
-            const live = await getKickLiveStream(s.kick_username)
-            if (!live) return null
-            return { ...live, dbId: s.id }
-          }
-        } catch {
-          return null
-        }
-        return null
-      })
+      const youtubeStreams =
+        data
+          .filter(
+            (s) =>
+              s.platform === 'youtube'
+          )
+          .map((streamer) => ({
 
-      const results = await Promise.allSettled(promises)
-      const live = results
-        .filter((r) => r.status === 'fulfilled' && r.value !== null)
-        .map((r) => r.value)
+            id: streamer.id,
 
-      setStreams(live)
+            platform:
+              streamer.platform ||
+              'youtube',
+
+            channelId:
+              streamer.channelId,
+
+            isLive:
+              streamer.isLive || false,
+
+            title:
+              streamer.title || null,
+
+            thumbnail:
+              streamer.thumbnail || null,
+
+            viewerCount:
+              streamer.viewerCount || null,
+
+            streamUrl:
+              streamer.streamUrl || null,
+
+            channelName:
+              streamer.channelName ||
+              'Unknown Streamer',
+
+            avatar:
+              streamer.avatar || null,
+
+            verified:
+              streamer.verified || false,
+
+            channelUrl:
+              streamer.channelUrl || null,
+          }))
+
+      // =====================================================
+      // GET KICK USERNAMES FROM DB
+      // =====================================================
+
+      const dbResponse = await fetch(
+        `${API_BASE}/streamers`
+      )
+
+      if (!dbResponse.ok) {
+
+        throw new Error(
+          `HTTP ${dbResponse.status}`
+        )
+      }
+
+      const dbStreamers =
+        await dbResponse.json()
+
+      const kickStreamers =
+        dbStreamers.filter(
+          (s) =>
+            s.platform === 'kick' &&
+            s.kick_username
+        )
+
+      // =====================================================
+      // FETCH KICK LIVE STREAMS
+      // =====================================================
+
+      const kickPromises =
+        kickStreamers.map((s) =>
+          getKickLiveStream(
+            s.kick_username
+          )
+        )
+
+      const kickResults =
+        await Promise.allSettled(
+          kickPromises
+        )
+
+      const kickStreams =
+        kickResults
+          .filter(
+            (r) =>
+              r.status === 'fulfilled' &&
+              r.value !== null
+          )
+          .map((r) => r.value)
+
+      // =====================================================
+      // COMBINE STREAMS
+      // =====================================================
+
+      setStreams([
+        ...youtubeStreams,
+        ...kickStreams
+      ])
+
       setLastRefreshed(new Date())
+
     } catch (err) {
-      setError(err.message || 'Failed to load streams')
+
+      console.error(err)
+
+      setError(
+        err.message ||
+        'Failed to load streams'
+      )
+
     } finally {
+
       setIsLoading(false)
     }
+
   }, [])
 
-  // Initial fetch
+  // =====================================================
+  // INITIAL FETCH
+  // =====================================================
+
   useEffect(() => {
+
     fetchAll()
+
   }, [fetchAll])
 
-  // Auto-refresh every 60s
+  // =====================================================
+  // AUTO REFRESH
+  // =====================================================
+
   useEffect(() => {
-    const id = setInterval(fetchAll, REFRESH_INTERVAL)
+
+    const id = setInterval(
+      fetchAll,
+      REFRESH_INTERVAL
+    )
+
     return () => clearInterval(id)
+
   }, [fetchAll])
 
-  return { streams, isLoading, error, refresh: fetchAll, lastRefreshed }
+  return {
+
+    streams,
+
+    isLoading,
+
+    error,
+
+    refresh: fetchAll,
+
+    lastRefreshed
+  }
 }

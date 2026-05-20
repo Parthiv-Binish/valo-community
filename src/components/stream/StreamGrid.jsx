@@ -27,7 +27,12 @@ export default function StreamGrid({ streams, isLoading, emptyMessage }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
       {streams.map((stream, i) => (
-        <StreamCard key={`${stream.platform}-${stream.channelId || stream.username}-${i}`} stream={stream} />
+      
+<StreamCard
+  key={`${stream.platform}-${stream.channelId || stream.username}-${i}`}
+  streamer={stream}
+/>
+
       ))}
     </div>
   )

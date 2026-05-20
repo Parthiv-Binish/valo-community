@@ -2,7 +2,7 @@ import { formatViewerCount } from '../../utils/format'
 
 const PLATFORM_CONFIG = {
   youtube: {
-    logo:       'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/YouTube_2024.svg/500px-YouTube_2024.svg.png',
+    logo:       'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/YouTube_2024_%28white_text%29.svg/1920px-YouTube_2024_%28white_text%29.svg.png?_=20241114183930',
     label:      'YouTube',
     accentColor: '#ff4444',
     bgClass:    'bg-[#ff0000]/10 text-[#ff4444]',
@@ -16,10 +16,31 @@ const PLATFORM_CONFIG = {
 }
 
 export default function StreamerCard({ streamer }) {
-  const cfg  = PLATFORM_CONFIG[streamer.platform] || PLATFORM_CONFIG.youtube
-  const href = streamer.isLive ? streamer.streamUrl : streamer.channelUrl
 
-  const avatarLetter = (streamer.channelName || '?').charAt(0).toUpperCase()
+
+
+  // Prevent crashes
+  if (!streamer) {
+    return null
+  }
+
+  // Safe fallback
+  const platform =
+    streamer?.platform || 'youtube'
+
+  const cfg =
+    PLATFORM_CONFIG[platform]
+    || PLATFORM_CONFIG.youtube
+
+  const href =
+    streamer?.isLive
+      ? streamer?.streamUrl
+      : streamer?.channelUrl
+
+  const avatarLetter =
+    (streamer?.channelName || '?')
+      .charAt(0)
+      .toUpperCase()
 
   return (
     <a
@@ -92,7 +113,7 @@ export default function StreamerCard({ streamer }) {
 
         {/* Platform logo */}
         <div className="absolute top-2 right-2">
-          <div className="bg-black/70 backdrop-blur-sm rounded p-1">
+          <div className="bg-red/70 backdrop-blur-sm rounded p-1">
             <img
               src={cfg.logo}
               alt={cfg.label}
@@ -151,9 +172,23 @@ export default function StreamerCard({ streamer }) {
                 {avatarLetter}
               </div>
             )}
-            <span className="text-xs text-valo-muted font-body truncate">
-              {streamer.channelName}
-            </span>
+           
+<div className="flex items-center gap-1 min-w-0">
+  <span className="text-xs text-valo-muted font-body truncate">
+    {streamer.channelName}
+  </span>
+
+  {streamer.verified && (
+    <svg
+      className="w-3.5 h-3.5 shrink-0 text-[#3ea6ff]"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+    >
+      <path d="M22.25 12c0-.86-.69-1.55-1.55-1.55h-.59a1.55 1.55 0 0 1-1.46-1.04l-.2-.57a1.55 1.55 0 0 0-1.96-.96l-.56.2a1.55 1.55 0 0 1-1.82-.64l-.33-.5a1.55 1.55 0 0 0-2.58 0l-.33.5a1.55 1.55 0 0 1-1.82.64l-.56-.2a1.55 1.55 0 0 0-1.96.96l-.2.57a1.55 1.55 0 0 1-1.46 1.04h-.59A1.55 1.55 0 0 0 1.75 12c0 .86.69 1.55 1.55 1.55h.59c.66 0 1.25.42 1.46 1.04l.2.57c.28.81 1.16 1.24 1.96.96l.56-.2c.65-.23 1.37.02 1.82.64l.33.5a1.55 1.55 0 0 0 2.58 0l.33-.5c.45-.62 1.17-.87 1.82-.64l.56.2c.81.28 1.68-.15 1.96-.96l.2-.57c.21-.62.8-1.04 1.46-1.04h.59c.86 0 1.55-.69 1.55-1.55z"/>
+    </svg>
+  )}
+</div>
+
           </div>
 
           <span className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-display font-semibold px-2 py-0.5 rounded ${cfg.bgClass}`}>

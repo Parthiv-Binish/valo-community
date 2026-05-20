@@ -1,76 +1,269 @@
+
 /**
  * Kick API Service
- * Fetches live stream data for a given Kick username.
- *
- * Kick API endpoint: https://kick.com/api/v2/channels/{username}
- *
- * NOTE: Kick does not officially provide a public API, so this is a
- * best-effort integration. The endpoint may require a proxy in production
- * due to CORS restrictions. Configure your Vite dev proxy or backend proxy.
+ * Reliable Kick live + profile fetcher
  */
 
-const KICK_API_BASE = 'https://kick.com/api/v2/channels'
+const KICK_API_BASE =
+  'https://kick.com/api/v2/channels'
 
-/**
- * Check if a Kick channel is currently live.
- * Returns stream details or null if offline / on error.
- */
-export async function getKickLiveStream(username) {
+const TIMEOUT_MS = 15000
+
+// =====================================================
+// TIMEOUT
+// =====================================================
+
+function withTimeout(
+  promise,
+  ms = TIMEOUT_MS
+) {
+
+  return Promise.race([
+
+    promise,
+
+    new Promise((_, reject) =>
+
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              'Kick request timed out'
+            )
+          ),
+        ms
+      )
+    ),
+  ])
+}
+
+// =====================================================
+// HELPERS
+// =====================================================
+
+function getThumbnail(thumbnail) {
+
+  if (!thumbnail) return null
+
+  // object
+  if (typeof thumbnail === 'object') {
+
+    return (
+      thumbnail.src ||
+      thumbnail.url ||
+      thumbnail.large ||
+      thumbnail.medium ||
+      thumbnail.small ||
+      null
+    )
+  }
+
+  // string
+  if (typeof thumbnail === 'string') {
+    return thumbnail
+  }
+
+  return null
+}
+
+function getAvatar(user) {
+
+  if (!user) return null
+
+  return (
+    user.profile_pic ||
+    user.profilePic ||
+    user.avatar ||
+    null
+  )
+}
+
+// =====================================================
+// LIVE STREAM
+// =====================================================
+
+export async function getKickLiveStream(
+  username
+) {
+
   try {
-    const res = await fetch(`${KICK_API_BASE}/${encodeURIComponent(username)}`, {
-      headers: {
-        Accept: 'application/json',
-        'User-Agent': 'Mozilla/5.0',
-      },
-    })
 
-    if (!res.ok) {
-      if (res.status === 404) return null
-      throw new Error(`Kick API error: ${res.status}`)
+    const response = await withTimeout(
+
+      fetch(
+        `${KICK_API_BASE}/${encodeURIComponent(username)}`,
+        {
+          headers: {
+            Accept: 'application/json',
+            'User-Agent': 'Mozilla/5.0',
+          },
+        }
+      )
+    )
+
+    if (!response.ok) {
+
+      if (response.status === 404) {
+        return null
+      }
+
+      throw new Error(
+        `Kick API ${response.status}`
+      )
     }
 
-    const data = await res.json()
+    const data =
+      await response.json()
 
-    // If no active livestream, return null
-    if (!data.livestream) return null
+    const livestream =
+      data?.livestream
 
-    const ls = data.livestream
-    const channel = data
+    // offline
+    if (!livestream) {
+      return null
+    }
+
+    const user =
+      data?.user || data
 
     return {
-      platform: 'kick',
-      username,
-      title: ls.session_title || 'Live Stream',
-      channelName: channel.user?.username || username,
-      thumbnail: ls.thumbnail?.url || ls.thumbnail || null,
-      streamUrl: `https://kick.com/${username}`,
-      viewerCount: ls.viewer_count ?? null,
-      startedAt: ls.created_at,
+
+      id:
+        username,
+
+      platform:
+        'kick',
+
+      channelId:
+        username,
+
+      username:
+        username,
+
+      isLive:
+        true,
+
+      title:
+        livestream?.session_title ||
+        livestream?.slug ||
+        'Live Stream',
+
+      thumbnail:
+        getThumbnail(
+          livestream?.thumbnail
+        ),
+
+      viewerCount:
+        livestream?.viewer_count ??
+        livestream?.viewers ??
+        0,
+
+      streamUrl:
+        `https://kick.com/${username}`,
+
+      channelName:
+        user?.username ||
+        user?.name ||
+        username,
+
+      avatar:
+        getAvatar(user),
+
+      verified:
+        user?.verified ||
+        false,
+
+      channelUrl:
+        `https://kick.com/${username}`,
+
+      startedAt:
+        livestream?.created_at ||
+        null,
     }
-  } catch (err) {
-    console.error(`[Kick] Error fetching channel ${username}:`, err.message)
+
+  } catch (error) {
+
+    console.error(
+      `[Kick] ${username}:`,
+      error.message
+    )
+
     return null
   }
 }
 
-/**
- * Fetch basic channel info (not live status).
- */
-export async function getKickChannelInfo(username) {
-  try {
-    const res = await fetch(`${KICK_API_BASE}/${encodeURIComponent(username)}`, {
-      headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' },
-    })
-    if (!res.ok) return null
+// =====================================================
+// CHANNEL INFO
+// =====================================================
 
-    const data = await res.json()
-    return {
-      name: data.user?.username || username,
-      avatar: data.user?.profile_pic,
-      channelUrl: `https://kick.com/${username}`,
-      followersCount: data.followersCount,
+export async function getKickChannelInfo(
+  username
+) {
+
+  try {
+
+    const response = await withTimeout(
+
+      fetch(
+        `${KICK_API_BASE}/${encodeURIComponent(username)}`,
+        {
+          headers: {
+            Accept: 'application/json',
+            'User-Agent': 'Mozilla/5.0',
+          },
+        }
+      )
+    )
+
+    if (!response.ok) {
+      return null
     }
-  } catch {
+
+    const data =
+      await response.json()
+
+    const user =
+      data?.user || data
+
+    return {
+
+      platform:
+        'kick',
+
+      channelId:
+        username,
+
+      username:
+        username,
+
+      channelName:
+        user?.username ||
+        user?.name ||
+        username,
+
+      avatar:
+        getAvatar(user),
+
+      verified:
+        user?.verified ||
+        false,
+
+      followersCount:
+        data?.followersCount ||
+        data?.followers_count ||
+        null,
+
+      channelUrl:
+        `https://kick.com/${username}`,
+    }
+
+  } catch (error) {
+
+    console.error(
+      `[Kick Channel] ${username}:`,
+      error.message
+    )
+
     return null
   }
 }

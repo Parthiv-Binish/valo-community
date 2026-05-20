@@ -1,128 +1,346 @@
-/**
- * YouTube Service (frontend)
- *
- * All YouTube live checks are done via the Netlify Function:
- *   /.netlify/functions/youtube-live?channelId=CHANNEL_ID
- *
- * This completely avoids browser CORS issues because the function
- * runs server-side on Netlify and fetches YouTube directly.
- *
- * No YouTube API key is ever exposed to the frontend.
- *
- * Channel info for offline cards uses YouTube oEmbed — still zero quota,
- * still no API key, and oEmbed is not blocked by CORS.
- */
 
-const NETLIFY_FN     = '/.netlify/functions/youtube-live'
-const YT_OEMBED_BASE = 'https://www.youtube.com/oembed'
-const TIMEOUT_MS     = 15_000   // Netlify Functions can be a bit slower on cold start
 
-// ─────────────────────────────────────────────────────────────────────────────
+const API_BASE =
+  import.meta.env.VITE_BACKEND_URL ||
+  'http://127.0.0.1:8000'
+
+const TIMEOUT_MS = 15000
+
+// ─────────────────────────────────────────────────────────────
 // Helpers
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
 
-function withTimeout(promise, ms = TIMEOUT_MS) {
+function withTimeout(
+  promise,
+  ms = TIMEOUT_MS
+) {
   return Promise.race([
     promise,
+
     new Promise((_, reject) =>
-      setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms)
+      setTimeout(
+        () =>
+          reject(
+            new Error(
+              `Request timed out after ${ms}ms`
+            )
+          ),
+        ms
+      )
     ),
   ])
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// oEmbed — zero quota, no API key, not CORS-blocked
-// Used for offline channel info on the All Streamers page
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// PUBLIC
+// Get all streamers with live/profile data
+// ─────────────────────────────────────────────────────────────
 
-async function fetchOEmbed(youtubeUrl) {
+export async function getAllStreamers() {
+
   try {
-    const url = new URL(YT_OEMBED_BASE)
-    url.searchParams.set('url', youtubeUrl)
-    url.searchParams.set('format', 'json')
 
-    const res = await withTimeout(fetch(url.toString()))
-    if (!res.ok) return null
+    const response = await withTimeout(
+      fetch(`${API_BASE}/streamers`)
+    )
 
-    return await res.json()
-  } catch (err) {
-    console.warn(`[YouTubeService] oEmbed failed for ${youtubeUrl}:`, err.message)
-    return null
+    if (!response.ok) {
+
+      throw new Error(
+        `HTTP ${response.status}`
+      )
+    }
+
+    const data = await response.json()
+
+    return data.map((streamer) => ({
+
+      id: streamer.id,
+
+      platform:
+        streamer.platform || 'youtube',
+
+      channelId:
+        streamer.channelId,
+
+      isLive:
+        streamer.isLive || false,
+
+      title:
+        streamer.title || null,
+
+      thumbnail:
+        streamer.thumbnail || null,
+
+      viewerCount:
+        streamer.viewerCount || null,
+
+      streamUrl:
+        streamer.streamUrl || null,
+
+      channelName:
+        streamer.channelName ||
+        'Unknown Streamer',
+
+      avatar:
+        streamer.avatar || null,
+
+      verified:
+        streamer.verified || false,
+
+      channelUrl:
+        streamer.channelUrl || null,
+    }))
+
+  } catch (error) {
+
+    console.error(
+      '[YouTubeService] getAllStreamers:',
+      error
+    )
+
+    return []
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PUBLIC: getYouTubeLiveStream
-//
-// Calls /.netlify/functions/youtube-live — server-side, no CORS.
-// Returns stream object if LIVE, null if offline or error.
-// ─────────────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────
+// PUBLIC
+// Get all LIVE streamers
+// ─────────────────────────────────────────────────────────────
 
-export async function getYouTubeLiveStream(channelId) {
+export async function getAllLiveStreamers() {
+
   try {
-    const url = new URL(NETLIFY_FN, window.location.origin)
-    url.searchParams.set('channelId', channelId)
 
-    console.debug(`[YouTubeService] Calling Netlify Function for ${channelId}`)
+    const response = await withTimeout(
+      fetch(`${API_BASE}/all-live`)
+    )
 
-    const res = await withTimeout(fetch(url.toString()))
+    if (!response.ok) {
 
-    if (!res.ok) {
-      console.error(`[YouTubeService] Function returned HTTP ${res.status} for ${channelId}`)
-      return null
+      throw new Error(
+        `HTTP ${response.status}`
+      )
     }
 
-    const data = await res.json()
+    const data = await response.json()
 
-    console.debug(`[YouTubeService] Response for ${channelId}:`, {
-      isLive:  data.isLive,
-      method:  data.method,
-      videoId: data.videoId,
-    })
+    return data.map((streamer) => ({
 
-    if (!data.success) {
-      console.warn(`[YouTubeService] Function error for ${channelId}:`, data.error)
-      return null
+      id: streamer.id,
+
+      platform:
+        streamer.platform || 'youtube',
+
+      channelId:
+        streamer.channelId,
+
+      isLive:
+        streamer.isLive || false,
+
+      title:
+        streamer.title || null,
+
+      thumbnail:
+        streamer.thumbnail || null,
+
+      viewerCount:
+        streamer.viewerCount || null,
+
+      streamUrl:
+        streamer.streamUrl || null,
+
+      channelName:
+        streamer.channelName ||
+        'Unknown Streamer',
+
+      avatar:
+        streamer.avatar || null,
+
+      verified:
+        streamer.verified || false,
+
+      channelUrl:
+        streamer.channelUrl || null,
+    }))
+
+  } catch (error) {
+
+    console.error(
+      '[YouTubeService] getAllLiveStreamers:',
+      error
+    )
+
+    return []
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PUBLIC
+// Get single streamer live data
+// ─────────────────────────────────────────────────────────────
+export async function getYouTubeLiveStream(
+  channelId
+) {
+
+  try {
+
+    const response = await withTimeout(
+      fetch(
+        `${API_BASE}/yt-live/${channelId}`
+      )
+    )
+
+    if (!response.ok) {
+
+      throw new Error(
+        `HTTP ${response.status}`
+      )
     }
 
-    if (!data.isLive) return null
+    const data =
+      await response.json()
+
+    if (!data.live) {
+      return null
+    }
 
     return {
-      platform:        'youtube',
+
+      platform:
+        'youtube',
+
       channelId,
-      videoId:         data.videoId,
-      title:           data.title       || 'Live Stream',
-      channelName:     data.channelName || channelId,
-      thumbnail:       data.thumbnail   || `https://i.ytimg.com/vi/${data.videoId}/maxresdefault.jpg`,
-      streamUrl:       data.streamUrl,
-      channelUrl:      data.channelUrl  || `https://www.youtube.com/channel/${channelId}`,
-      viewerCount:     null,
-      usedAPIFallback: data.method === 'api_fallback',
+
+      isLive:
+        data.live,
+
+      title:
+        data.title ||
+        'Live Stream',
+
+      thumbnail:
+        data.thumbnail ||
+        null,
+
+      viewerCount:
+        data.viewer_count ||
+        0,
+
+      streamUrl:
+        data.stream_url,
+
+      // PROFILE INFO
+      channelName:
+        data.channel_name ||
+        channelId,
+
+      avatar:
+        data.profile_image ||
+        null,
+
+      verified:
+        data.verified ||
+        false,
+
+      channelUrl:
+        data.channel_url ||
+        `https://youtube.com/channel/${channelId}`,
     }
-  } catch (err) {
-    console.error(`[YouTubeService] Failed to call Netlify Function for ${channelId}:`, err.message)
+
+  } catch (error) {
+
+    console.error(
+      '[YouTubeService] getYouTubeLiveStream:',
+      error
+    )
+
     return null
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PUBLIC: getYouTubeChannelInfo
-//
-// Used by useAllStreamers for OFFLINE cards.
-// Uses oEmbed directly from the browser — this IS allowed (no CORS block).
-//
-// Returns { name, avatar, channelUrl } or null.
-// ─────────────────────────────────────────────────────────────────────────────
 
-export async function getYouTubeChannelInfo(channelId) {
-  const channelUrl = `https://www.youtube.com/channel/${channelId}`
-  const oembed     = await fetchOEmbed(channelUrl)
+// ─────────────────────────────────────────────────────────────
+// PUBLIC
+// Get streamer profile
+// ─────────────────────────────────────────────────────────────
 
-  if (!oembed) return null
+export async function getYouTubeChannelInfo(
+  channelId
+) {
 
-  return {
-    name:       oembed.author_name   || channelId,
-    avatar:     oembed.thumbnail_url || null,
-    channelUrl,
+  try {
+
+    const response = await withTimeout(
+      fetch(
+        `${API_BASE}/yt-profile/${channelId}`
+      )
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}`
+      )
+    }
+
+    const data = await response.json()
+
+    return {
+      name:
+        data.channel_name || channelId,
+
+      avatar:
+        data.profile_image || null,
+
+      subscribers:
+        data.subscriber_count || null,
+
+      verified:
+        data.verified || false,
+
+      channelUrl:
+        data.channel_url,
+    }
+
+  } catch (error) {
+
+    console.error(
+      '[YouTubeService] getYouTubeChannelInfo:',
+      error
+    )
+
+    return null
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// PUBLIC
+// Refresh backend cache
+// ─────────────────────────────────────────────────────────────
+
+export async function refreshLiveCache() {
+
+  try {
+
+    const response = await withTimeout(
+      fetch(`${API_BASE}/refresh-live`)
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        `HTTP ${response.status}`
+      )
+    }
+
+    return await response.json()
+
+  } catch (error) {
+
+    console.error(
+      '[YouTubeService] refreshLiveCache:',
+      error
+    )
+
+    return null
   }
 }

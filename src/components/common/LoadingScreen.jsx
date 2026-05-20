@@ -1,30 +1,16 @@
+// LoadingScreen.jsx
 export default function LoadingScreen() {
   return (
-    <div className="fixed inset-0 bg-valo-dark flex flex-col items-center justify-center z-[100]">
+    <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-[100]">
       <img
         src="https://iili.io/Bp6m8Xa.png"
         alt="VALO Community"
-        className="h-16 w-16 rounded-lg object-contain mb-6 animate-pulse"
+        className="h-12 w-12 rounded-lg object-contain mb-4"
       />
-      <h1 className="font-display font-bold text-2xl text-white mb-1">
-        Let's Build <span className="text-valo-red">VALO Community</span>
-      </h1>
-      <p className="text-valo-muted text-sm mb-8">Fetching live streams...</p>
-      <div className="flex gap-1.5">
-        {[0, 1, 2].map((i) => (
-          <div
-            key={i}
-            className="w-2 h-2 rounded-full bg-valo-red"
-            style={{ animation: `bounce 0.8s ease-in-out ${i * 0.15}s infinite alternate` }}
-          />
-        ))}
+      <div className="relative">
+        <div className="absolute inset-0 blur-md bg-valo-red/20 rounded-full" />
+        <div className="relative w-8 h-8 border-2 border-valo-red/30 border-t-valo-red rounded-full animate-spin" />
       </div>
-      <style>{`
-        @keyframes bounce {
-          from { transform: translateY(0); opacity: 0.4; }
-          to   { transform: translateY(-8px); opacity: 1; }
-        }
-      `}</style>
     </div>
   )
 }

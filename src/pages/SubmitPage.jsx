@@ -96,7 +96,7 @@ export default function SubmitPage() {
                 >
                   <img
                     src={p === 'youtube'
-                      ? 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/YouTube_2024.svg/500px-YouTube_2024.svg.png'
+                      ? 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/YouTube_2024_%28white_text%29.svg/1920px-YouTube_2024_%28white_text%29.svg.png?_=20241114183930'
                       : 'https://kick.com/img/kick-logo.svg'
                     }
                     alt={p}
