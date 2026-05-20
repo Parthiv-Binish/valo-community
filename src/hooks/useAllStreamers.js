@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase.js'
+import { getKickLiveStream, getKickChannelInfo } from '../services/kickService'
 
-const REFRESH_INTERVAL = 60_000 // 1 minute
+const REFRESH_INTERVAL = 60_000 
 
 export function useAllStreamers() {
   const [streamers, setStreamers] = useState([])
@@ -13,7 +14,7 @@ export function useAllStreamers() {
     try {
       setError(null)
 
-      // Fetch base table and join the new streamer_data table
+      // Fetch the enabled streamers and join your background table
       const { data: rows, error: dbError } = await supabase
         .from('streamers')
         .select(`
@@ -37,36 +38,82 @@ export function useAllStreamers() {
 
       if (!rows || rows.length === 0) {
         setStreamers([])
+        setIsLoading(false)
         setLastRefreshed(new Date())
         return
       }
 
-      // Format data for StreamCard.jsx
-      const formatted = rows.map((s) => {
-        // Handle Supabase 1-to-1 join response (could be array or object)
-        const info = Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data || {}
-        const channelId = s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username
+      // Enrich streamers (YouTube from DB, Kick directly from frontend API)
+      const enriched = await Promise.all(
+        rows.map(async (s) => {
+          const info = Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data || {}
+          const channelId = s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username
 
-        return {
-          dbId: s.id,
-          platform: s.platform,
-          channelId: channelId,
-          isLive: info.is_live || false,
-          title: info.title || null,
-          thumbnail: info.thumbnail || null,
-          viewerCount: info.viewer_count || 0,
-          streamUrl: info.stream_url || null,
-          channelName: info.channel_name || channelId,
-          avatar: info.avatar || null,
-          verified: false, // add to DB later if needed
-          channelUrl: s.platform === 'youtube' 
-            ? `https://www.youtube.com/channel/${channelId}` 
-            : `https://kick.com/${channelId}`
-        }
-      })
+          // Base structure required by StreamCard.jsx
+          const base = {
+            dbId: s.id,
+            platform: s.platform,
+            channelId: channelId,
+            isLive: false,
+            title: null,
+            thumbnail: null,
+            viewerCount: null,
+            streamUrl: s.platform === 'youtube' 
+              ? `https://www.youtube.com/channel/${channelId}` 
+              : `https://kick.com/${channelId}`,
+            channelName: info.channel_name || channelId,
+            avatar: info.avatar || null,
+            verified: false
+          }
 
-      // Sort: Live first -> High viewers -> Alphabetical
-      const sorted = formatted.sort((a, b) => {
+          // =================================================
+          // YOUTUBE (Read directly from your stable DB cache)
+          // =================================================
+          if (s.platform === 'youtube') {
+            return {
+              ...base,
+              isLive: info.is_live || false,
+              title: info.title || null,
+              thumbnail: info.thumbnail || null,
+              viewerCount: info.viewer_count || 0,
+              streamUrl: info.stream_url || base.streamUrl,
+            }
+          }
+
+          // =================================================
+          // KICK (Fetch directly from frontend client to bypass 403)
+          // =================================================
+          if (s.platform === 'kick' && s.kick_username) {
+            try {
+              const live = await getKickLiveStream(s.kick_username)
+              if (live) {
+                return {
+                  ...base,
+                  ...live,
+                  isLive: true
+                }
+              }
+
+              // Fallback to offline profile details
+              const profileInfo = await getKickChannelInfo(s.kick_username)
+              return {
+                ...base,
+                channelName: profileInfo?.channelName || s.kick_username,
+                avatar: profileInfo?.avatar || base.avatar,
+                verified: profileInfo?.verified || false
+              }
+            } catch (err) {
+              console.error(`Kick frontend fetch error for ${s.kick_username}:`, err)
+              return base
+            }
+          }
+
+          return base
+        })
+      )
+
+      // Sort: Live first -> High viewers desc -> Alphabetical
+      const sorted = enriched.sort((a, b) => {
         if (a.isLive && !b.isLive) return -1
         if (!a.isLive && b.isLive) return 1
         if (a.isLive && b.isLive) return (b.viewerCount || 0) - (a.viewerCount || 0)
@@ -75,7 +122,6 @@ export function useAllStreamers() {
 
       setStreamers(sorted)
       setLastRefreshed(new Date())
-
     } catch (err) {
       console.error(err)
       setError(err.message || 'Failed to load streamers')
