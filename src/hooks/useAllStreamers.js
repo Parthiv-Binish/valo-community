@@ -14,6 +14,7 @@ export function useAllStreamers() {
     try {
       setError(null)
 
+      fetch('https://valo-community-backend.onrender.com/').catch(() => {});
       // Fetch the enabled streamers and join your background table
       const { data: rows, error: dbError } = await supabase
         .from('streamers')
