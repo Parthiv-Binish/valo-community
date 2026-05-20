@@ -117,7 +117,7 @@ export default function StreamerCard({ streamer }) {
         className="h-3 object-contain"
       />
       <span className="text-xs text-white font-display">
-        {cfg.label}
+        
       </span>
     </div>
   </div>
