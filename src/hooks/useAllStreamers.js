@@ -14,8 +14,9 @@ export function useAllStreamers() {
     try {
       setError(null)
 
+      // Anti-sleep ping to prevent Render Web Service from auto-suspending due to idle web traffic
       fetch('https://valo-community-backend.onrender.com/').catch(() => {});
-      // Fetch the enabled streamers and join your background table
+
       const { data: rows, error: dbError } = await supabase
         .from('streamers')
         .select(`
@@ -44,13 +45,15 @@ export function useAllStreamers() {
         return
       }
 
-      // Enrich streamers (YouTube from DB, Kick directly from frontend API)
       const enriched = await Promise.all(
         rows.map(async (s) => {
           const info = Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data || {}
           const channelId = s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username
 
-          // Base structure required by StreamCard.jsx
+          const fallbackChannelUrl = s.platform === 'youtube'
+            ? `https://www.youtube.com/channel/${channelId}`
+            : `https://kick.com/${channelId}`
+
           const base = {
             dbId: s.id,
             platform: s.platform,
@@ -59,16 +62,15 @@ export function useAllStreamers() {
             title: null,
             thumbnail: null,
             viewerCount: null,
-            streamUrl: s.platform === 'youtube' 
-              ? `https://www.youtube.com/channel/${channelId}` 
-              : `https://kick.com/${channelId}`,
+            streamUrl: fallbackChannelUrl, 
+            channelUrl: fallbackChannelUrl, 
             channelName: info.channel_name || channelId,
             avatar: info.avatar || null,
             verified: false
           }
 
           // =================================================
-          // YOUTUBE (Read directly from your stable DB cache)
+          // YOUTUBE
           // =================================================
           if (s.platform === 'youtube') {
             return {
@@ -77,12 +79,13 @@ export function useAllStreamers() {
               title: info.title || null,
               thumbnail: info.thumbnail || null,
               viewerCount: info.viewer_count || 0,
-              streamUrl: info.stream_url || base.streamUrl,
+              streamUrl: info.stream_url || fallbackChannelUrl,
+              channelUrl: fallbackChannelUrl
             }
           }
 
           // =================================================
-          // KICK (Fetch directly from frontend client to bypass 403)
+          // KICK
           // =================================================
           if (s.platform === 'kick' && s.kick_username) {
             try {
@@ -91,20 +94,22 @@ export function useAllStreamers() {
                 return {
                   ...base,
                   ...live,
-                  isLive: true
+                  isLive: true,
+                  streamUrl: `https://kick.com/${s.kick_username}`,
+                  channelUrl: `https://kick.com/${s.kick_username}`
                 }
               }
 
-              // Fallback to offline profile details
               const profileInfo = await getKickChannelInfo(s.kick_username)
               return {
                 ...base,
                 channelName: profileInfo?.channelName || s.kick_username,
                 avatar: profileInfo?.avatar || base.avatar,
-                verified: profileInfo?.verified || false
+                verified: profileInfo?.verified || false,
+                channelUrl: `https://kick.com/${s.kick_username}`
               }
             } catch (err) {
-              console.error(`Kick frontend fetch error for ${s.kick_username}:`, err)
+              console.error(`Kick frontend client connection catch: ${s.kick_username}:`, err)
               return base
             }
           }
@@ -113,7 +118,6 @@ export function useAllStreamers() {
         })
       )
 
-      // Sort: Live first -> High viewers desc -> Alphabetical
       const sorted = enriched.sort((a, b) => {
         if (a.isLive && !b.isLive) return -1
         if (!a.isLive && b.isLive) return 1
