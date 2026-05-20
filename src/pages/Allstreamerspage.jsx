@@ -3,7 +3,7 @@ import MainLayout from '../layouts/MainLayout'
 import StreamerCard from '../components/stream/StreamCard'
 import StreamerCardSkeleton from '../components/stream/StreamCardSkeleton'
 import FilterBar from '../components/stream/FilterBar'
-import {useAllStreamers} from '../hooks/Useallstreamers'
+import { useAllStreamers } from '../hooks/Useallstreamers'
 
 export default function AllStreamersPage() {
   const { streamers, isLoading, error, refresh, lastRefreshed } = useAllStreamers()
@@ -17,19 +17,19 @@ export default function AllStreamersPage() {
       const q = search.toLowerCase()
       s = s.filter((st) =>
         (st.channelName || '').toLowerCase().includes(q) ||
-        (st.title       || '').toLowerCase().includes(q)
+        (st.title || '').toLowerCase().includes(q)
       )
     }
     return s
   }, [streamers, platformFilter, search])
 
   const counts = useMemo(() => ({
-    all:     streamers.length,
+    all: streamers.length,
     youtube: streamers.filter((s) => s.platform === 'youtube').length,
-    kick:    streamers.filter((s) => s.platform === 'kick').length,
+    kick: streamers.filter((s) => s.platform === 'kick').length,
   }), [streamers])
 
-  const liveCount    = filtered.filter((s) => s.isLive).length
+  const liveCount = filtered.filter((s) => s.isLive).length
   const offlineCount = filtered.filter((s) => !s.isLive).length
 
   return (
@@ -95,7 +95,7 @@ export default function AllStreamersPage() {
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-valo-muted hover:text-white"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6 6 18M6 6l12 12"/>
+                  <path d="M18 6 6 18M6 6l12 12" />
                 </svg>
               </button>
             )}
@@ -213,8 +213,8 @@ function EmptyState({ search, platform }) {
         {search
           ? `No streamers match "${search}"`
           : platform !== 'all'
-          ? `No ${platform} streamers added yet`
-          : 'No streamers have been added yet. Submit one!'}
+            ? `No ${platform} streamers added yet`
+            : 'No streamers have been added yet. Submit one!'}
       </p>
       {!search && (
         <a href="/submit" className="valo-btn mt-6 px-6">
