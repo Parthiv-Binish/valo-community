@@ -3,7 +3,7 @@ import MainLayout from '../layouts/MainLayout'
 import StreamerCard from '../components/stream/StreamCard'
 import StreamerCardSkeleton from '../components/stream/StreamCardSkeleton'
 import FilterBar from '../components/stream/FilterBar'
-import {useAllStreamers}from '../hooks/useAllStreamers'
+import {useAllStreamers} from '../hooks/Useallstreamers'
 
 export default function AllStreamersPage() {
   const { streamers, isLoading, error, refresh, lastRefreshed } = useAllStreamers()
