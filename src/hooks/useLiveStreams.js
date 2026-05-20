@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase } from '../services/supabase'
+import { supabase } from '../lib/supabase.js'
 
 const REFRESH_INTERVAL = 60_000
 
