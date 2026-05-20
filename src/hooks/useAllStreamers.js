@@ -1,340 +1,97 @@
-
 import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../supabase' // Make sure this path points to your supabase.js file
 
-import { getEnabledStreamers }
-  from '../services/streamerService'
-
-import {
-  getYouTubeLiveStream,
-  getYouTubeChannelInfo
-} from '../services/youtubeService'
-
-import {
-  getKickLiveStream,
-  getKickChannelInfo
-} from '../services/kickService'
-
-const REFRESH_INTERVAL = 60_000
-
-/**
- * ALL streamers
- * - live + offline
- * - youtube + kick
- */
+const REFRESH_INTERVAL = 60_000 // 1 minute
 
 export function useAllStreamers() {
-
-  const [streamers, setStreamers] =
-    useState([])
-
-  const [isLoading, setIsLoading] =
-    useState(true)
-
-  const [error, setError] =
-    useState(null)
-
-  const [lastRefreshed, setLastRefreshed] =
-    useState(null)
+  const [streamers, setStreamers] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [lastRefreshed, setLastRefreshed] = useState(null)
 
   const fetchAll = useCallback(async () => {
-
     try {
-
       setError(null)
 
-      const rows =
-        await getEnabledStreamers()
+      // Fetch base table and join the new streamer_data table
+      const { data: rows, error: dbError } = await supabase
+        .from('streamers')
+        .select(`
+          id,
+          platform,
+          youtube_channel_id,
+          kick_username,
+          streamer_data (
+            channel_name,
+            avatar,
+            is_live,
+            title,
+            thumbnail,
+            viewer_count,
+            stream_url
+          )
+        `)
+        .eq('enabled', true)
+
+      if (dbError) throw dbError
 
       if (!rows || rows.length === 0) {
-
         setStreamers([])
-
-        setIsLoading(false)
-
         setLastRefreshed(new Date())
-
         return
       }
 
-      // =====================================================
-      // ENRICH STREAMERS
-      // =====================================================
+      // Format data for StreamCard.jsx
+      const formatted = rows.map((s) => {
+        // Handle Supabase 1-to-1 join response (could be array or object)
+        const info = Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data || {}
+        const channelId = s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username
 
-      const enriched = await Promise.all(
+        return {
+          dbId: s.id,
+          platform: s.platform,
+          channelId: channelId,
+          isLive: info.is_live || false,
+          title: info.title || null,
+          thumbnail: info.thumbnail || null,
+          viewerCount: info.viewer_count || 0,
+          streamUrl: info.stream_url || null,
+          channelName: info.channel_name || channelId,
+          avatar: info.avatar || null,
+          verified: false, // add to DB later if needed
+          channelUrl: s.platform === 'youtube' 
+            ? `https://www.youtube.com/channel/${channelId}` 
+            : `https://kick.com/${channelId}`
+        }
+      })
 
-        rows.map(async (s) => {
-
-          const base = {
-
-            dbId:
-              s.id,
-
-            platform:
-              s.platform,
-
-            enabled:
-              s.enabled,
-
-            isLive:
-              false,
-
-            verified:
-              false,
-
-            viewerCount:
-              null,
-
-            thumbnail:
-              null,
-
-            title:
-              null,
-
-            streamUrl:
-              null,
-          }
-
-          try {
-
-            // =================================================
-            // YOUTUBE
-            // =================================================
-
-            if (
-              s.platform === 'youtube' &&
-              s.youtube_channel_id
-            ) {
-
-              const channelId =
-                s.youtube_channel_id
-
-              // live first
-              const live =
-                await getYouTubeLiveStream(
-                  channelId
-                )
-
-              if (live) {
-
-                return {
-
-                  ...base,
-
-                  ...live,
-
-                  platform:
-                    'youtube',
-
-                  channelId,
-
-                  isLive:
-                    true,
-                }
-              }
-
-              // offline profile
-              const info =
-                await getYouTubeChannelInfo(
-                  channelId
-                )
-
-              return {
-
-                ...base,
-
-                platform:
-                  'youtube',
-
-                channelId,
-
-                channelName:
-                  info?.name ||
-                  channelId,
-
-                avatar:
-                  info?.avatar ||
-                  null,
-
-                verified:
-                  info?.verified ||
-                  false,
-
-                channelUrl:
-                  info?.channelUrl ||
-                  `https://www.youtube.com/channel/${channelId}`,
-              }
-            }
-
-            // =================================================
-            // KICK
-            // =================================================
-
-            if (
-              s.platform === 'kick' &&
-              s.kick_username
-            ) {
-
-              const username =
-                s.kick_username
-
-              // live first
-              const live =
-                await getKickLiveStream(
-                  username
-                )
-
-              if (live) {
-
-                return {
-
-                  ...base,
-
-                  ...live,
-
-                  platform:
-                    'kick',
-
-                  channelId:
-                    username,
-
-                  isLive:
-                    true,
-                }
-              }
-
-              // offline profile
-              const info =
-                await getKickChannelInfo(
-                  username
-                )
-
-              return {
-
-                ...base,
-
-                platform:
-                  'kick',
-
-                channelId:
-                  username,
-
-                channelName:
-                  info?.channelName ||
-                  username,
-
-                avatar:
-                  info?.avatar ||
-                  null,
-
-                verified:
-                  info?.verified ||
-                  false,
-
-                channelUrl:
-                  info?.channelUrl ||
-                  `https://kick.com/${username}`,
-              }
-            }
-
-          } catch (err) {
-
-            console.error(
-              `[useAllStreamers] ${s.id}:`,
-              err.message
-            )
-          }
-
-          return base
-        })
-      )
-
-      // =====================================================
-      // SORT
-      // =====================================================
-
-      const sorted =
-        [...enriched].sort((a, b) => {
-
-          // live first
-          if (a.isLive && !b.isLive)
-            return -1
-
-          if (!a.isLive && b.isLive)
-            return 1
-
-          // viewers desc
-          if (a.isLive && b.isLive) {
-
-            return (
-              (b.viewerCount || 0) -
-              (a.viewerCount || 0)
-            )
-          }
-
-          // alphabetical
-          return (
-            (a.channelName || '')
-              .localeCompare(
-                b.channelName || ''
-              )
-          )
-        })
+      // Sort: Live first -> High viewers -> Alphabetical
+      const sorted = formatted.sort((a, b) => {
+        if (a.isLive && !b.isLive) return -1
+        if (!a.isLive && b.isLive) return 1
+        if (a.isLive && b.isLive) return (b.viewerCount || 0) - (a.viewerCount || 0)
+        return (a.channelName || '').localeCompare(b.channelName || '')
+      })
 
       setStreamers(sorted)
-
       setLastRefreshed(new Date())
 
     } catch (err) {
-
       console.error(err)
-
-      setError(
-        err.message ||
-        'Failed to load streamers'
-      )
-
+      setError(err.message || 'Failed to load streamers')
     } finally {
-
       setIsLoading(false)
     }
-
   }, [])
 
-  // =====================================================
-  // INITIAL
-  // =====================================================
-
   useEffect(() => {
-
     fetchAll()
-
   }, [fetchAll])
-
-  // =====================================================
-  // AUTO REFRESH
-  // =====================================================
 
   useEffect(() => {
-
-    const id = setInterval(
-      fetchAll,
-      REFRESH_INTERVAL
-    )
-
+    const id = setInterval(fetchAll, REFRESH_INTERVAL)
     return () => clearInterval(id)
-
   }, [fetchAll])
 
-  return {
-
-    streamers,
-
-    isLoading,
-
-    error,
-
-    refresh: fetchAll,
-
-    lastRefreshed
-  }
+  return { streamers, isLoading, error, refresh: fetchAll, lastRefreshed }
 }
