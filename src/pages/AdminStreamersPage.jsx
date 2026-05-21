@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase.js' // Adjust this path to your Supabase client instance
 import AdminLayout from '../layouts/AdminLayout'
-import { useStreamers } from '../hooks/useStreamers'
 import ToastContainer, { useToast } from '../components/common/Toast'
 
+// =========================================================
+// ADD MODAL SUB-COMPONENT
+// =========================================================
 function AddStreamerModal({ onClose, onAdd }) {
   const [platform, setPlatform] = useState('youtube')
   const [value, setValue] = useState('')
@@ -17,6 +20,7 @@ function AddStreamerModal({ onClose, onAdd }) {
       const payload = { platform }
       if (platform === 'youtube') payload.youtube_channel_id = value.trim()
       else payload.kick_username = value.trim()
+      
       await onAdd(payload)
       onClose()
     } catch (err) {
@@ -90,6 +94,9 @@ function AddStreamerModal({ onClose, onAdd }) {
   )
 }
 
+// =========================================================
+// EDIT MODAL SUB-COMPONENT
+// =========================================================
 function EditModal({ streamer, onClose, onSave }) {
   const [value, setValue] = useState(
     streamer.platform === 'youtube' ? streamer.youtube_channel_id : streamer.kick_username
@@ -140,140 +147,359 @@ function EditModal({ streamer, onClose, onSave }) {
   )
 }
 
+// =========================================================
+// MAIN PAGE COMPONENT WITH INLINE FRONTEND QUERIES
+// =========================================================
 export default function AdminStreamersPage() {
-  const { streamers, isLoading, error, add, edit, remove, toggle } = useStreamers()
+  const [streamers, setStreamers] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [globalError, setGlobalError] = useState('')
   const { toasts, show } = useToast()
+  
   const [showAdd, setShowAdd] = useState(false)
   const [editTarget, setEditTarget] = useState(null)
 
+  // 🔍 SEARCH & FILTER STATES
+  const [searchQuery, setSearchQuery] = useState('')
+  const [platformFilter, setPlatformFilter] = useState('all') // 'all' | 'youtube' | 'kick'
+  const [statusFilter, setStatusFilter] = useState('all')     // 'all' | 'enabled' | 'disabled'
+
+  // 1. SELECT QUERY WITH DATABASE RELATION CHECK
+  const fetchStreamers = async () => {
+    try {
+      setIsLoading(true)
+      setGlobalError('')
+      
+      const { data, error } = await supabase
+        .from('streamers')
+        .select(`
+          id,
+          platform,
+          youtube_channel_id,
+          kick_username,
+          enabled,
+          created_at,
+          streamer_data (
+            channel_name,
+            avatar
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setStreamers(data || [])
+    } catch (err) {
+      console.error(err)
+      setGlobalError('Failed to load streamer profiles from database application tables.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStreamers()
+  }, [])
+
+  // 2. INSERT OPERATIONS ROUTE
   const handleAdd = async (payload) => {
-    await add(payload)
-    show('Streamer added successfully')
+    try {
+      const { error } = await supabase
+        .from('streamers')
+        .insert([payload])
+
+      if (error) throw error
+      show('Streamer added successfully')
+      fetchStreamers()
+    } catch (err) {
+      show(err.message, 'error')
+    }
   }
 
+  // 3. UPDATE OPERATIONS ROUTE
   const handleEdit = async (id, updates) => {
-    await edit(id, updates)
-    show('Streamer updated')
+    try {
+      const { error } = await supabase
+        .from('streamers')
+        .update(updates)
+        .eq('id', id)
+
+      if (error) throw error
+      show('Streamer updated successfully')
+      fetchStreamers()
+    } catch (err) {
+      show(err.message, 'error')
+    }
   }
 
+  // 4. TOGGLE STATUS RULE LOCKS
+  const handleToggle = async (id, currentStatus) => {
+    try {
+      const nextStatus = !currentStatus
+      const { error } = await supabase
+        .from('streamers')
+        .update({ enabled: nextStatus })
+        .eq('id', id)
+
+      if (error) throw error
+      show(`Streamer ${nextStatus ? 'enabled' : 'disabled'}`)
+      
+      // Local state update mutation optimization loop
+      setStreamers(prev => prev.map(s => s.id === id ? { ...s, enabled: nextStatus } : s))
+    } catch (err) {
+      show(err.message, 'error')
+    }
+  }
+
+  // 5. DELETE OPERATION ROUTE WIPE
   const handleDelete = async (id) => {
-    if (!confirm('Delete this streamer?')) return
+    if (!confirm('Are you sure you want to permanently delete this streamer?')) return
     try {
-      await remove(id)
-      show('Streamer deleted')
+      const { error } = await supabase
+        .from('streamers')
+        .delete()
+        .eq('id', id)
+
+      if (error) throw error
+      show('Streamer deleted clean from records')
+      setStreamers(prev => prev.filter(s => s.id !== id))
     } catch (err) {
       show(err.message, 'error')
     }
   }
 
-  const handleToggle = async (id, current) => {
-    try {
-      await toggle(id, !current)
-      show(`Streamer ${!current ? 'enabled' : 'disabled'}`)
-    } catch (err) {
-      show(err.message, 'error')
+  // 🧼 FRONTEND FILTERING LOGIC PIPELINE
+  const filteredStreamers = streamers.filter(s => {
+    // A. Platform filtering switch
+    if (platformFilter !== 'all' && s.platform !== platformFilter) return false
+
+    // B. Status filtering switch
+    if (statusFilter === 'enabled' && !s.enabled) return false
+    if (statusFilter === 'disabled' && s.enabled) return false
+
+    // C. Text search targeting evaluation matching (checks name, custom username handle, or core channel strings)
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase()
+      const rawHandle = (s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username) || ''
+      
+      const hasBeenScraped = s.streamer_data && 
+        (Array.isArray(s.streamer_data) ? s.streamer_data.length > 0 : Object.keys(s.streamer_data).length > 0);
+      const metadata = hasBeenScraped ? (Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data) : null;
+      const channelName = metadata?.channel_name || ''
+
+      const matchesHandle = rawHandle.toLowerCase().includes(query)
+      const matchesName = channelName.toLowerCase().includes(query)
+
+      return matchesHandle || matchesName
     }
-  }
+
+    return true
+  })
 
   return (
     <AdminLayout>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
+        
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="font-display font-bold text-2xl text-white">Streamers</h1>
-            <p className="text-valo-muted text-sm font-body mt-0.5">{streamers.length} total streamers</p>
+            <p className="text-valo-muted text-sm font-body mt-0.5">
+              {filteredStreamers.length === streamers.length 
+                ? `${streamers.length} total streamers`
+                : `Showing ${filteredStreamers.length} of ${streamers.length} streamers`
+              }
+            </p>
           </div>
-          <button onClick={() => setShowAdd(true)} className="valo-btn flex items-center gap-2">
+          <button onClick={() => setShowAdd(true)} className="valo-btn flex items-center gap-2 self-start sm:self-auto">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M12 5v14M5 12h14"/></svg>
             Add Streamer
           </button>
         </div>
 
-        {error && (
-          <div className="bg-red-900/20 border border-red-700/30 rounded p-4 text-sm text-red-300">{error}</div>
+        {/* 🛠️ CONTROL REGION: SEARCH BAR AND DROPDOWN FILTER ARRAYS */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center bg-black/20 p-3 rounded-xl border border-valo-border/60">
+          
+          {/* Text Input Search Field */}
+          <div className="relative md:col-span-6">
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-valo-muted">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <input 
+              type="text"
+              placeholder="Search by name, channel ID, or handle..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-black/40 border border-neutral-800 focus:border-valo-red rounded-lg pl-9 pr-4 py-2 text-xs text-white placeholder-valo-muted focus:outline-none transition-all font-body"
+            />
+          </div>
+
+          {/* Platform Category Filters */}
+          <div className="flex gap-1.5 md:col-span-4 overflow-x-auto whitespace-nowrap scrollbar-none">
+            {['all', 'youtube', 'kick'].map((p) => (
+              <button
+                key={p}
+                onClick={() => setPlatformFilter(p)}
+                className={`px-3 py-2 rounded-lg text-xs font-display font-semibold uppercase tracking-wider border transition-all ${
+                  platformFilter === p 
+                    ? 'bg-white/10 text-white border-white/20' 
+                    : 'bg-transparent text-valo-muted border-transparent hover:text-white hover:bg-white/5'
+                }`}
+              >
+                {p}
+              </button>
+            ))}
+          </div>
+
+          {/* Status Visibility Dropdown */}
+          <div className="md:col-span-2">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="w-full bg-black/40 border border-neutral-800 focus:border-valo-red text-xs font-display text-neutral-300 rounded-lg p-2 focus:outline-none cursor-pointer uppercase tracking-wider font-semibold"
+            >
+              <option value="all" className="bg-valo-dark">All Status</option>
+              <option value="enabled" className="bg-valo-dark">Enabled Only</option>
+              <option value="disabled" className="bg-valo-dark">Disabled Only</option>
+            </select>
+          </div>
+
+        </div>
+
+        {globalError && (
+          <div className="bg-red-900/20 border border-red-700/30 rounded p-4 text-sm text-red-300">{globalError}</div>
         )}
 
+        {/* Dynamic List Content Engine */}
         {isLoading ? (
           <div className="space-y-2">
             {[...Array(5)].map((_, i) => (
               <div key={i} className="h-16 rounded-lg shimmer" />
             ))}
           </div>
-        ) : streamers.length === 0 ? (
+        ) : filteredStreamers.length === 0 ? (
           <div className="bg-valo-card border border-valo-border rounded-xl p-12 text-center">
-            <p className="text-valo-muted font-body">No streamers yet. Add your first one!</p>
+            <p className="text-valo-muted font-body">
+              {streamers.length === 0 
+                ? "No streamers yet. Add your first one!" 
+                : "No streamers match your active search terms or filters."
+              }
+            </p>
           </div>
         ) : (
           <div className="bg-valo-card border border-valo-border rounded-xl overflow-hidden">
             <table className="w-full text-sm font-body">
               <thead>
-                <tr className="border-b border-valo-border">
+                <tr className="border-b border-valo-border bg-black/20">
+                  <th className="text-left px-4 py-3 text-xs font-display font-semibold text-valo-muted uppercase tracking-wider">Identifiable Streamer</th>
                   <th className="text-left px-4 py-3 text-xs font-display font-semibold text-valo-muted uppercase tracking-wider">Platform</th>
-                  <th className="text-left px-4 py-3 text-xs font-display font-semibold text-valo-muted uppercase tracking-wider">ID / Username</th>
+                  <th className="text-left px-4 py-3 text-xs font-display font-semibold text-valo-muted uppercase tracking-wider">System ID Target</th>
                   <th className="text-left px-4 py-3 text-xs font-display font-semibold text-valo-muted uppercase tracking-wider hidden sm:table-cell">Added</th>
                   <th className="text-left px-4 py-3 text-xs font-display font-semibold text-valo-muted uppercase tracking-wider">Status</th>
                   <th className="text-right px-4 py-3 text-xs font-display font-semibold text-valo-muted uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {streamers.map((s, i) => (
-                  <tr
-                    key={s.id}
-                    className={`border-b border-valo-border/50 hover:bg-white/2 transition-colors ${i === streamers.length - 1 ? 'border-0' : ''}`}
-                  >
-                    <td className="px-4 py-3">
-                      <span className={`text-xs font-display font-semibold uppercase px-2 py-1 rounded ${
-                        s.platform === 'youtube' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'
-                      }`}>
-                        {s.platform}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <code className="text-xs font-mono text-valo-text bg-black/30 px-2 py-1 rounded">
-                        {s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username}
-                      </code>
-                    </td>
-                    <td className="px-4 py-3 text-valo-muted text-xs hidden sm:table-cell">
-                      {new Date(s.created_at).toLocaleDateString()}
-                    </td>
-                    <td className="px-4 py-3">
-                      <button
-                        onClick={() => handleToggle(s.id, s.enabled)}
-                        className={`text-xs px-2.5 py-1 rounded-full font-display font-semibold transition-all ${
-                          s.enabled
-                            ? 'bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:text-red-400'
-                            : 'bg-valo-border text-valo-muted hover:bg-green-500/10 hover:text-green-400'
-                        }`}
-                      >
-                        {s.enabled ? 'Enabled' : 'Disabled'}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2 justify-end">
+                {filteredStreamers.map((s, i) => {
+                  const hasBeenScraped = s.streamer_data && 
+                                         (Array.isArray(s.streamer_data) 
+                                            ? s.streamer_data.length > 0 
+                                            : Object.keys(s.streamer_data).length > 0);
+
+                  const metadata = hasBeenScraped
+                    ? (Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data)
+                    : null;
+
+                  return (
+                    <tr
+                      key={s.id}
+                      className={`border-b border-valo-border/50 hover:bg-white/2 transition-colors ${i === filteredStreamers.length - 1 ? 'border-0' : ''}`}
+                    >
+                      {/* PROFILE DATA IDENTIFIER BLOCK */}
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-3">
+                          {hasBeenScraped && metadata?.avatar ? (
+                            <img 
+                              src={metadata.avatar} 
+                              alt="" 
+                              className="w-7 h-7 rounded-full object-cover border border-white/10"
+                              onError={(e) => { e.target.style.display = 'none' }}
+                            />
+                          ) : (
+                            <div className="w-7 h-7 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center text-[10px] text-neutral-500 font-mono shadow-inner">
+                              {hasBeenScraped && metadata?.channel_name ? metadata.channel_name.charAt(0).toUpperCase() : '⏳'}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-white font-semibold text-sm">
+                              {hasBeenScraped ? metadata?.channel_name : 'New Channel Registration'}
+                            </p>
+                            {!hasBeenScraped && (
+                              <p className="text-[10px] text-valo-red font-mono font-bold uppercase tracking-wider animate-pulse mt-0.5">
+                                Syncing database records...
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <span className={`text-xs font-display font-semibold uppercase px-2 py-1 rounded ${
+                          s.platform === 'youtube' ? 'bg-red-500/10 text-red-400' : 'bg-green-500/10 text-green-400'
+                        }`}>
+                          {s.platform}
+                        </span>
+                      </td>
+                      
+                      <td className="px-4 py-3">
+                        <code className="text-xs font-mono text-valo-text bg-black/30 px-2 py-1 rounded max-w-[160px] truncate block">
+                          {s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username}
+                        </code>
+                      </td>
+
+                      <td className="px-4 py-3 text-valo-muted text-xs hidden sm:table-cell">
+                        {new Date(s.created_at).toLocaleDateString()}
+                      </td>
+
+                      <td className="px-4 py-3">
                         <button
-                          onClick={() => setEditTarget(s)}
-                          className="text-valo-muted hover:text-white transition-colors p-1.5 hover:bg-valo-border rounded"
-                          title="Edit"
+                          onClick={() => handleToggle(s.id, s.enabled)}
+                          className={`text-xs px-2.5 py-1 rounded-full font-display font-semibold transition-all ${
+                            s.enabled
+                              ? 'bg-green-500/10 text-green-400 hover:bg-red-500/10 hover:text-red-400'
+                              : 'bg-valo-border text-valo-muted hover:bg-green-500/10 hover:text-green-400'
+                          }`}
                         >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                          </svg>
+                          {s.enabled ? 'Enabled' : 'Disabled'}
                         </button>
-                        <button
-                          onClick={() => handleDelete(s.id)}
-                          className="text-valo-muted hover:text-valo-red transition-colors p-1.5 hover:bg-valo-red/10 rounded"
-                          title="Delete"
-                        >
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                            <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                          </svg>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2 justify-end">
+                          <button
+                            onClick={() => setEditTarget(s)}
+                            className="text-valo-muted hover:text-white transition-colors p-1.5 hover:bg-valo-border rounded"
+                            title="Edit"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(s.id)}
+                            className="text-valo-muted hover:text-valo-red transition-colors p-1.5 hover:bg-valo-red/10 rounded"
+                            title="Delete"
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                              <path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
