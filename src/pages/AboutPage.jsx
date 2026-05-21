@@ -119,13 +119,7 @@ export default function AboutPage() {
 
           {/* CTA */}
           <div className="text-center pt-4">
-            <a
-              href="/submit"
-              className="valo-btn inline-flex items-center gap-2 px-6 py-3"
-            >
-              Submit Your Channel
-              <ArrowRightIcon />
-            </a>
+            
             <div className="flex justify-center items-center gap-2 text-valo-muted text-xs mt-4">
               <MailIconSmall />
               <span>menatarmsclipz@gmail.com</span>
