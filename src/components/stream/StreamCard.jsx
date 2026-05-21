@@ -33,7 +33,7 @@ export default function StreamerCard({ streamer }) {
       <div className="bg-valo-card border border-valo-border rounded-xl p-6 flex flex-col items-center justify-center text-center h-[290px] md:h-[310px] animate-pulse">
         {/* Animated placeholder loop container */}
         <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg shadow-inner">
-          <loadingIcon />
+          <LoadingIcon />
         </div>
         
         {/* Syncing Labels Layout */}
@@ -217,7 +217,7 @@ export default function StreamerCard({ streamer }) {
       </div>
     </a>
   )
-}function loadingIcon() {
+}function LoadingIcon() {
   return (
     <svg className="w-6 h-6 text-neutral-500 animate-spin" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
