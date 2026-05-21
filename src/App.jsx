@@ -9,49 +9,84 @@ import ProtectedRoute from './components/common/ProtectedRoute'
 import AboutPage from './pages/AboutPage'
 import LeaderboardPage from './pages/LeaderboardPage'
 import AdminAnnouncements from './pages/AdminAnnouncements'
+// src/App.jsx
+import { useState, useEffect } from 'react'
+import { supabase } from './lib/supabase.js'
+import LoadingScreen from './components/common/LoadingScreen'
 
 export default function App() {
+  const [dbLoaded, setDbLoaded] = useState(false)
+
+  useEffect(() => {
+    const bootstrapPlatform = async () => {
+      try {
+        // 🕵️ Warm up connection and verify system integrity
+        await supabase.from('streamers').select('id').limit(1)
+        
+        // ⏱️ Cinematic Delay: Lets the user experience your slick metallic glint intro (1.2 seconds)
+        setTimeout(() => {
+          setDbLoaded(true)
+        }, 1200)
+      } catch (err) {
+        console.error("Platform boot error:", err)
+        setDbLoaded(true) // Fallback to let users access pages if offline
+      }
+    }
+    bootstrapPlatform()
+  }, [])
+
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Public */}
-        <Route path="/"  element={<AllStreamersPage />} />
-        <Route path="/submit"     element={<SubmitPage />} />
-<Route path='/about' element={<AboutPage />} />
-<Route path='/leaderboard' element={<LeaderboardPage />} />
-        {/* Admin Auth */}
-        <Route path="/admin/login" element={<AdminLoginPage />} />
+    <>
+      {/* 🎬 MOUNT CINEMATIC INTRO OVERLAY WINDOW */}
+      <LoadingScreen isAppReady={dbLoaded} />
 
-        {/* Admin Protected */}
-        <Route
-          path="/admin"
-          element={
-            <ProtectedRoute>
-              <AdminStreamersPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/submissions"
-          element={
-            <ProtectedRoute>
-              <AdminSubmissionsPage />
-            </ProtectedRoute>
-          }
-        />
-<Route
-          path="/admin/announcements"
-          element={
-            <ProtectedRoute>
-              <AdminAnnouncements />
-            </ProtectedRoute>
-          }
-        />
+      {/* 💻 APPLICATON ROUTING CANVAS (Smoothly transitions in as loading drops out) */}
+      <div className={`min-h-screen bg-black transition-all duration-700 ease-out ${
+        dbLoaded ? 'opacity-100 scale-100 blur-none' : 'opacity-0 scale-98 blur-sm'
+      }`}>
+        <BrowserRouter>
+          <Routes>
+            {/* Public */}
+            <Route path="/" element={<AllStreamersPage />} />
+            <Route path="/submit" element={<SubmitPage />} />
+            <Route path='/about' element={<AboutPage />} />
+            <Route path='/leaderboard' element={<LeaderboardPage />} />
+            
+            {/* Admin Auth */}
+            <Route path="/admin/login" element={<AdminLoginPage />} />
 
-        {/* Fallback */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+            {/* Admin Protected */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute>
+                  <AdminStreamersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/submissions"
+              element={
+                <ProtectedRoute>
+                  <AdminSubmissionsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/announcements"
+              element={
+                <ProtectedRoute>
+                  <AdminAnnouncements />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Fallback */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </div>
+    </>
   )
 }
 
