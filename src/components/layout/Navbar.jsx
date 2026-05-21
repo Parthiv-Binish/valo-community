@@ -48,7 +48,7 @@ export default function Navbar() {
           to="/about"
           className="md:hidden text-neutral-400 hover:text-white transition-colors px-2.5 py-1.5 text-xs font-semibold uppercase tracking-wider font-display"
         >
-          About
+          <AboutIcon/>
         </Link>
         {/* Shield Admin icon stays global */}
         <Link
@@ -67,6 +67,15 @@ function ShieldIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+    </svg>
+  )
+}
+function AboutIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
     </svg>
   )
 }
