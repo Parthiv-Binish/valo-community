@@ -21,43 +21,43 @@ export default function LoadingScreen({ isAppReady }) {
   if (!shouldRender) return null
 
   return (
-    <div className="fixed inset-0 bg-[#000000] z-[99999] overflow-hidden select-none pointer-events-none font-mono">
+    <div className="fixed inset-0 bg-[#000000] z-[99999] overflow-hidden select-none pointer-events-none font-mono w-full h-full">
       
-      {/* 🎬 LEFT SPLIT PANEL - PURE TRUE PITCH BLACK */}
+      {/* 🎬 LEFT SPLIT PANEL - PURE DARK TACTICAL VALO BLACK */}
       <div 
         className={`absolute inset-y-0 left-0 w-1/2 bg-[#000000] border-r border-[#ff4655]/10 transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1)
           ${isExiting ? '-translate-x-full' : 'translate-x-0'}
         `}
       />
 
-      {/* 🎬 RIGHT SPLIT PANEL - PURE TRUE PITCH BLACK */}
+      {/* 🎬 RIGHT SPLIT PANEL - PURE DARK TACTICAL VALO BLACK */}
       <div 
         className={`absolute inset-y-0 right-0 w-1/2 bg-[#000000] border-l border-[#ff4655]/10 transition-transform duration-700 cubic-bezier(0.85, 0, 0.15, 1)
           ${isExiting ? 'translate-x-full' : 'translate-x-0'}
         `}
       />
 
-      {/* 🎯 RADAR CONTAINER CONTENT */}
+      {/* 🎯 CONTENT CONTAINER WRAPPER */}
       <div 
-        className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-300
+        className={`absolute inset-0 flex flex-col items-center justify-center p-4 transition-all duration-300
           ${isExiting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}
         `}
       >
-        {/* PURE CRIMSON RED HUD BACKGROUND WATERMARK */}
-        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center pointer-events-none select-none z-0">
+        {/* RED HUD BACKGROUND WATERMARK - Hidden on small mobile screens to prevent visual clutter */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 text-center pointer-events-none select-none z-0 hidden sm:block">
           <h2 className="text-[14vw] font-black text-[#ff4655]/[0.012] tracking-[0.25em] uppercase select-none">
             V A L O
           </h2>
         </div>
 
-        {/* 🌟 ULTRA-SCALE MASSIVE LOGO CONTAINER */}
-        <div className="relative z-10 mb-6 max-w-lg md:max-w-3xl">
+        {/* 🌟 SCALED RESPONSIVE LOGO CONTAINER */}
+        <div className="relative z-10 mb-8 sm:mb-12 max-w-full flex items-center justify-center">
           
-          {/* Main Presentational Logo Graphics Asset (Color-Untouched Native Look) */}
+          {/* Main Logo Asset - Responsively scaled across breakpoints from mobile up to desktop */}
           <img
             src="https://iili.io/Bp6m8Xa.png"
             alt="VALO Community"
-            className="h-72 w-72 md:h-[400px] md:w-[400px] object-contain relative z-10 animate-pulse-slow clean-native-logo"
+            className="h-44 w-44 sm:h-64 sm:w-64 md:h-[400px] md:w-[400px] max-w-[85vw] object-contain relative z-10 animate-pulse-slow clean-native-logo"
           />
           
           {/* Angled Dark Red Light Shimmer Interceptor Beam */}
@@ -69,21 +69,21 @@ export default function LoadingScreen({ isAppReady }) {
             }}
           />
 
-          {/* Volumetric Red Ambient Glow Backing behind the transparency */}
-          <div className="absolute inset-[-20px] bg-[#ff4655]/15 blur-[100px] rounded-full z-0 pointer-events-none" />
+          {/* Volumetric Red Ambient Glow Backing (Adjusted blur to keep responsive rendering fast) */}
+          <div className="absolute inset-[-10px] sm:inset-[-20px] bg-[#ff4655]/15 blur-[60px] sm:blur-[100px] rounded-full z-0 pointer-events-none" />
         </div>
 
         {/* 🛠️ BOTTOM RED HUD PROGRESS LOADING BAR */}
-        <div className="absolute bottom-16 flex flex-col items-center gap-3 z-10">
+        <div className="absolute bottom-12 sm:bottom-16 flex flex-col items-center gap-3 z-10 px-4 w-full max-w-xs sm:max-w-none">
           
-          {/* Tactical Red Progress Bar */}
-          <div className="w-64 h-[2px] bg-[#ff4655]/10 relative overflow-hidden rounded-full">
+          {/* Responsive Width Progress Track Container */}
+          <div className="w-full sm:w-64 h-[2px] bg-[#ff4655]/10 relative overflow-hidden rounded-full">
             <div className="absolute inset-y-0 left-0 bg-[#ff4655] w-full origin-left animate-loading-bar shadow-[0_0_10px_#ff4655]" />
           </div>
 
           {/* Real-time Loading Status Meta Layout */}
-          <div className="flex items-center gap-2 text-[#ff4655]/40 text-[9px] tracking-[0.25em] font-bold uppercase">
-            <span className="w-1.5 h-1.5 bg-[#ff4655] inline-block animate-pulse shrink-0" />
+          <div className="flex items-center justify-center flex-wrap gap-x-2 gap-y-0.5 text-[#ff4655]/40 text-[8px] sm:text-[9px] tracking-[0.25em] font-bold uppercase text-center">
+            <span className="w-1.5 h-1.5 bg-[#ff4655] inline-block animate-pulse shrink-0 hidden sm:block" />
             <span>Establishing Agent Interface</span>
             <span className="text-[#ff4655]/20">//</span>
             <span className="text-[#ff4655]">0% // 100%</span>
@@ -91,16 +91,16 @@ export default function LoadingScreen({ isAppReady }) {
 
         </div>
 
-        {/* 📐 HIGH-CONTRAST VALORANT RED HUD CORNER ANGLES */}
-        <div className="absolute top-12 left-12 w-6 h-6 border-t-2 border-l-2 border-[#ff4655]/30" />
-        <div className="absolute bottom-12 right-12 w-6 h-6 border-b-2 border-r-2 border-[#ff4655]/30" />
+        {/* 📐 VALORANT RED HUD CORNER ANGLES - Inward spacing scales down smoothly on mobile */}
+        <div className="absolute top-6 left-6 sm:top-12 sm:left-12 w-4 h-4 sm:w-6 sm:h-6 border-t-2 border-l-2 border-[#ff4655]/20" />
+        <div className="absolute bottom-6 right-6 sm:bottom-12 sm:right-12 w-4 h-4 sm:w-6 sm:h-6 border-b-2 border-r-2 border-[#ff4655]/20" />
         
-        {/* Red Decorative Grid coordinate tags */}
-        <div className="absolute top-12 right-12 text-[9px] text-[#ff4655]/15 tracking-widest select-none uppercase font-bold">
-          SYS.LOC // SCRN_MAIN_v2.6
+        {/* Red Decorative Grid Coordinate Meta Labels */}
+        <div className="absolute top-6 right-6 sm:top-12 sm:right-12 text-[8px] sm:text-[9px] text-[#ff4655]/15 tracking-widest select-none uppercase font-bold">
+          SYS.LOC // SCRN_MAIN
         </div>
-        <div className="absolute bottom-12 left-12 text-[9px] text-[#ff4655]/15 tracking-widest select-none uppercase font-bold">
-          AUTHENTICATING CREDENTIALS...
+        <div className="absolute bottom-6 left-6 sm:bottom-12 sm:left-12 text-[8px] sm:text-[9px] text-[#ff4655]/15 tracking-widest select-none uppercase font-bold hidden xs:block">
+          AUTHENTICATING...
         </div>
 
       </div>
@@ -129,10 +129,15 @@ export default function LoadingScreen({ isAppReady }) {
           animation: loadingBar 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
         }
         
-        /* Hardware accelerated clean look with native logo profiles */
         .clean-native-logo {
-          filter: drop-shadow(0px 0px 40px rgba(255, 70, 85, 0.45));
-          -webkit-filter: drop-shadow(0px 0px 40px rgba(255, 70, 85, 0.45));
+          filter: drop-shadow(0px 0px 30px rgba(255, 70, 85, 0.35));
+          -webkit-filter: drop-shadow(0px 0px 30px rgba(255, 70, 85, 0.35));
+        }
+        @media (min-width: 640px) {
+          .clean-native-logo {
+            filter: drop-shadow(0px 0px 40px rgba(255, 70, 85, 0.45));
+            -webkit-filter: drop-shadow(0px 0px 40px rgba(255, 70, 85, 0.45));
+          }
         }
       `}</style>
 
