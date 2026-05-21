@@ -16,14 +16,41 @@ const PLATFORM_CONFIG = {
 }
 
 export default function StreamerCard({ streamer }) {
-  // Prevent crashes if streamer data is missing entirely
+  // 1. Prevent crashes if streamer data is missing entirely
   if (!streamer) {
     return null
   }
 
-  // Safe fallback for platform string
-  const platform = streamer?.platform || 'youtube'
+  // 🕵️ 2. NEW LOGIC GATE: Catch un-scraped channels before they render a broken layout
+  const isUnscrapedYoutube = streamer.platform === 'youtube' && 
+    (!streamer.channelName || streamer.channelName.startsWith('UC'));
+  
+  const isUnscrapedKick = streamer.platform === 'kick' && !streamer.channelName;
 
+  if (isUnscrapedYoutube || isUnscrapedKick) {
+    const fallbackPlatformLabel = streamer.platform === 'kick' ? 'Kick' : 'YouTube';
+    return (
+      <div className="bg-valo-card border border-valo-border rounded-xl p-6 flex flex-col items-center justify-center text-center h-[290px] md:h-[310px] animate-pulse">
+        {/* Animated placeholder loop container */}
+        <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg shadow-inner">
+          <SyncIcon />
+        </div>
+        
+        {/* Syncing Labels Layout */}
+        <h3 className="font-display font-bold text-sm text-white uppercase tracking-wide mb-1">
+          Syncing Profile
+        </h3>
+        <p className="text-xs text-valo-muted font-body max-w-[210px] leading-relaxed">
+           This may take a moment.
+        </p>
+      </div>
+    );
+  }
+
+  // =========================================================
+  // 🚀 ORIGINAL FULLY SCRAPED RENDER ENGINE CONTENT
+  // =========================================================
+  const platform = streamer?.platform || 'youtube'
   const cfg = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.youtube
 
   // IRONCLAD LINK FALLBACK: Guarantees a working channel link when they are offline
@@ -189,5 +216,13 @@ export default function StreamerCard({ streamer }) {
         </div>
       </div>
     </a>
+  )
+}function SyncIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="23 4 23 10 17 10" />
+      <polyline points="1 20 1 14 7 14" />
+      <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 1 .51 15z"/>
+    </svg>
   )
 }
