@@ -7,6 +7,8 @@ import AdminStreamersPage from './pages/AdminStreamersPage'
 import AdminSubmissionsPage from './pages/AdminSubmissionsPage'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import AboutPage from './pages/AboutPage'
+import LeaderboardPage from './pages/LeaderboardPage'
+import AdminAnnouncements from './pages/AdminAnnouncements'
 
 export default function App() {
   return (
@@ -16,6 +18,7 @@ export default function App() {
         <Route path="/"  element={<AllStreamersPage />} />
         <Route path="/submit"     element={<SubmitPage />} />
 <Route path='/about' element={<AboutPage />} />
+<Route path='/leaderboard' element={<LeaderboardPage />} />
         {/* Admin Auth */}
         <Route path="/admin/login" element={<AdminLoginPage />} />
 
@@ -33,6 +36,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <AdminSubmissionsPage />
+            </ProtectedRoute>
+          }
+        />
+<Route
+          path="/admin/announcements"
+          element={
+            <ProtectedRoute>
+              <AdminAnnouncements />
             </ProtectedRoute>
           }
         />
