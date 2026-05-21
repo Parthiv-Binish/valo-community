@@ -196,7 +196,7 @@ function LeaderboardColumn({ platform, logo, accentColor, list }) {
                   {streamer.channelName}
                 </p>
                 <p className="text-[11px] text-valo-muted truncate font-body">
-                  {streamer.title || 'Streaming Live'}
+                  {'Streaming Live'}
                 </p>
               </div>
 
