@@ -154,11 +154,36 @@ export default function SubmitPage() {
 
         {/* Info */}
         <div className="mt-4 bg-valo-card/50 border border-valo-border rounded-lg p-4 text-xs text-valo-muted font-body leading-relaxed space-y-1">
-          <p className="flex items-start gap-2"><span>📋</span> Submissions are reviewed by our admin team.</p>
-          <p className="flex items-start gap-2"><span>✅</span> Approved streamers appear live on the homepage.</p>
-          <p className="flex items-start gap-2"><span>🎮</span> We feature VALORANT content creators only.</p>
+          <p className="flex items-start gap-2"><span><ChecklistIcon /></span> Submissions are reviewed by our admin team.</p>
+          <p className="flex items-start gap-2"><span><TrueIcon /></span> Approved streamers appear live on the homepage.</p>
+          <p className="flex items-start gap-2"><span><InfoIcon /></span> We feature VALORANT content creators only.</p>
         </div>
       </div>
     </MainLayout>
+  )
+}
+function ChecklistIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5">
+      <path d="M9 11l3 3L22 4M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" />
+    </svg>
+  )
+}
+
+function TrueIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="2.5">
+      <path d="M5 13l4 4L19 7M12 20a8 8 0 1 1-16 0 8 8 0 0 1 16 0z" />
+    </svg>
+  )
+}
+
+function InfoIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#facc15" strokeWidth="2.5">
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="8" x2="12" y2="12" />
+      <line x1="12" y1="16" x2="12" y2="16" />
+    </svg>
   )
 }
