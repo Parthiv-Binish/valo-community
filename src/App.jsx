@@ -1,18 +1,17 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import HomePage from './pages/HomePage'
+import { supabase } from './lib/supabase.js'
+
+import LoadingScreen from './components/common/LoadingScreen'
 import AllStreamersPage from './pages/AllStreamersPage'
 import SubmitPage from './pages/SubmitPage'
+import AboutPage from './pages/AboutPage'
+import LeaderboardPage from './pages/LeaderboardPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminStreamersPage from './pages/AdminStreamersPage'
 import AdminSubmissionsPage from './pages/AdminSubmissionsPage'
-import ProtectedRoute from './components/common/ProtectedRoute'
-import AboutPage from './pages/AboutPage'
-import LeaderboardPage from './pages/LeaderboardPage'
 import AdminAnnouncements from './pages/AdminAnnouncements'
-// src/App.jsx
-import { useState, useEffect } from 'react'
-import { supabase } from './lib/supabase.js'
-import LoadingScreen from './components/common/LoadingScreen'
+import ProtectedRoute from './components/common/ProtectedRoute'
 
 export default function App() {
   const [dbLoaded, setDbLoaded] = useState(false)
@@ -23,7 +22,7 @@ export default function App() {
         // 🕵️ Warm up connection and verify system integrity
         await supabase.from('streamers').select('id').limit(1)
         
-        // ⏱️ Cinematic Delay: Lets the user experience your slick metallic glint intro (1.2 seconds)
+        // ⏱️ Cinematic Delay: Lets the user experience your slick metallic glint intro
         setTimeout(() => {
           setDbLoaded(true)
         }, 1200)
@@ -40,10 +39,13 @@ export default function App() {
       {/* 🎬 MOUNT CINEMATIC INTRO OVERLAY WINDOW */}
       <LoadingScreen isAppReady={dbLoaded} />
 
-      {/* 💻 APPLICATON ROUTING CANVAS (Smoothly transitions in as loading drops out) */}
-      <div className={`min-h-screen bg-black transition-all duration-700 ease-out ${
-        dbLoaded ? 'opacity-100 scale-100 blur-none' : 'opacity-0 scale-98 blur-sm'
-      }`}>
+      {/* 💻 APPLICATION ROUTING CANVAS */}
+      {/* Mobile Fix: Dropped 'scale-98' and 'blur-sm' which cause accidental horizontal overflow on thin viewports */}
+      <div 
+        className={`min-h-screen bg-black transition-opacity duration-1000 ease-in-out w-full overflow-x-hidden ${
+          dbLoaded ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      >
         <BrowserRouter>
           <Routes>
             {/* Public */}
