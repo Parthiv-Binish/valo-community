@@ -12,6 +12,7 @@ export default function AdminLayout({ children }) {
   const navItems = [
     { to: '/admin', label: 'Streamers', end: true },
     { to: '/admin/submissions', label: 'Submissions' },
+    { to: '/admin/announcements', label: 'Announcements' }, // 👈 Added Announcements view link
   ]
 
   return (
