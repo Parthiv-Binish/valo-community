@@ -1,99 +1,73 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase' 
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
 import StreamerCard from '../components/stream/StreamCard'
+import StreamerCardSkeleton from '../components/stream/StreamCardSkeleton'
+import { useAllStreamers } from '../hooks/useAllStreamers'
 
 export default function MySubscriptionsPage() {
   const { user } = useAuth()
-  const [subscribedStreamers, setSubscribedStreamers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState('all') 
+  const [subscriptionHandles, setSubscriptionHandles] = useState([])
+  const [subsLoading, setSubsLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('all')
 
+  // 1. Leverage the exact same hook used on AllStreamersPage for unified data structures
+  const { streamers: allStreamers, isLoading: hooksLoading, error, refresh } = useAllStreamers()
+
+  // 2. Fetch the user's raw subscription strings from the database
   useEffect(() => {
-    async function fetchSubscriptions() {
+    async function fetchUserSubs() {
       if (!user) {
-        setLoading(false)
+        setSubsLoading(false)
         return
       }
-
       try {
-        setLoading(true)
-        
-        const { data: subData, error: subError } = await supabase
+        setSubsLoading(true)
+        const { data, error: subError } = await supabase
           .from('stream_subscriptions')
           .select('streamer_id')
           .eq('user_id', user.id)
 
         if (subError) throw subError
-
-        if (!subData || subData.length === 0) {
-          setSubscribedStreamers([])
-          return
-        }
-
-        const trackedHandles = subData.map(sub => sub.streamer_id)
-
-        const [ytResult, kickResult] = await Promise.all([
-          supabase.from('streamers').select('id, platform, youtube_channel_id, kick_username').in('youtube_channel_id', trackedHandles),
-          supabase.from('streamers').select('id, platform, youtube_channel_id, kick_username').in('kick_username', trackedHandles)
-        ])
-
-        const combinedRegistry = [...(ytResult.data || []), ...(kickResult.data || [])]
-        if (combinedRegistry.length === 0) {
-          setSubscribedStreamers([])
-          return
-        }
-
-        const streamerUuids = combinedRegistry.map(s => s.id)
-
-        const { data: metricsData, error: metricsError } = await supabase
-          .from('streamer_data')
-          .select('*')
-          .in('streamer_id', streamerUuids)
-
-        if (metricsError) throw metricsError
-
-        const completeProfiles = (metricsData || []).map(metric => {
-          const parent = combinedRegistry.find(s => s.id === metric.streamer_id)
-          const rawHandle = parent?.platform === 'youtube' ? parent.youtube_channel_id : parent?.kick_username
-
-          return {
-            id: rawHandle, 
-            channelId: rawHandle,
-            channelName: metric.channel_name || rawHandle,
-            platform: parent?.platform || 'youtube',
-            avatar: metric.avatar,
-            isLive: metric.is_live,
-            title: metric.title,
-            thumbnail: metric.thumbnail,
-            viewerCount: metric.viewer_count,
-            streamUrl: metric.stream_url,
-            verified: false
-          }
-        })
-
-        const sortedProfiles = completeProfiles.sort((a, b) => {
-          if (a.isLive && !b.isLive) return -1
-          if (!a.isLive && b.isLive) return 1
-          return 0
-        })
-
-        setSubscribedStreamers(sortedProfiles)
+        
+        // Map out the flat strings array (handles or IDs)
+        setSubscriptionHandles(data?.map(sub => sub.streamer_id) || [])
       } catch (err) {
-        console.error('Error matching dashboard records:', err)
+        console.error('Error fetching subscription records:', err)
       } finally {
-        setLoading(false)
+        setSubsLoading(false)
       }
     }
 
-    fetchSubscriptions()
+    fetchUserSubs()
   }, [user])
 
-  const displayedStreamers = subscribedStreamers.filter(streamer => {
-    if (activeTab === 'live') return streamer.isLive
-    return true
-  })
+  // 3. Match and filter the data using useMemo, matching the AllStreamersPage filter pattern
+  const subscribedStreamers = useMemo(() => {
+    if (!subscriptionHandles.length || !allStreamers.length) return []
+
+    return allStreamers.filter((streamer) => {
+      // Check every potential key variable that could map to your subscription tracking string
+      return (
+        subscriptionHandles.includes(streamer.id) ||
+        subscriptionHandles.includes(streamer.dbId) ||
+        subscriptionHandles.includes(streamer.channelId) ||
+        subscriptionHandles.includes(streamer.kick_username) ||
+        subscriptionHandles.includes(streamer.youtube_channel_id)
+      )
+    })
+  }, [allStreamers, subscriptionHandles])
+
+  // 4. Client-side live tab filtering
+  const displayedStreamers = useMemo(() => {
+    return subscribedStreamers.filter(streamer => {
+      if (activeTab === 'live') return streamer.isLive
+      return true
+    })
+  }, [subscribedStreamers, activeTab])
+
+  const combinedLoading = hooksLoading || subsLoading
 
   if (!user) {
     return (
@@ -117,6 +91,7 @@ export default function MySubscriptionsPage() {
     <MainLayout>
       <div className="space-y-6">
         
+        {/* Header Display Sub-Panel */}
         <div className="border-b border-neutral-900 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <div className="font-mono text-[10px] font-bold text-[#ff4655] tracking-widest uppercase mb-1">
@@ -127,11 +102,14 @@ export default function MySubscriptionsPage() {
             </h1>
           </div>
           
-          <div className="font-mono text-[11px] text-neutral-400 bg-neutral-900/50 border border-neutral-800 px-3 py-1.5 rounded uppercase tracking-wider select-none">
-            Tracking: <span className="text-[#ff4655] font-black">{subscribedStreamers.length} Channels</span>
-          </div>
+          {!combinedLoading && (
+            <div className="font-mono text-[11px] text-neutral-400 bg-neutral-900/50 border border-neutral-800 px-3 py-1.5 rounded uppercase tracking-wider select-none">
+              Tracking: <span className="text-[#ff4655] font-black">{subscribedStreamers.length} Channels</span>
+            </div>
+          )}
         </div>
 
+        {/* Tab Selection Filter Controls */}
         <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
           <button 
             onClick={() => setActiveTab('all')}
@@ -156,20 +134,21 @@ export default function MySubscriptionsPage() {
           </button>
         </div>
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-neutral-950/40 border border-neutral-900 rounded-xl p-4 h-[290px] animate-pulse flex flex-col justify-between">
-                <div className="w-full aspect-video bg-neutral-900/50 rounded-lg" />
-                <div className="space-y-2 mt-4 flex-1">
-                  <div className="h-4 bg-neutral-900/50 rounded w-2/3" />
-                  <div className="h-3 bg-neutral-900/50 rounded w-1/2" />
-                </div>
-              </div>
+        {/* Error Alert Display Box */}
+        {error && (
+          <div className="bg-red-900/20 border border-red-700/30 rounded-lg p-4 text-sm text-red-300 font-body">
+            ⚠️ {error}
+          </div>
+        )}
+
+        {/* Grid Viewport */}
+        {combinedLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <StreamerCardSkeleton key={i} />
             ))}
           </div>
         ) : displayedStreamers.length === 0 ? (
-          
           <div className="bg-neutral-950/20 border border-neutral-900 rounded-2xl p-12 text-center max-w-sm mx-auto flex flex-col items-center justify-center mt-8">
             <div className="w-12 h-12 bg-neutral-900/60 border border-neutral-800 rounded-xl flex items-center justify-center text-neutral-500 font-mono text-lg mb-4 select-none">
               📡
@@ -188,10 +167,9 @@ export default function MySubscriptionsPage() {
             </a>
           </div>
         ) : (
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
-            {displayedStreamers.map((streamer) => (
-              <StreamerCard key={streamer.id} streamer={streamer} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {displayedStreamers.map((streamer, i) => (
+              <StreamerCard key={`${streamer.platform}-${streamer.dbId || streamer.id}-${i}`} streamer={streamer} />
             ))}
           </div>
         )}
