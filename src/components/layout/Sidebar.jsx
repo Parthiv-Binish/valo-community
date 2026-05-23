@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom'
 
 const navItems = [
   { to: '/', label: 'All Streamers', end: true, icon: <HomeIcon /> },
+  {to: '/subscriptions', label: 'My Subscriptions', end: true, icon: <SubscriptionsIcon /> },
   { to: '/submit', label: 'Submit Streamer', end: true, icon: <SubmitIcon /> },
   { to: '/about', label: 'About', end: true, icon: <AboutIcon /> },
   { to: '/leaderboard', label: 'Leaderboard', end: true, icon: <LeaderboardIcon /> },
@@ -85,6 +86,14 @@ function LeaderboardIcon() {
       <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
       <line x1="3" y1="9" x2="21" y2="9" />
       <line x1="9" y1="21" x2="9" y2="9" />
+    </svg>
+  )
+}
+function SubscriptionsIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M4 4h16v16H4z" />
+      <path d="M8 2v4M16 2v4M3 10h18M3 14h18M3 18h18" />
     </svg>
   )
 }
