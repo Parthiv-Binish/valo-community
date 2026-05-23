@@ -1,4 +1,5 @@
 import { formatViewerCount } from '../../utils/format'
+import NotifyButton from '../common/NotifyButton'; // Ensure this relative path points to your button file
 
 const PLATFORM_CONFIG = {
   youtube: {
@@ -21,19 +22,18 @@ export default function StreamerCard({ streamer }) {
     return null
   }
 
-  // 🕵️ 2. NEW LOGIC GATE: Catch un-scraped channels before they render a broken layout
+  // 🕵️ 2. Catch un-scraped channels before they render a broken layout
   const isUnscrapedYoutube = streamer.platform === 'youtube' && 
     (!streamer.channelName || streamer.channelName.startsWith('UC'));
   
   const isUnscrapedKick = streamer.platform === 'kick' && !streamer.channelName;
 
   if (isUnscrapedYoutube || isUnscrapedKick) {
-    const fallbackPlatformLabel = streamer.platform === 'kick' ? 'Kick' : 'YouTube';
     return (
       <div className="bg-valo-card border border-valo-border rounded-xl p-6 flex flex-col items-center justify-center text-center h-[290px] md:h-[310px] animate-pulse">
         {/* Animated placeholder loop container */}
         <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg shadow-inner">
-          <LoadingIcon />
+          {loadingIcon()}
         </div>
         
         {/* Syncing Labels Layout */}
@@ -65,97 +65,105 @@ export default function StreamerCard({ streamer }) {
     .toUpperCase()
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block card-hover bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in"
-    >
-      {/* Live / Avatar area */}
-      <div className="relative aspect-video bg-[#111] overflow-hidden">
-        {/* Background Canvas */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
+    <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between">
+      
+      {/* ⚓ UPPER WRAPPER LINK - Safe clickable area for user redirection */}
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block"
+      >
+        {/* Live / Avatar area */}
+        <div className="relative aspect-video bg-[#111] overflow-hidden">
+          {/* Background Canvas */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
 
-        {/* Center Card Content */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-          {/* Avatar Image or fallback Letter Icon */}
-          {streamer.avatar ? (
-            <img
-              src={streamer.avatar}
-              alt={streamer.channelName}
-              className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
-              loading="lazy"
-              onError={(e) => {
-                e.target.style.display = 'none'
-              }}
-            />
-          ) : (
-            <div
-              className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
-              style={{
-                background: `${cfg.accentColor}20`,
-                color: cfg.accentColor
-              }}
-            >
-              {avatarLetter}
+          {/* Center Card Content */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
+            {/* Avatar Image or fallback Letter Icon */}
+            {streamer.avatar ? (
+              <img
+                src={streamer.avatar}
+                alt={streamer.channelName}
+                className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
+                loading="lazy"
+                onError={(e) => {
+                  e.target.style.display = 'none'
+                }}
+              />
+            ) : (
+              <div
+                className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
+                style={{
+                  background: `${cfg.accentColor}20`,
+                  color: cfg.accentColor
+                }}
+              >
+                {avatarLetter}
+              </div>
+            )}
+
+            {/* Status Meta Texts */}
+            <div className="text-center space-y-1">
+              <p className="text-white font-display font-bold text-lg line-clamp-1">
+                {streamer.channelName}
+              </p>
+
+              <p className="text-sm text-valo-muted font-body">
+                {streamer.isLive
+                  ? `is live on ${cfg.label}`
+                  : `is offline on ${cfg.label}`
+                }
+              </p>
+            </div>
+          </div>
+
+          {/* LIVE badge overlay */}
+          {streamer.isLive && (
+            <div className="absolute top-3 left-3">
+              <span className="live-badge">
+                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-red" />
+                LIVE
+              </span>
             </div>
           )}
 
-          {/* Status Meta Texts */}
-          <div className="text-center space-y-1">
-            <p className="text-white font-display font-bold text-lg line-clamp-1">
-              {streamer.channelName}
-            </p>
-
-            <p className="text-sm text-valo-muted font-body">
-              {streamer.isLive
-                ? `is live on ${cfg.label}`
-                : `is offline on ${cfg.label}`
-              }
-            </p>
+          {/* Platform dynamic logo container */}
+          <div className="absolute top-3 right-3">
+            <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
+              <img
+                src={cfg.logo}
+                alt={cfg.label}
+                className="h-3 object-contain"
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
+            </div>
           </div>
+
+          {/* Live viewer count metric pill */}
+          {streamer.isLive && streamer.viewerCount != null && (
+            <div className="absolute bottom-3 left-3 bg-black/77 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
+              {formatViewerCount(streamer.viewerCount)} watching
+            </div>
+          )}
         </div>
 
-        {/* LIVE badge overlay */}
-        {streamer.isLive && (
-          <div className="absolute top-3 left-3">
-            <span className="live-badge">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-red" />
-              LIVE
-            </span>
-          </div>
-        )}
-
-        {/* Platform dynamic logo container */}
-        <div className="absolute top-3 right-3">
-          <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
-            <img
-              src={cfg.logo}
-              alt={cfg.label}
-              className="h-3 object-contain"
-              onError={(e) => { e.target.style.display = 'none' }}
-            />
-          </div>
+        {/* Middle Meta Info Description Row */}
+        <div className="px-3 pt-3">
+          <p className="text-sm font-body text-valo-muted">
+            {streamer.isLive
+              ? `${streamer.channelName} is currently live`
+              : `Visit ${streamer.channelName}'s channel`
+            }
+          </p>
         </div>
+      </a>
 
-        {/* Live viewer count metric pill */}
-        {streamer.isLive && streamer.viewerCount != null && (
-          <div className="absolute bottom-3 left-3 bg-black/77 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
-            {formatViewerCount(streamer.viewerCount)} watching
-          </div>
-        )}
-      </div>
-
-      {/* Footer Info Area */}
-      <div className="p-3 space-y-2">
-        <p className="text-sm font-body text-valo-muted">
-          {streamer.isLive
-            ? `${streamer.channelName} is currently live`
-            : `Visit ${streamer.channelName}'s channel`
-          }
-        </p>
-
-        {/* Channel verification and badge styling rows */}
+      {/* 🛠️ CONTROL FOOTER BAR - Holds social badges and interactive action nodes */}
+      <div className="p-3 pt-1 space-y-3">
+        
+        {/* Relational Profile Row */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {streamer.avatar ? (
@@ -173,7 +181,7 @@ export default function StreamerCard({ streamer }) {
                 {avatarLetter}
               </div>
             )}
-           
+             
             <div className="flex items-center gap-1 min-w-0">
               <span className="text-xs text-valo-muted font-body truncate">
                 {streamer.channelName}
@@ -202,22 +210,34 @@ export default function StreamerCard({ streamer }) {
           </span>
         </div>
 
-        {/* Dynamic CTA button display styles */}
-        <div
-          className={`
-            w-full text-center text-xs font-display font-semibold py-2 rounded mt-1 transition-all duration-150
-            ${streamer.isLive
-              ? 'bg-valo-red text-white group-hover:brightness-110'
-              : 'border border-valo-border text-valo-muted group-hover:border-valo-muted group-hover:text-white'
-            }
-          `}
-        >
-          {streamer.isLive ? 'Watch Live' : 'View Channel'}
+        {/* 🔔 THE USER INTERACTION ACTION DUAL TERMINAL ROW */}
+        <div className="flex gap-2 items-center w-full">
+          {/* Main Action Link Element Button */}
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`
+              flex-1 text-center text-xs font-display font-semibold py-2 rounded transition-all duration-150 decoration-transparent select-none
+              ${streamer.isLive
+                ? 'bg-valo-red text-white hover:brightness-110'
+                : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white'
+              }
+            `}
+          >
+            {streamer.isLive ? 'Watch Live' : 'View Channel'}
+          </a>
+
+          {/* 🎯 Independent Custom Dispatch Notification Toggle Button Node */}
+<NotifyButton streamerId={streamer.id || streamer.streamer_id || streamer.channelId} />
         </div>
+
       </div>
-    </a>
+    </div>
   )
-}function LoadingIcon() {
+}
+
+function loadingIcon() {
   return (
     <svg className="w-6 h-6 text-neutral-500 animate-spin" viewBox="0 0 24 24" fill="none">
       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
