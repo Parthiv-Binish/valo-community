@@ -7,7 +7,7 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const location = useLocation()
 
-  // Automatically close the mobile slide-out menu when a user clicks a route link
+  // Automatically close the mobile slide-out drawer on location path adjustments
   useEffect(() => {
     setIsOpen(false)
   }, [location])
@@ -15,19 +15,22 @@ export default function Navbar() {
   const avatarImage = user?.user_metadata?.avatar_url
   const displayName = user?.user_metadata?.full_name
 
-  const navLinks = [
+  // Routes explicitly designated for Mobile Menu Drawer expansion viewports
+  const mobileNavLinks = [
     { name: 'Home', path: '/' },
     { name: 'Subscriptions', path: '/subscriptions' },
     { name: 'Submit', path: '/submit' },
     { name: 'About', path: '/about' },
     { name: 'Leaderboard', path: '/leaderboard' },
+    { name: 'Streamer Predictions', path: '/predictions' },
+    { name: 'Privacy Policy', path: '/privacy' }
   ]
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 h-14 bg-black/90 backdrop-blur-md border-b border-neutral-800 flex items-center px-4 justify-between">
         
-        {/* LEFT LOGO BRAND SECTION */}
+        {/* LEFT LOGO BRAND SECTION - EXTREMELY CLEAN & FOCUS DRIVEN */}
         <div className="flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 shrink-0">
             <img
@@ -36,32 +39,15 @@ export default function Navbar() {
               className="h-8 w-auto rounded object-contain" 
             />
             <span className="hidden sm:block font-display font-black text-xs tracking-wider text-white uppercase">
-              VALO <span className="text-[#ff4655]">Community</span>
+             LET'S BUILD VALO <span className="text-[#ff4655]">Community</span>
             </span>
           </Link>
-
-          {/* DESKTOP LINKS - Hidden completely on mobile breakpoints */}
-          <nav className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`px-3 py-1.5 text-xs font-semibold font-display tracking-widest uppercase transition-colors rounded ${
-                  location.pathname === link.path 
-                    ? 'text-[#ff4655] bg-neutral-900/50' 
-                    : 'text-neutral-400 hover:text-white'
-                }`}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </nav>
         </div>
 
-        {/* RIGHT SIDE ACCOUNT ACTIONS INTERFACE */}
+        {/* RIGHT SIDE ACCOUNT ACTIONS HUB */}
         <div className="flex items-center gap-3">
           
-          {/* Shield Admin icon stays global */}
+          {/* Shield Admin entry remains global */}
           <Link
             to="/admin/login"
             className="text-neutral-500 hover:text-neutral-300 transition-colors p-1.5 flex items-center justify-center"
@@ -72,7 +58,7 @@ export default function Navbar() {
 
           <div className="h-4 w-[1px] bg-neutral-800 hidden xs:block" />
 
-          {/* GOOGLE AUTH CONTAINER */}
+          {/* CONNECT TERMINAL GOOGLE AUTH SECTION */}
           {!user ? (
             <button
               onClick={loginWithGoogle}
@@ -122,7 +108,7 @@ export default function Navbar() {
             </div>
           )}
 
-          {/* MOBILE RESPONSIVE HAMBURGER MENU BUTTON */}
+          {/* MOBILE MENU BURGER - Strictly visible on mobile views */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="md:hidden text-neutral-400 hover:text-white transition-colors p-1.5 focus:outline-none"
@@ -133,13 +119,13 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* MOBILE SLIDE-OVERLAY MENU DRAWER */}
+      {/* MOBILE VERTICAL MENU OVERLAY - ONLY INJECTED ON ACTIVE EXPANSIONS */}
       <div
         className={`fixed inset-x-0 top-0 bg-black/98 backdrop-blur-xl border-b border-neutral-800 z-40 px-6 pt-20 pb-8 space-y-2.5 transition-all duration-300 ease-in-out md:hidden flex flex-col shadow-2xl ${
           isOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'
         }`}
       >
-        {navLinks.map((link) => (
+        {mobileNavLinks.map((link) => (
           <Link
             key={link.path}
             to={link.path}
@@ -157,15 +143,11 @@ export default function Navbar() {
   )
 }
 
-// =========================================================
-// VECTOR GRAPHICS INTERFACE ASSETS (SVGs)
-// =========================================================
+// ── HEADER STRUCTURAL VECTOR ELEMENT COMPILATIONS ────────────────────────────────────
 function MenuIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <line x1="4" y1="12" x2="20" y2="12" />
-      <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="4" y1="18" x2="20" y2="18" />
+      <line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="18" x2="20" y2="18" />
     </svg>
   )
 }
@@ -173,8 +155,7 @@ function MenuIcon() {
 function CloseIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
+      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   )
 }
