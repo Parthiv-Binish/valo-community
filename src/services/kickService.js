@@ -1,10 +1,10 @@
 /**
  * Kick API Service
- * Reliable Kick live + profile fetcher (via proxy)
+ * Reliable Kick live + profile fetcher (via Cloudflare Worker proxy)
  */
 
 const KICK_PROXY_URL = 'https://kick-proxy.parthivbinish2004.workers.dev'
-const KICK_PROXY_TOKEN = 'Kingstera2004'
+const KICK_PROXY_TOKEN = 'Kingster@2004'
 const TIMEOUT_MS = 15000
 
 // =====================================================
@@ -64,19 +64,16 @@ function getAvatar(user) {
 // =====================================================
 
 async function kickFetch(username) {
-  const response = await withTimeout(
+  return withTimeout(
     fetch(
-      `${KICK_PROXY_URL}/api/v2/channels/${encodeURIComponent(username)}`,
+      `${KICK_PROXY_URL}/${encodeURIComponent(username)}?token=${encodeURIComponent(KICK_PROXY_TOKEN)}`,
       {
         headers: {
           Accept: 'application/json',
-          'x-proxy-token': KICK_PROXY_TOKEN,
         },
       }
     )
   )
-
-  return response
 }
 
 // =====================================================
@@ -95,6 +92,7 @@ export async function getKickLiveStream(username) {
     const data = await response.json()
     const livestream = data?.livestream
 
+    // offline
     if (!livestream) return null
 
     const user = data?.user || data
@@ -121,6 +119,7 @@ export async function getKickLiveStream(username) {
       channelUrl: `https://kick.com/${username}`,
       startedAt: livestream?.created_at || null,
     }
+
   } catch (error) {
     console.error(`[Kick] ${username}:`, error.message)
     return null
@@ -153,6 +152,7 @@ export async function getKickChannelInfo(username) {
         null,
       channelUrl: `https://kick.com/${username}`,
     }
+
   } catch (error) {
     console.error(`[Kick Channel] ${username}:`, error.message)
     return null
