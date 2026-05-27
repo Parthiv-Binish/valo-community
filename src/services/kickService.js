@@ -1,81 +1,131 @@
-
 /**
- * Kick API Service
- * Reliable Kick live + profile fetcher
- */
+ * Kick API Service
+ * Stable + safer version
+ */
 
 const KICK_API_BASE =
-  'https://kick.com/api/v2/channels'
+  'https://kick.com/api/v2/channels'
 
-const TIMEOUT_MS = 15000
+const TIMEOUT_MS = 7000
+
+const POLL_DELAY = 30000
 
 // =====================================================
-// TIMEOUT
+// FETCH WITH REAL TIMEOUT
 // =====================================================
 
-function withTimeout(
-  promise,
-  ms = TIMEOUT_MS
+async function fetchWithTimeout(
+  url,
+  options = {},
+  timeout = TIMEOUT_MS
 ) {
+  const controller = new AbortController()
 
-  return Promise.race([
+  const timeoutId = setTimeout(() => {
+    controller.abort()
+  }, timeout)
 
-    promise,
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    })
 
-    new Promise((_, reject) =>
+    clearTimeout(timeoutId)
 
-      setTimeout(
-        () =>
-          reject(
-            new Error(
-              'Kick request timed out'
-            )
-          ),
-        ms
-      )
-    ),
-  ])
+    return response
+  } catch (error) {
+    clearTimeout(timeoutId)
+    throw error
+  }
 }
 
 // =====================================================
 // HELPERS
 // =====================================================
 
+function sleep(ms) {
+  return new Promise((resolve) =>
+    setTimeout(resolve, ms)
+  )
+}
+
+async function retry(fn, retries = 2) {
+  try {
+    return await fn()
+  } catch (error) {
+    if (retries <= 0) {
+      throw error
+    }
+
+    await sleep(1500)
+
+    return retry(fn, retries - 1)
+  }
+}
+
 function getThumbnail(thumbnail) {
+  if (!thumbnail) return null
 
-  if (!thumbnail) return null
+  if (typeof thumbnail === 'object') {
+    return (
+      thumbnail.src ||
+      thumbnail.url ||
+      thumbnail.large ||
+      thumbnail.medium ||
+      thumbnail.small ||
+      null
+    )
+  }
 
-  // object
-  if (typeof thumbnail === 'object') {
+  if (typeof thumbnail === 'string') {
+    return thumbnail
+  }
 
-    return (
-      thumbnail.src ||
-      thumbnail.url ||
-      thumbnail.large ||
-      thumbnail.medium ||
-      thumbnail.small ||
-      null
-    )
-  }
-
-  // string
-  if (typeof thumbnail === 'string') {
-    return thumbnail
-  }
-
-  return null
+  return null
 }
 
 function getAvatar(user) {
+  if (!user) return null
 
-  if (!user) return null
+  return (
+    user.profile_pic ||
+    user.profilePic ||
+    user.avatar ||
+    null
+  )
+}
 
-  return (
-    user.profile_pic ||
-    user.profilePic ||
-    user.avatar ||
-    null
-  )
+// =====================================================
+// FETCH CHANNEL RAW DATA
+// =====================================================
+
+async function fetchKickChannel(username) {
+  return retry(async () => {
+    const response =
+      await fetchWithTimeout(
+        `${KICK_API_BASE}/${encodeURIComponent(
+          username
+        )}`,
+        {
+          headers: {
+            Accept: 'application/json',
+          },
+        }
+      )
+
+    if (!response.ok) {
+      if (response.status === 404) {
+        return null
+      }
+
+      throw new Error(
+        `Kick API ${response.status}`
+      )
+    }
+
+    return response.json()
+  })
 }
 
 // =====================================================
@@ -83,113 +133,82 @@ function getAvatar(user) {
 // =====================================================
 
 export async function getKickLiveStream(
-  username
+  username
 ) {
+  try {
+    const data =
+      await fetchKickChannel(username)
 
-  try {
+    if (!data) return null
 
-    const response = await withTimeout(
+    const livestream =
+      data?.livestream
 
-      fetch(
-        `${KICK_API_BASE}/${encodeURIComponent(username)}`,
-        {
-          headers: {
-            Accept: 'application/json',
-            'User-Agent': 'Mozilla/5.0',
-          },
-        }
-      )
-    )
+    // offline
+    if (!livestream) {
+      return null
+    }
 
-    if (!response.ok) {
+    const user =
+      data?.user || data
 
-      if (response.status === 404) {
-        return null
-      }
+    return {
+      id: username,
 
-      throw new Error(
-        `Kick API ${response.status}`
-      )
-    }
+      platform: 'kick',
 
-    const data =
-      await response.json()
+      channelId: username,
 
-    const livestream =
-      data?.livestream
+      username,
 
-    // offline
-    if (!livestream) {
-      return null
-    }
+      isLive: true,
 
-    const user =
-      data?.user || data
+      title:
+        livestream?.session_title ||
+        livestream?.slug ||
+        'Live Stream',
 
-    return {
+      thumbnail: getThumbnail(
+        livestream?.thumbnail
+      ),
 
-      id:
-        username,
+      viewerCount:
+        livestream?.viewer_count ??
+        livestream?.viewers ??
+        0,
 
-      platform:
-        'kick',
+      streamUrl: `https://kick.com/${username}`,
 
-      channelId:
-        username,
+      channelName:
+        user?.username ||
+        user?.name ||
+        username,
 
-      username:
-        username,
+      avatar: getAvatar(user),
 
-      isLive:
-        true,
+      verified:
+        user?.verified || false,
 
-      title:
-        livestream?.session_title ||
-        livestream?.slug ||
-        'Live Stream',
+      channelUrl:
+        `https://kick.com/${username}`,
 
-      thumbnail:
-        getThumbnail(
-          livestream?.thumbnail
-        ),
+      startedAt:
+        livestream?.created_at || null,
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.warn(
+        `[Kick Timeout] ${username}`
+      )
+    } else {
+      console.error(
+        `[Kick Error] ${username}:`,
+        error.message
+      )
+    }
 
-      viewerCount:
-        livestream?.viewer_count ??
-        livestream?.viewers ??
-        0,
-
-      streamUrl:
-        `https://kick.com/${username}`,
-
-      channelName:
-        user?.username ||
-        user?.name ||
-        username,
-
-      avatar:
-        getAvatar(user),
-
-      verified:
-        user?.verified ||
-        false,
-
-      channelUrl:
-        `https://kick.com/${username}`,
-
-      startedAt:
-        livestream?.created_at ||
-        null,
-    }
-
-  } catch (error) {
-
-    console.error(
-      `[Kick] ${username}:`,
-      error.message
-    )
-
-    return null
-  }
+    return null
+  }
 }
 
 // =====================================================
@@ -197,73 +216,94 @@ export async function getKickLiveStream(
 // =====================================================
 
 export async function getKickChannelInfo(
-  username
+  username
 ) {
+  try {
+    const data =
+      await fetchKickChannel(username)
 
-  try {
+    if (!data) return null
 
-    const response = await withTimeout(
+    const user =
+      data?.user || data
 
-      fetch(
-        `${KICK_API_BASE}/${encodeURIComponent(username)}`,
-        {
-          headers: {
-            Accept: 'application/json',
-            'User-Agent': 'Mozilla/5.0',
-          },
-        }
-      )
-    )
+    return {
+      platform: 'kick',
 
-    if (!response.ok) {
-      return null
-    }
+      channelId: username,
 
-    const data =
-      await response.json()
+      username,
 
-    const user =
-      data?.user || data
+      channelName:
+        user?.username ||
+        user?.name ||
+        username,
 
-    return {
+      avatar: getAvatar(user),
 
-      platform:
-        'kick',
+      verified:
+        user?.verified || false,
 
-      channelId:
-        username,
+      followersCount:
+        data?.followersCount ||
+        data?.followers_count ||
+        null,
 
-      username:
-        username,
+      channelUrl:
+        `https://kick.com/${username}`,
+    }
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      console.warn(
+        `[Kick Channel Timeout] ${username}`
+      )
+    } else {
+      console.error(
+        `[Kick Channel Error] ${username}:`,
+        error.message
+      )
+    }
 
-      channelName:
-        user?.username ||
-        user?.name ||
-        username,
+    return null
+  }
+}
 
-      avatar:
-        getAvatar(user),
+// =====================================================
+// SAFE POLLING
+// =====================================================
 
-      verified:
-        user?.verified ||
-        false,
+export async function pollKickStreams(
+  usernames,
+  callback
+) {
+  while (true) {
+    try {
+      const results = []
 
-      followersCount:
-        data?.followersCount ||
-        data?.followers_count ||
-        null,
+      // sequential requests
+      for (const username of usernames) {
+        const stream =
+          await getKickLiveStream(
+            username
+          )
 
-      channelUrl:
-        `https://kick.com/${username}`,
-    }
+        results.push(stream)
 
-  } catch (error) {
+        // prevent rate limit
+        await sleep(1000)
+      }
 
-    console.error(
-      `[Kick Channel] ${username}:`,
-      error.message
-    )
+      callback(
+        results.filter(Boolean)
+      )
+    } catch (error) {
+      console.error(
+        '[Kick Polling Error]',
+        error
+      )
+    }
 
-    return null
-  }
+    // wait before next poll
+    await sleep(POLL_DELAY)
+  }
 }
