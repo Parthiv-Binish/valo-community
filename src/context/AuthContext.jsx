@@ -26,12 +26,30 @@ export function AuthProvider({ children }) {
   // Login Trigger Function
   const loginWithGoogle = async () => {
     try {
+      /**
+       * DETECT ENVIRONMENT: 
+       * If origin is localhost or doesn't start with http (file://), 
+       * we treat it as the mobile app.
+       */
+      const isApp = window.location.hostname === 'localhost' || 
+                    !window.location.origin.startsWith('http');
+      
+      /**
+       * DYNAMIC REDIRECT:
+       * Web uses standard origin.
+       * App uses custom scheme to trigger Deep Linking back to the app.
+       */
+      const redirectUrl = isApp 
+        ? 'valo-community://login-callback' 
+        : window.location.origin;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin, // Sends them back to home page after login
+          redirectTo: redirectUrl, 
         }
       })
+      
       if (error) throw error
     } catch (err) {
       console.error('Google login initialization failed:', err.message)
