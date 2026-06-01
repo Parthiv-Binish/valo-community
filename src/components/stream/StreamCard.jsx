@@ -1,6 +1,5 @@
 import { formatViewerCount } from '../../utils/format'
 import NotifyButton from '../common/NotifyButton';
-import { useEffect } from 'react';
 
 const PLATFORM_CONFIG = {
   youtube: {
@@ -28,14 +27,7 @@ function getYoutubeThumbnailUrl(streamer) {
   if (!videoId) return null;
   return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 }
-useEffect(() => {
-  if (streamers?.length > 0) {
-    const ytLive = streamers.find(s => s.platform === 'youtube' && s.isLive);
-    const ytOffline = streamers.find(s => s.platform === 'youtube' && !s.isLive);
-    console.log('YT LIVE:', JSON.stringify(ytLive, null, 2));
-    console.log('YT OFFLINE:', JSON.stringify(ytOffline, null, 2));
-  }
-}, [streamers]);
+
 export default function StreamerCard({ streamer }) {
   if (!streamer) return null;
 
