@@ -65,6 +65,14 @@ export default function StreamerCard({ streamer }) {
   const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
   const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnailUrl(streamer) : null;
 
+  const watchBtnClass = [
+    'flex-1 text-center text-xs font-display font-semibold py-2 rounded',
+    'transition-all duration-150 decoration-transparent select-none',
+    isLive
+      ? 'bg-valo-red text-white hover:brightness-110'
+      : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white',
+  ].join(' ');
+
   return (
     <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between">
 
@@ -209,12 +217,7 @@ export default function StreamerCard({ streamer }) {
         </div>
 
         <div className="flex gap-2 items-center w-full">
-          
-            href={href}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={`flex-1 text-center text-xs font-display font-semibold py-2 rounded transition-all duration-150 decoration-transparent select-none ${isLive ? 'bg-valo-red text-white hover:brightness-110' : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white'}`}
-          >
+          <a href={href} target="_blank" rel="noopener noreferrer" className={watchBtnClass}>
             {isLive ? 'Watch Live' : 'View Channel'}
           </a>
           <NotifyButton streamerId={streamer.id || streamer.streamer_id || streamer.channelId} />
