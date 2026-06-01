@@ -22,10 +22,6 @@ function getKickEmbedUrl(streamer) {
   return `https://player.kick.com/${channel}?autoplay=true&muted=true`;
 }
 
-function getYoutubeThumbnail(streamer) {
-  return streamer.thumbnail || null;
-}
-
 export default function StreamerCard({ streamer }) {
   if (!streamer) return null;
 
@@ -60,9 +56,7 @@ export default function StreamerCard({ streamer }) {
         : `https://kick.com/${streamer?.channelId}`);
 
   const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
-
-  const kickEmbedUrl    = platform === 'kick'    && isLive ? getKickEmbedUrl(streamer)    : null;
-  const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnail(streamer) : null;
+  const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
 
   const watchBtnClass = [
     'flex-1 text-center text-xs font-display font-semibold py-2 rounded',
@@ -78,7 +72,7 @@ export default function StreamerCard({ streamer }) {
       {/* Preview area */}
       <div className="relative aspect-video bg-[#111] overflow-hidden">
 
-        {kickEmbedUrl ? (
+        {platform === 'kick' && kickEmbedUrl ? (
           /* Kick live: iframe embed */
           <iframe
             src={kickEmbedUrl}
@@ -87,25 +81,8 @@ export default function StreamerCard({ streamer }) {
             allowFullScreen
             sandbox="allow-scripts allow-same-origin allow-popups"
           />
-        ) : youtubeThumbnail ? (
-          /* YouTube live: thumbnail + play overlay */
-          <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
-            <img
-              src={youtubeThumbnail}
-              alt={streamer.channelName}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            </div>
-          </a>
         ) : (
-          /* Offline or no preview: avatar centered */
+          /* YouTube (Both Live & Offline) + Kick Offline: avatar centered */
           <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
@@ -113,7 +90,9 @@ export default function StreamerCard({ streamer }) {
                 <img
                   src={streamer.avatar}
                   alt={streamer.channelName}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
+                  className={`w-20 h-20 rounded-full object-cover shadow-xl border-4 ${
+                    platform === 'youtube' && isLive ? 'border-valo-red shadow-valo-red/20' : 'border-white/10'
+                  }`}
                   loading="lazy"
                   onError={(e) => { e.target.style.display = 'none' }}
                 />
@@ -167,7 +146,6 @@ export default function StreamerCard({ streamer }) {
       <a href={href} target="_blank" rel="noopener noreferrer" className="block">
         <div className="px-3 pt-3">
           <p className="text-sm font-body text-valo-muted">
-            {/* 🎯 CONDITIONAL MODIFIER: Custom labels for YouTube with Title logic removed */}
             {platform === 'youtube' 
               ? (isLive ? `${streamer.channelName} is live on YouTube` : `${streamer.channelName} is offline`)
               : (isLive ? `${streamer.channelName} is currently live` : `Visit ${streamer.channelName}'s channel`)
