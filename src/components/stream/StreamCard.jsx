@@ -1,5 +1,5 @@
 import { formatViewerCount } from '../../utils/format'
-import NotifyButton from '../common/NotifyButton'; // Ensure this relative path points to your button file
+import NotifyButton from '../common/NotifyButton';
 
 const PLATFORM_CONFIG = {
   youtube: {
@@ -16,112 +16,141 @@ const PLATFORM_CONFIG = {
   },
 }
 
-export default function StreamerCard({ streamer }) {
-  // 1. Prevent crashes if streamer data is missing entirely
-  if (!streamer) {
-    return null
-  }
+function getKickEmbedUrl(streamer) {
+  const channel = streamer.channelName || streamer.channelId;
+  if (!channel) return null;
+  return `https://player.kick.com/${channel}?autoplay=true&muted=true`;
+}
 
-  // 🕵️ 2. Catch un-scraped channels before they render a broken layout
-  const isUnscrapedYoutube = streamer.platform === 'youtube' && 
+function getYoutubeThumbnailUrl(streamer) {
+  const videoId = streamer.videoId || streamer.video_id || streamer.streamVideoId || streamer.stream_video_id;
+  if (!videoId) return null;
+  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+}
+
+export default function StreamerCard({ streamer }) {
+  if (!streamer) return null;
+
+  const isUnscrapedYoutube = streamer.platform === 'youtube' &&
     (!streamer.channelName || streamer.channelName.startsWith('UC'));
-  
   const isUnscrapedKick = streamer.platform === 'kick' && !streamer.channelName;
 
   if (isUnscrapedYoutube || isUnscrapedKick) {
     return (
       <div className="bg-valo-card border border-valo-border rounded-xl p-6 flex flex-col items-center justify-center text-center h-[290px] md:h-[310px] animate-pulse">
-        {/* Animated placeholder loop container */}
         <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg shadow-inner">
           {loadingIcon()}
         </div>
-        
-        {/* Syncing Labels Layout */}
         <h3 className="font-display font-bold text-sm text-white uppercase tracking-wide mb-1">
           Syncing Profile
         </h3>
         <p className="text-xs text-valo-muted font-body max-w-[210px] leading-relaxed">
-           This may take a moment.
+          This may take a moment.
         </p>
       </div>
     );
   }
 
-  // =========================================================
-  // 🚀 ORIGINAL FULLY SCRAPED RENDER ENGINE CONTENT
-  // =========================================================
-  const platform = streamer?.platform || 'youtube'
-  const cfg = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.youtube
+  const platform = streamer?.platform || 'youtube';
+  const cfg = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.youtube;
+  const isLive = streamer.isLive;
 
-  // IRONCLAD LINK FALLBACK: Guarantees a working channel link when they are offline
-  const href = streamer?.isLive
+  const href = isLive
     ? streamer?.streamUrl || streamer?.channelUrl || `https://${platform}.com/${streamer?.channelId}`
     : streamer?.channelUrl || (platform === 'youtube'
         ? `https://www.youtube.com/channel/${streamer?.channelId}`
         : `https://kick.com/${streamer?.channelId}`)
 
-  const avatarLetter = (streamer?.channelName || '?')
-    .charAt(0)
-    .toUpperCase()
+  const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
+
+  // ─── Preview logic ────────────────────────────────────────────────
+  // Kick live → iframe embed
+  const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
+  // YouTube live → thumbnail from video ID (no iframe — blocked by YT)
+  const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnailUrl(streamer) : null;
+  // Show live preview area instead of avatar layout
+  const showLivePreview = kickEmbedUrl || youtubeThumbnail;
 
   return (
     <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between">
-      
-      {/* ⚓ UPPER WRAPPER LINK - Safe clickable area for user redirection */}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="block"
-      >
-        {/* Live / Avatar area */}
+
+      <a href={href} target="_blank" rel="noopener noreferrer" className="block">
+
+        {/* ─── Preview area ─────────────────────────────────────── */}
         <div className="relative aspect-video bg-[#111] overflow-hidden">
-          {/* Background Canvas */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
 
-          {/* Center Card Content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-            {/* Avatar Image or fallback Letter Icon */}
-            {streamer.avatar ? (
-              <img
-                src={streamer.avatar}
-                alt={streamer.channelName}
-                className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
-                loading="lazy"
-                onError={(e) => {
-                  e.target.style.display = 'none'
-                }}
-              />
-            ) : (
-              <div
-                className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
-                style={{
-                  background: `${cfg.accentColor}20`,
-                  color: cfg.accentColor
-                }}
-              >
-                {avatarLetter}
+          {showLivePreview ? (
+            <>
+              {/* Kick: live iframe embed */}
+              {kickEmbedUrl && (
+                <iframe
+                  src={kickEmbedUrl}
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; fullscreen"
+                  allowFullScreen
+                  sandbox="allow-scripts allow-same-origin allow-popups"
+                  // Stop click propagating to the <a> so the iframe gets interaction
+                  onClick={(e) => e.preventDefault()}
+                />
+              )}
+
+              {/* YouTube: thumbnail with play overlay */}
+              {youtubeThumbnail && (
+                <>
+                  <img
+                    src={youtubeThumbnail}
+                    alt={streamer.channelName}
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                  {/* Dark gradient so badges stay readable */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+                  {/* Play button hint */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </>
+              )}
+            </>
+          ) : (
+            /* ─── Original offline / no-preview layout ────────── */
+            <>
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
+                {streamer.avatar ? (
+                  <img
+                    src={streamer.avatar}
+                    alt={streamer.channelName}
+                    className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
+                    loading="lazy"
+                    onError={(e) => { e.target.style.display = 'none' }}
+                  />
+                ) : (
+                  <div
+                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
+                    style={{ background: `${cfg.accentColor}20`, color: cfg.accentColor }}
+                  >
+                    {avatarLetter}
+                  </div>
+                )}
+                <div className="text-center space-y-1">
+                  <p className="text-white font-display font-bold text-lg line-clamp-1">
+                    {streamer.channelName}
+                  </p>
+                  <p className="text-sm text-valo-muted font-body">
+                    {isLive ? `is live on ${cfg.label}` : `is offline on ${cfg.label}`}
+                  </p>
+                </div>
               </div>
-            )}
+            </>
+          )}
 
-            {/* Status Meta Texts */}
-            <div className="text-center space-y-1">
-              <p className="text-white font-display font-bold text-lg line-clamp-1">
-                {streamer.channelName}
-              </p>
-
-              <p className="text-sm text-valo-muted font-body">
-                {streamer.isLive
-                  ? `is live on ${cfg.label}`
-                  : `is offline on ${cfg.label}`
-                }
-              </p>
-            </div>
-          </div>
-
-          {/* LIVE badge overlay */}
-          {streamer.isLive && (
-            <div className="absolute top-3 left-3">
+          {/* LIVE badge — always shown when live */}
+          {isLive && (
+            <div className="absolute top-3 left-3 z-10">
               <span className="live-badge">
                 <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-red" />
                 LIVE
@@ -129,8 +158,8 @@ export default function StreamerCard({ streamer }) {
             </div>
           )}
 
-          {/* Platform dynamic logo container */}
-          <div className="absolute top-3 right-3">
+          {/* Platform logo — always shown */}
+          <div className="absolute top-3 right-3 z-10">
             <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
               <img
                 src={cfg.logo}
@@ -141,18 +170,18 @@ export default function StreamerCard({ streamer }) {
             </div>
           </div>
 
-          {/* Live viewer count metric pill */}
-          {streamer.isLive && streamer.viewerCount != null && (
-            <div className="absolute bottom-3 left-3 bg-black/77 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
+          {/* Viewer count — always shown when live */}
+          {isLive && streamer.viewerCount != null && (
+            <div className="absolute bottom-3 left-3 z-10 bg-black/70 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
               {formatViewerCount(streamer.viewerCount)} watching
             </div>
           )}
         </div>
 
-        {/* Middle Meta Info Description Row */}
+        {/* Middle meta row */}
         <div className="px-3 pt-3">
           <p className="text-sm font-body text-valo-muted">
-            {streamer.isLive
+            {isLive
               ? `${streamer.channelName} is currently live`
               : `Visit ${streamer.channelName}'s channel`
             }
@@ -160,10 +189,8 @@ export default function StreamerCard({ streamer }) {
         </div>
       </a>
 
-      {/* 🛠️ CONTROL FOOTER BAR - Holds social badges and interactive action nodes */}
+      {/* Footer */}
       <div className="p-3 pt-1 space-y-3">
-        
-        {/* Relational Profile Row */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {streamer.avatar ? (
@@ -181,24 +208,17 @@ export default function StreamerCard({ streamer }) {
                 {avatarLetter}
               </div>
             )}
-             
             <div className="flex items-center gap-1 min-w-0">
               <span className="text-xs text-valo-muted font-body truncate">
                 {streamer.channelName}
               </span>
-
               {streamer.verified && (
-                <svg
-                  className="w-3.5 h-3.5 shrink-0 text-[#3ea6ff]"
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
+                <svg className="w-3.5 h-3.5 shrink-0 text-[#3ea6ff]" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M22.25 12c0-.86-.69-1.55-1.55-1.55h-.59a1.55 1.55 0 0 1-1.46-1.04l-.2-.57a1.55 1.55 0 0 0-1.96-.96l-.56.2a1.55 1.55 0 0 1-1.82-.64l-.33-.5a1.55 1.55 0 0 0-2.58 0l-.33.5a1.55 1.55 0 0 1-1.82.64l-.56-.2a1.55 1.55 0 0 0-1.96.96l-.2.57a1.55 1.55 0 0 1-1.46 1.04h-.59A1.55 1.55 0 0 0 1.75 12c0 .86.69 1.55 1.55 1.55h.59c.66 0 1.25.42 1.46 1.04l.2.57c.28.81 1.16 1.24 1.96.96l.56-.2c.65-.23 1.37.02 1.82.64l.33.5a1.55 1.55 0 0 0 2.58 0l.33-.5c.45-.62 1.17-.87 1.82-.64l.56.2c.81.28 1.68-.15 1.96-.96l.2-.57c.21-.62.8-1.04 1.46-1.04h.59c.86 0 1.55-.69 1.55-1.55z"/>
                 </svg>
               )}
             </div>
           </div>
-
           <span className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-display font-semibold px-2 py-0.5 rounded ${cfg.bgClass}`}>
             <img
               src={cfg.logo}
@@ -210,31 +230,26 @@ export default function StreamerCard({ streamer }) {
           </span>
         </div>
 
-        {/* 🔔 THE USER INTERACTION ACTION DUAL TERMINAL ROW */}
         <div className="flex gap-2 items-center w-full">
-          {/* Main Action Link Element Button */}
-          <a
+          
             href={href}
             target="_blank"
             rel="noopener noreferrer"
             className={`
               flex-1 text-center text-xs font-display font-semibold py-2 rounded transition-all duration-150 decoration-transparent select-none
-              ${streamer.isLive
+              ${isLive
                 ? 'bg-valo-red text-white hover:brightness-110'
                 : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white'
               }
             `}
           >
-            {streamer.isLive ? 'Watch Live' : 'View Channel'}
+            {isLive ? 'Watch Live' : 'View Channel'}
           </a>
-
-          {/* 🎯 Independent Custom Dispatch Notification Toggle Button Node */}
-<NotifyButton streamerId={streamer.id || streamer.streamer_id || streamer.channelId} />
+          <NotifyButton streamerId={streamer.id || streamer.streamer_id || streamer.channelId} />
         </div>
-
       </div>
     </div>
-  )
+  );
 }
 
 function loadingIcon() {
@@ -243,5 +258,5 @@ function loadingIcon() {
       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
       <path d="M2 12a10 10 0 0 1 10-10" stroke="currentColor" strokeWidth="4" className="opacity-75" />
     </svg>
-  )
+  );
 }
