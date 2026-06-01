@@ -1,237 +1,174 @@
-import { formatViewerCount } from '../../utils/format'
-import NotifyButton from '../common/NotifyButton';
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase.js'
+import { getKickLiveStream, getKickChannelInfo } from '../services/kickService'
 
-const PLATFORM_CONFIG = {
-  youtube: {
-    logo:        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/YouTube_2024_%28white_text%29.svg/1920px-YouTube_2024_%28white_text%29.svg.png?_=20241114183930',
-    label:       'YouTube',
-    accentColor: '#ff4444',
-    bgClass:     'bg-[#ff0000]/10 text-[#ff4444]',
-  },
-  kick: {
-    logo:        'https://kick.com/img/kick-logo.svg',
-    label:       'Kick',
-    accentColor: '#53fc18',
-    bgClass:     'bg-[#53fc18]/10 text-[#53fc18]',
-  },
-}
+const REFRESH_INTERVAL = 60_000 
 
-function getKickEmbedUrl(streamer) {
-  const channel = streamer.channelName || streamer.channelId;
-  if (!channel) return null;
-  return `https://player.kick.com/${channel}?autoplay=true&muted=true`;
-}
+export function useAllStreamers() {
+  const [streamers, setStreamers] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [lastRefreshed, setLastRefreshed] = useState(null)
 
-function getYoutubeThumbnail(streamer) {
-  return streamer.thumbnail || null;
-}
+  const fetchAll = useCallback(async () => {
+    try {
+      setError(null)
 
-export default function StreamerCard({ streamer }) {
-  if (!streamer) return null;
+      // Anti-sleep ping to keep Render Web Service awake
+      fetch('https://valo-community-backend.onrender.com/').catch(() => {});
 
-  const isUnscrapedYoutube = streamer.platform === 'youtube' &&
-    (!streamer.channelName || streamer.channelName.startsWith('UC'));
-  const isUnscrapedKick = streamer.platform === 'kick' && !streamer.channelName;
+      const { data: rows, error: dbError } = await supabase
+        .from('streamers')
+        .select(`
+          id,
+          platform,
+          youtube_channel_id,
+          kick_username,
+          streamer_data (
+            channel_name,
+            avatar,
+            is_live,
+            title,
+            thumbnail,
+            viewer_count,
+            stream_url
+          )
+        `)
+        .eq('enabled', true)
 
-  if (isUnscrapedYoutube || isUnscrapedKick) {
-    return (
-      <div className="bg-valo-card border border-valo-border rounded-xl p-6 flex flex-col items-center justify-center text-center h-[290px] md:h-[310px] animate-pulse">
-        <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg shadow-inner">
-          {loadingIcon()}
-        </div>
-        <h3 className="font-display font-bold text-sm text-white uppercase tracking-wide mb-1">
-          Syncing Profile
-        </h3>
-        <p className="text-xs text-valo-muted font-body max-w-[210px] leading-relaxed">
-          This may take a moment.
-        </p>
-      </div>
-    );
-  }
+      if (dbError) throw dbError
 
-  const platform = streamer?.platform || 'youtube';
-  const cfg = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.youtube;
-  const isLive = streamer.isLive;
+      if (!rows || rows.length === 0) {
+        setStreamers([])
+        setIsLoading(false)
+        setLastRefreshed(new Date())
+        return
+      }
 
-  const href = isLive
-    ? streamer?.streamUrl || streamer?.channelUrl || `https://${platform}.com/${streamer?.channelId}`
-    : streamer?.channelUrl || (platform === 'youtube'
-        ? `https://www.youtube.com/channel/${streamer?.channelId}`
-        : `https://kick.com/${streamer?.channelId}`);
+      const enriched = await Promise.all(
+        rows.map(async (s) => {
+          const info = Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data || {}
+          const channelId = s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username
 
-  const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
+          const fallbackChannelUrl = s.platform === 'youtube'
+            ? `https://www.youtube.com/channel/${channelId}`
+            : `https://kick.com/${channelId}`
 
-  const kickEmbedUrl    = platform === 'kick'    && isLive ? getKickEmbedUrl(streamer)    : null;
-  const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnail(streamer) : null;
+          const base = {
+            dbId: s.id,
+            platform: s.platform,
+            channelId: channelId,
+            isLive: false,
+            title: null,
+            thumbnail: null,
+            viewerCount: null,
+            streamUrl: fallbackChannelUrl, 
+            channelUrl: fallbackChannelUrl, 
+            channelName: info.channel_name || channelId,
+            avatar: info.avatar || null,
+            verified: false
+          }
 
-  const watchBtnClass = [
-    'flex-1 text-center text-xs font-display font-semibold py-2 rounded',
-    'transition-all duration-150 decoration-transparent select-none',
-    isLive
-      ? 'bg-valo-red text-white hover:brightness-110'
-      : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white',
-  ].join(' ');
+          // =================================================
+          // YOUTUBE
+          // =================================================
+          if (s.platform === 'youtube') {
+            return {
+              ...base,
+              isLive: info.is_live || false,
+              title: info.title || null,
+              thumbnail: info.thumbnail || null,
+              viewerCount: info.viewer_count || 0,
+              streamUrl: info.stream_url || fallbackChannelUrl,
+              channelUrl: fallbackChannelUrl
+            }
+          }
 
-  return (
-    <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between">
+          // =================================================
+          // KICK
+          // =================================================
+          if (s.platform === 'kick' && s.kick_username) {
+            try {
+              const live = await getKickLiveStream(s.kick_username)
+              if (live) {
+                return {
+                  ...base,
+                  ...live,
+                  isLive: true,
+                  streamUrl: `https://kick.com/${s.kick_username}`,
+                  channelUrl: `https://kick.com/${s.kick_username}`
+                }
+              }
 
-      {/* Preview area */}
-      <div className="relative aspect-video bg-[#111] overflow-hidden">
+              const profileInfo = await getKickChannelInfo(s.kick_username)
+              return {
+                ...base,
+                channelName: profileInfo?.channelName || s.kick_username,
+                avatar: profileInfo?.avatar || base.avatar,
+                verified: profileInfo?.verified || false,
+                channelUrl: `https://kick.com/${s.kick_username}`
+              }
+            } catch (err) {
+              console.error(`Kick frontend client connection catch: ${s.kick_username}:`, err)
+              return base
+            }
+          }
 
-        {kickEmbedUrl ? (
-          /* Kick live: iframe embed */
-          <iframe
-            src={kickEmbedUrl}
-            className="absolute inset-0 w-full h-full"
-            allow="autoplay; fullscreen"
-            allowFullScreen
-            sandbox="allow-scripts allow-same-origin allow-popups"
-          />
-        ) : youtubeThumbnail ? (
-          /* YouTube live: thumbnail + play overlay */
-          <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
-            <img
-              src={youtubeThumbnail}
-              alt={streamer.channelName}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
-            </div>
-          </a>
-        ) : (
-          /* Offline or no preview: avatar centered */
-          <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-              {streamer.avatar ? (
-                <img
-                  src={streamer.avatar}
-                  alt={streamer.channelName}
-                  className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
-                  loading="lazy"
-                  onError={(e) => { e.target.style.display = 'none' }}
-                />
-              ) : (
-                <div
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
-                  style={{ background: `${cfg.accentColor}20`, color: cfg.accentColor }}
-                >
-                  {avatarLetter}
-                </div>
-              )}
-              <div className="text-center space-y-1">
-                <p className="text-white font-display font-bold text-lg line-clamp-1">
-                  {streamer.channelName}
-                </p>
-                <p className="text-sm text-valo-muted font-body">
-                  {isLive ? `is live on ${cfg.label}` : `is offline on ${cfg.label}`}
-                </p>
-              </div>
-            </div>
-          </a>
-        )}
+          return base
+        })
+      )
 
-        {/* Badges — always on top */}
-        {isLive && (
-          <div className="absolute top-3 left-3 z-10 pointer-events-none">
-            <span className="live-badge">
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-red" />
-              LIVE
-            </span>
-          </div>
-        )}
-        <div className="absolute top-3 right-3 z-10 pointer-events-none">
-          <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
-            <img
-              src={cfg.logo}
-              alt={cfg.label}
-              className="h-3 object-contain"
-              onError={(e) => { e.target.style.display = 'none' }}
-            />
-          </div>
-        </div>
-        {isLive && streamer.viewerCount != null && (
-          <div className="absolute bottom-3 left-3 z-10 pointer-events-none bg-black/70 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
-            {formatViewerCount(streamer.viewerCount)} watching
-          </div>
-        )}
-      </div>
+      const sorted = enriched.sort((a, b) => {
+        if (a.isLive && !b.isLive) return -1
+        if (!a.isLive && b.isLive) return 1
+        if (a.isLive && b.isLive) return (b.viewerCount || 0) - (a.viewerCount || 0)
+        return (a.channelName || '').localeCompare(b.channelName || '')
+      })
 
-      {/* Meta row */}
-      <a href={href} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="px-3 pt-3">
-          <p className="text-sm font-body text-valo-muted">
-            {isLive
-              ? `${streamer.channelName} is currently live`
-              : `Visit ${streamer.channelName}'s channel`}
-          </p>
-        </div>
-      </a>
+      setStreamers(sorted)
+      setLastRefreshed(new Date())
+    } catch (err) {
+      console.error(err)
+      setError(err.message || 'Failed to load streamers')
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
 
-      {/* Footer */}
-      <div className="p-3 pt-1 space-y-3">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            {streamer.avatar ? (
-              <img
-                src={streamer.avatar}
-                alt={streamer.channelName}
-                className="w-5 h-5 rounded-full object-cover shrink-0"
-                onError={(e) => { e.target.style.display = 'none' }}
-              />
-            ) : (
-              <div
-                className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[9px] font-bold font-display"
-                style={{ background: `${cfg.accentColor}20`, color: cfg.accentColor }}
-              >
-                {avatarLetter}
-              </div>
-            )}
-            <div className="flex items-center gap-1 min-w-0">
-              <span className="text-xs text-valo-muted font-body truncate">
-                {streamer.channelName}
-              </span>
-              {streamer.verified && (
-                <svg className="w-3.5 h-3.5 shrink-0 text-[#3ea6ff]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22.25 12c0-.86-.69-1.55-1.55-1.55h-.59a1.55 1.55 0 0 1-1.46-1.04l-.2-.57a1.55 1.55 0 0 0-1.96-.96l-.56.2a1.55 1.55 0 0 1-1.82-.64l-.33-.5a1.55 1.55 0 0 0-2.58 0l-.33.5a1.55 1.55 0 0 1-1.82.64l-.56-.2a1.55 1.55 0 0 0-1.96.96l-.2.57a1.55 1.55 0 0 1-1.46 1.04h-.59A1.55 1.55 0 0 0 1.75 12c0 .86.69 1.55 1.55 1.55h.59c.66 0 1.25.42 1.46 1.04l.2.57c.28.81 1.16 1.24 1.96.96l.56-.2c.65-.23 1.37.02 1.82.64l.33.5a1.55 1.55 0 0 0 2.58 0l.33-.5c.45-.62 1.17-.87 1.82-.64l.56.2c.81.28 1.68-.15 1.96-.96l.2-.57c.21-.62.8-1.04 1.46-1.04h.59c.86 0 1.55-.69 1.55-1.55z" />
-                </svg>
-              )}
-            </div>
-          </div>
-          <span className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-display font-semibold px-2 py-0.5 rounded ${cfg.bgClass}`}>
-            <img
-              src={cfg.logo}
-              alt={cfg.label}
-              className="h-2.5 object-contain"
-              onError={(e) => { e.target.style.display = 'none' }}
-            />
-            {cfg.label}
-          </span>
-        </div>
+  // Initial Fetch
+  useEffect(() => {
+    fetchAll()
+  }, [fetchAll])
 
-        <div className="flex gap-2 items-center w-full">
-          <a href={href} target="_blank" rel="noopener noreferrer" className={watchBtnClass}>
-            {isLive ? 'Watch Live' : 'View Channel'}
-          </a>
-          <NotifyButton streamerId={streamer.id || streamer.streamer_id || streamer.channelId} />
-        </div>
-      </div>
+  // Periodic Backup Polling
+  useEffect(() => {
+    const id = setInterval(fetchAll, REFRESH_INTERVAL)
+    return () => clearInterval(id)
+  }, [fetchAll])
 
-    </div>
-  );
-}
+  // =================================================
+  // REALTIME SUBSCRIPTION LAYER
+  // =================================================
+  useEffect(() => {
+    // Listen to changes on both tables to catch adds or live changes instantly
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'streamers' },
+        () => { fetchAll() }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'streamer_data' },
+        () => { fetchAll() }
+      )
+      .subscribe()
 
-function loadingIcon() {
-  return (
-    <svg className="w-6 h-6 text-neutral-500 animate-spin" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25" />
-      <path d="M2 12a10 10 0 0 1 10-10" stroke="currentColor" strokeWidth="4" className="opacity-75" />
-    </svg>
-  );
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [fetchAll])
+
+  return { streamers, isLoading, error, refresh: fetchAll, lastRefreshed }
 }
