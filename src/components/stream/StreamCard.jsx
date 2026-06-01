@@ -1,3 +1,77 @@
+import { formatViewerCount } from '../../utils/format'
+import NotifyButton from '../common/NotifyButton';
+
+const PLATFORM_CONFIG = {
+  youtube: {
+    logo:       'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/YouTube_2024_%28white_text%29.svg/1920px-YouTube_2024_%28white_text%29.svg.png?_=20241114183930',
+    label:      'YouTube',
+    accentColor: '#ff4444',
+    bgClass:    'bg-[#ff0000]/10 text-[#ff4444]',
+  },
+  kick: {
+    logo:       'https://kick.com/img/kick-logo.svg',
+    label:      'Kick',
+    accentColor: '#53fc18',
+    bgClass:    'bg-[#53fc18]/10 text-[#53fc18]',
+  },
+}
+
+function getKickEmbedUrl(streamer) {
+  const channel = streamer.channelName || streamer.channelId;
+  if (!channel) return null;
+  return `https://player.kick.com/${channel}?autoplay=true&muted=true`;
+}
+
+function getYoutubeThumbnailUrl(streamer) {
+  const videoId = streamer.videoId || streamer.video_id || streamer.streamVideoId || streamer.stream_video_id;
+  if (!videoId) return null;
+  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+}
+
+export default function StreamerCard({ streamer }) {
+  if (!streamer) return null;
+
+  const isUnscrapedYoutube = streamer.platform === 'youtube' &&
+    (!streamer.channelName || streamer.channelName.startsWith('UC'));
+  const isUnscrapedKick = streamer.platform === 'kick' && !streamer.channelName;
+
+  if (isUnscrapedYoutube || isUnscrapedKick) {
+    return (
+      <div className="bg-valo-card border border-valo-border rounded-xl p-6 flex flex-col items-center justify-center text-center h-[290px] md:h-[310px] animate-pulse">
+        <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg shadow-inner">
+          {loadingIcon()}
+        </div>
+        <h3 className="font-display font-bold text-sm text-white uppercase tracking-wide mb-1">
+          Syncing Profile
+        </h3>
+        <p className="text-xs text-valo-muted font-body max-w-[210px] leading-relaxed">
+          This may take a moment.
+        </p>
+      </div>
+    );
+  }
+
+  const platform = streamer?.platform || 'youtube';
+  const cfg = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.youtube;
+  const isLive = streamer.isLive;
+
+  const href = isLive
+    ? streamer?.streamUrl || streamer?.channelUrl || `https://${platform}.com/${streamer?.channelId}`
+    : streamer?.channelUrl || (platform === 'youtube'
+        ? `https://www.youtube.com/channel/${streamer?.channelId}`
+        : `https://kick.com/${streamer?.channelId}`)
+
+  const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
+
+  // ─── Preview logic ────────────────────────────────────────────────
+  // Kick live → iframe embed
+  const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
+  // YouTube live → thumbnail from video ID (no iframe — blocked by YT)
+  const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnailUrl(streamer) : null;
+  // Show live preview area instead of avatar layout
+  const showLivePreview = kickEmbedUrl || youtubeThumbnail;
+
+
 return (
   <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between">
 
