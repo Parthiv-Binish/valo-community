@@ -1,5 +1,6 @@
 import { formatViewerCount } from '../../utils/format'
 import NotifyButton from '../common/NotifyButton';
+import { useEffect } from 'react';
 
 const PLATFORM_CONFIG = {
   youtube: {
