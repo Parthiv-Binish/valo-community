@@ -59,21 +59,18 @@ export default function StreamerCard({ streamer }) {
     ? streamer?.streamUrl || streamer?.channelUrl || `https://${platform}.com/${streamer?.channelId}`
     : streamer?.channelUrl || (platform === 'youtube'
         ? `https://www.youtube.com/channel/${streamer?.channelId}`
-        : `https://kick.com/${streamer?.channelId}`)
+        : `https://kick.com/${streamer?.channelId}`);
 
   const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
-
   const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
   const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnailUrl(streamer) : null;
 
   return (
     <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between">
 
-      {/* ─── Preview area ─────────────────────────────────────────── */}
+      {/* Preview area */}
       <div className="relative aspect-video bg-[#111] overflow-hidden">
-
         {kickEmbedUrl ? (
-          /* Kick live: iframe must NOT be inside <a> */
           <iframe
             src={kickEmbedUrl}
             className="absolute inset-0 w-full h-full"
@@ -94,7 +91,7 @@ export default function StreamerCard({ streamer }) {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
                     <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z"/>
+                      <path d="M8 5v14l11-7z" />
                     </svg>
                   </div>
                 </div>
@@ -133,7 +130,7 @@ export default function StreamerCard({ streamer }) {
           </a>
         )}
 
-        {/* Badges — always on top */}
+        {/* Badges */}
         {isLive && (
           <div className="absolute top-3 left-3 z-10 pointer-events-none">
             <span className="live-badge">
@@ -159,19 +156,18 @@ export default function StreamerCard({ streamer }) {
         )}
       </div>
 
-      {/* ─── Meta row ─────────────────────────────────────────────── */}
+      {/* Meta row */}
       <a href={href} target="_blank" rel="noopener noreferrer" className="block">
         <div className="px-3 pt-3">
           <p className="text-sm font-body text-valo-muted">
             {isLive
               ? `${streamer.channelName} is currently live`
-              : `Visit ${streamer.channelName}'s channel`
-            }
+              : `Visit ${streamer.channelName}'s channel`}
           </p>
         </div>
       </a>
 
-      {/* ─── Footer ───────────────────────────────────────────────── */}
+      {/* Footer */}
       <div className="p-3 pt-1 space-y-3">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -196,7 +192,7 @@ export default function StreamerCard({ streamer }) {
               </span>
               {streamer.verified && (
                 <svg className="w-3.5 h-3.5 shrink-0 text-[#3ea6ff]" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M22.25 12c0-.86-.69-1.55-1.55-1.55h-.59a1.55 1.55 0 0 1-1.46-1.04l-.2-.57a1.55 1.55 0 0 0-1.96-.96l-.56.2a1.55 1.55 0 0 1-1.82-.64l-.33-.5a1.55 1.55 0 0 0-2.58 0l-.33.5a1.55 1.55 0 0 1-1.82.64l-.56-.2a1.55 1.55 0 0 0-1.96.96l-.2.57a1.55 1.55 0 0 1-1.46 1.04h-.59A1.55 1.55 0 0 0 1.75 12c0 .86.69 1.55 1.55 1.55h.59c.66 0 1.25.42 1.46 1.04l.2.57c.28.81 1.16 1.24 1.96.96l.56-.2c.65-.23 1.37.02 1.82.64l.33.5a1.55 1.55 0 0 0 2.58 0l.33-.5c.45-.62 1.17-.87 1.82-.64l.56.2c.81.28 1.68-.15 1.96-.96l.2-.57c.21-.62.8-1.04 1.46-1.04h.59c.86 0 1.55-.69 1.55-1.55z"/>
+                  <path d="M22.25 12c0-.86-.69-1.55-1.55-1.55h-.59a1.55 1.55 0 0 1-1.46-1.04l-.2-.57a1.55 1.55 0 0 0-1.96-.96l-.56.2a1.55 1.55 0 0 1-1.82-.64l-.33-.5a1.55 1.55 0 0 0-2.58 0l-.33.5a1.55 1.55 0 0 1-1.82.64l-.56-.2a1.55 1.55 0 0 0-1.96.96l-.2.57a1.55 1.55 0 0 1-1.46 1.04h-.59A1.55 1.55 0 0 0 1.75 12c0 .86.69 1.55 1.55 1.55h.59c.66 0 1.25.42 1.46 1.04l.2.57c.28.81 1.16 1.24 1.96.96l.56-.2c.65-.23 1.37.02 1.82.64l.33.5a1.55 1.55 0 0 0 2.58 0l.33-.5c.45-.62 1.17-.87 1.82-.64l.56.2c.81.28 1.68-.15 1.96-.96l.2-.57c.21-.62.8-1.04 1.46-1.04h.59c.86 0 1.55-.69 1.55-1.55z" />
                 </svg>
               )}
             </div>
@@ -217,13 +213,7 @@ export default function StreamerCard({ streamer }) {
             href={href}
             target="_blank"
             rel="noopener noreferrer"
-            className={`
-              flex-1 text-center text-xs font-display font-semibold py-2 rounded transition-all duration-150 decoration-transparent select-none
-              ${isLive
-                ? 'bg-valo-red text-white hover:brightness-110'
-                : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white'
-              }
-            `}
+            className={`flex-1 text-center text-xs font-display font-semibold py-2 rounded transition-all duration-150 decoration-transparent select-none ${isLive ? 'bg-valo-red text-white hover:brightness-110' : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white'}`}
           >
             {isLive ? 'Watch Live' : 'View Channel'}
           </a>
