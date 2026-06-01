@@ -6,13 +6,13 @@ const PLATFORM_CONFIG = {
     logo:        'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/YouTube_2024_%28white_text%29.svg/1920px-YouTube_2024_%28white_text%29.svg.png?_=20241114183930',
     label:       'YouTube',
     accentColor: '#ff4444',
-    bgClass:     'bg-[#ff0000]/10 text-[#ff4444] border-[#ff0000]/20',
+    bgClass:     'bg-[#ff0000]/10 text-[#ff4444]',
   },
   kick: {
     logo:        'https://kick.com/img/kick-logo.svg',
     label:       'Kick',
     accentColor: '#53fc18',
-    bgClass:     'bg-[#53fc18]/10 text-[#53fc18] border-[#53fc18]/20',
+    bgClass:     'bg-[#53fc18]/10 text-[#53fc18]',
   },
 }
 
@@ -51,7 +51,7 @@ export default function StreamerCard({ streamer }) {
 
   const platform = streamer?.platform || 'youtube';
   const cfg = PLATFORM_CONFIG[platform] || PLATFORM_CONFIG.youtube;
-  const isLive = !!streamer.isLive;
+  const isLive = streamer.isLive;
 
   const href = isLive
     ? streamer?.streamUrl || streamer?.channelUrl || `https://${platform}.com/${streamer?.channelId}`
@@ -60,7 +60,9 @@ export default function StreamerCard({ streamer }) {
         : `https://kick.com/${streamer?.channelId}`);
 
   const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
-  const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
+
+  const kickEmbedUrl    = platform === 'kick'    && isLive ? getKickEmbedUrl(streamer)    : null;
+  const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnail(streamer) : null;
 
   const watchBtnClass = [
     'flex-1 text-center text-xs font-display font-semibold py-2 rounded',
@@ -71,141 +73,119 @@ export default function StreamerCard({ streamer }) {
   ].join(' ');
 
   return (
-    <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between relative">
+    <div className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 animate-fade-in flex flex-col justify-between">
 
-      {/* ── PREVIEW/AVATAR CANVAS AREA ── */}
-      {platform === 'youtube' ? (
-        /* 🔴 YOUTUBE PLATFORM SPECIFIC OVERRIDE: Large thumbnail box stripped, profile avatar prioritized */
-        <a href={href} target="_blank" rel="noopener noreferrer" className="block relative p-6 bg-gradient-to-br from-neutral-950/60 to-neutral-900/10 border-b border-valo-border/40 select-none">
-          
-          <div className="flex flex-col items-center justify-center text-center space-y-4">
-            {/* Circular Identity Badge Wrapper */}
-            <div className="relative">
+      {/* Preview area */}
+      <div className="relative aspect-video bg-[#111] overflow-hidden">
+
+        {kickEmbedUrl ? (
+          /* Kick live: iframe embed */
+          <iframe
+            src={kickEmbedUrl}
+            className="absolute inset-0 w-full h-full"
+            allow="autoplay; fullscreen"
+            allowFullScreen
+            sandbox="allow-scripts allow-same-origin allow-popups"
+          />
+        ) : youtubeThumbnail ? (
+          /* YouTube live: thumbnail + play overlay */
+          <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
+            <img
+              src={youtubeThumbnail}
+              alt={streamer.channelName}
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z" />
+                </svg>
+              </div>
+            </div>
+          </a>
+        ) : (
+          /* Offline or no preview: avatar centered */
+          <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
               {streamer.avatar ? (
                 <img
                   src={streamer.avatar}
                   alt={streamer.channelName}
-                  className={`w-20 h-20 rounded-full object-cover border-2 transition-all duration-300
-                    ${isLive ? 'border-valo-red shadow-[0_0_20px_rgba(255,70,85,0.25)] scale-105' : 'border-neutral-800'}`}
+                  className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
                   loading="lazy"
+                  onError={(e) => { e.target.style.display = 'none' }}
                 />
               ) : (
-                <div 
-                  className="w-20 h-20 rounded-full flex items-center justify-center text-2xl font-display font-bold border-2 border-neutral-800"
-                  style={{ background: `${cfg.accentColor}15`, color: cfg.accentColor }}
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
+                  style={{ background: `${cfg.accentColor}20`, color: cfg.accentColor }}
                 >
                   {avatarLetter}
                 </div>
               )}
-
-              {/* Status Dot Beacon Accent */}
-              {isLive && (
-                <span className="absolute bottom-0.5 right-0.5 w-4 h-4 bg-valo-red border-2 border-[#0c0d10] rounded-full animate-pulse" />
-              )}
-            </div>
-
-            {/* Platform Identity Module */}
-            <div className="space-y-1.5 w-full">
-              <div className="flex flex-col items-center gap-1.5">
-                <span className="text-white font-display font-bold text-base line-clamp-1">
+              <div className="text-center space-y-1">
+                <p className="text-white font-display font-bold text-lg line-clamp-1">
                   {streamer.channelName}
-                </span>
-                
-                {/* Unified Name Status Badge */}
-                <span className={`inline-flex items-center gap-1.5 text-[9px] font-mono font-black uppercase tracking-widest px-2.5 py-0.5 rounded border ${cfg.bgClass}`}>
-                  <img src={cfg.logo} alt="" className="h-2.5 object-contain" />
-                  <span>{isLive ? 'LIVE' : 'OFFLINE'}</span>
-                </span>
+                </p>
+                <p className="text-sm text-valo-muted font-body">
+                  {isLive ? `is live on ${cfg.label}` : `is offline on ${cfg.label}`}
+                </p>
               </div>
             </div>
+          </a>
+        )}
+
+        {/* Badges — always on top */}
+        {isLive && (
+          <div className="absolute top-3 left-3 z-10 pointer-events-none">
+            <span className="live-badge">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-red" />
+              LIVE
+            </span>
           </div>
-        </a>
-      ) : (
-        /* 🟢 KICK PLATFORM PREVIEW: Left exactly the same as your original style logic definitions */
-        <div className="relative aspect-video bg-[#111] overflow-hidden">
-          {kickEmbedUrl ? (
-            <iframe
-              src={kickEmbedUrl}
-              className="absolute inset-0 w-full h-full"
-              allow="autoplay; fullscreen"
-              allowFullScreen
-              sandbox="allow-scripts allow-same-origin allow-popups"
+        )}
+        <div className="absolute top-3 right-3 z-10 pointer-events-none">
+          <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
+            <img
+              src={cfg.logo}
+              alt={cfg.label}
+              className="h-3 object-contain"
+              onError={(e) => { e.target.style.display = 'none' }}
             />
-          ) : (
-            <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-                {streamer.avatar ? (
-                  <img
-                    src={streamer.avatar}
-                    alt={streamer.channelName}
-                    className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div
-                    className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
-                    style={{ background: `${cfg.accentColor}20`, color: cfg.accentColor }}
-                  >
-                    {avatarLetter}
-                  </div>
-                )}
-                <div className="text-center space-y-1">
-                  <p className="text-white font-display font-bold text-lg line-clamp-1">
-                    {streamer.channelName}
-                  </p>
-                  <p className="text-sm text-valo-muted font-body">
-                    {isLive ? `is live on ${cfg.label}` : `is offline on ${cfg.label}`}
-                  </p>
-                </div>
-              </div>
-            </a>
-          )}
-
-          {/* Floating Live Indicator Block Overlays */}
-          {isLive && (
-            <div className="absolute top-3 left-3 z-10 pointer-events-none">
-              <span className="live-badge">
-                <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-red" />
-                LIVE
-              </span>
-            </div>
-          )}
-          <div className="absolute top-3 right-3 z-10 pointer-events-none">
-            <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
-              <img src={cfg.logo} alt={cfg.label} className="h-3 object-contain" />
-            </div>
           </div>
         </div>
-      )}
-
-      {/* ── LIVE DATA METRIC LINE COUNTER OVERLAYS ── */}
-      {isLive && streamer.viewerCount != null && (
-        <div className="absolute top-3 right-3 z-10 pointer-events-none bg-black/70 backdrop-blur-sm text-white text-[10px] font-mono px-2 py-0.5 rounded border border-neutral-800">
-          {formatViewerCount(streamer.viewerCount)} tracking
-        </div>
-      )}
+        {isLive && streamer.viewerCount != null && (
+          <div className="absolute bottom-3 left-3 z-10 pointer-events-none bg-black/70 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
+            {formatViewerCount(streamer.viewerCount)} watching
+          </div>
+        )}
+      </div>
 
       {/* Meta description row */}
       <a href={href} target="_blank" rel="noopener noreferrer" className="block">
-        <div className="px-3.5 pt-3">
-          <p className="text-xs font-body text-valo-muted line-clamp-1">
-            {isLive
-              ? (streamer.title || `${streamer.channelName} is currently live`)
-              : `Visit ${streamer.channelName}'s connection line`}
+        <div className="px-3 pt-3">
+          <p className="text-sm font-body text-valo-muted">
+            {/* 🎯 CONDITIONAL MODIFIER: Custom labels for YouTube with Title logic removed */}
+            {platform === 'youtube' 
+              ? (isLive ? `${streamer.channelName} is live on YouTube` : `${streamer.channelName} is offline`)
+              : (isLive ? `${streamer.channelName} is currently live` : `Visit ${streamer.channelName}'s channel`)
+            }
           </p>
         </div>
       </a>
 
-      {/* ── FOOTER ACTIONS CONTROLS CONSOLE ── */}
-      <div className="p-3.5 pt-2 space-y-3">
-        <div className="flex items-center justify-between gap-2 border-t border-neutral-900/60 pt-2">
+      {/* Footer */}
+      <div className="p-3 pt-1 space-y-3">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {streamer.avatar ? (
               <img
                 src={streamer.avatar}
                 alt={streamer.channelName}
-                className="w-5 h-5 rounded-full object-cover shrink-0 border border-neutral-800"
+                className="w-5 h-5 rounded-full object-cover shrink-0"
+                onError={(e) => { e.target.style.display = 'none' }}
               />
             ) : (
               <div
@@ -226,8 +206,13 @@ export default function StreamerCard({ streamer }) {
               )}
             </div>
           </div>
-          <span className={`shrink-0 inline-flex items-center gap-1.5 text-[10px] font-display font-semibold px-2 py-0.5 rounded ${cfg.bgClass}`}>
-            <img src={cfg.logo} alt="" className="h-2.5 object-contain" />
+          <span className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-display font-semibold px-2 py-0.5 rounded ${cfg.bgClass}`}>
+            <img
+              src={cfg.logo}
+              alt={cfg.label}
+              className="h-2.5 object-contain"
+              onError={(e) => { e.target.style.display = 'none' }}
+            />
             {cfg.label}
           </span>
         </div>
