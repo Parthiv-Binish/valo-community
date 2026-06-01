@@ -22,10 +22,13 @@ function getKickEmbedUrl(streamer) {
   return `https://player.kick.com/${channel}?autoplay=true&muted=true`;
 }
 
-function getYoutubeThumbnailUrl(streamer) {
-  const videoId = streamer.videoId || streamer.video_id || streamer.streamVideoId || streamer.stream_video_id;
-  if (!videoId) return null;
-  return `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
+// IVS player page — wraps the stream_url in Amazon's hosted player
+function getIvsEmbedUrl(streamUrl) {
+  if (!streamUrl) return null;
+  // Only handle IVS URLs
+  if (!streamUrl.includes('ivs') && !streamUrl.includes('.m3u8')) return null;
+  const encoded = encodeURIComponent(streamUrl);
+  return `https://player.live-video.net/1.23.0/Amazon-IVS-Player.html?streamUrl=${encoded}&autoplay=true&muted=true`;
 }
 
 export default function StreamerCard({ streamer }) {
@@ -62,8 +65,20 @@ export default function StreamerCard({ streamer }) {
         : `https://kick.com/${streamer?.channelId}`);
 
   const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
-  const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
-  const youtubeThumbnail = platform === 'youtube' && isLive ? getYoutubeThumbnailUrl(streamer) : null;
+
+  // Embed logic:
+  // - Kick live      → Kick iframe player
+  // - YouTube live   → IVS iframe player (stream_url is an IVS playback URL)
+  // - Offline/either → avatar fallback
+  const kickEmbedUrl = platform === 'kick' && isLive
+    ? getKickEmbedUrl(streamer)
+    : null;
+
+  const ivsEmbedUrl = platform === 'youtube' && isLive
+    ? getIvsEmbedUrl(streamer.streamUrl)
+    : null;
+
+  const embedUrl = kickEmbedUrl || ivsEmbedUrl;
 
   const watchBtnClass = [
     'flex-1 text-center text-xs font-display font-semibold py-2 rounded',
@@ -78,9 +93,9 @@ export default function StreamerCard({ streamer }) {
 
       {/* Preview area */}
       <div className="relative aspect-video bg-[#111] overflow-hidden">
-        {kickEmbedUrl ? (
+        {embedUrl ? (
           <iframe
-            src={kickEmbedUrl}
+            src={embedUrl}
             className="absolute inset-0 w-full h-full"
             allow="autoplay; fullscreen"
             allowFullScreen
@@ -88,53 +103,33 @@ export default function StreamerCard({ streamer }) {
           />
         ) : (
           <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
-            {youtubeThumbnail ? (
-              <>
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
+              {streamer.avatar ? (
                 <img
-                  src={youtubeThumbnail}
+                  src={streamer.avatar}
                   alt={streamer.channelName}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
+                  loading="lazy"
+                  onError={(e) => { e.target.style.display = 'none' }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-black/60 backdrop-blur-sm flex items-center justify-center">
-                    <svg className="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M8 5v14l11-7z" />
-                    </svg>
-                  </div>
+              ) : (
+                <div
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
+                  style={{ background: `${cfg.accentColor}20`, color: cfg.accentColor }}
+                >
+                  {avatarLetter}
                 </div>
-              </>
-            ) : (
-              <>
-                <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
-                  {streamer.avatar ? (
-                    <img
-                      src={streamer.avatar}
-                      alt={streamer.channelName}
-                      className="w-20 h-20 rounded-full object-cover border-4 border-white/10 shadow-xl"
-                      loading="lazy"
-                      onError={(e) => { e.target.style.display = 'none' }}
-                    />
-                  ) : (
-                    <div
-                      className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold"
-                      style={{ background: `${cfg.accentColor}20`, color: cfg.accentColor }}
-                    >
-                      {avatarLetter}
-                    </div>
-                  )}
-                  <div className="text-center space-y-1">
-                    <p className="text-white font-display font-bold text-lg line-clamp-1">
-                      {streamer.channelName}
-                    </p>
-                    <p className="text-sm text-valo-muted font-body">
-                      {isLive ? `is live on ${cfg.label}` : `is offline on ${cfg.label}`}
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
+              )}
+              <div className="text-center space-y-1">
+                <p className="text-white font-display font-bold text-lg line-clamp-1">
+                  {streamer.channelName}
+                </p>
+                <p className="text-sm text-valo-muted font-body">
+                  {isLive ? `is live on ${cfg.label}` : `is offline on ${cfg.label}`}
+                </p>
+              </div>
+            </div>
           </a>
         )}
 
