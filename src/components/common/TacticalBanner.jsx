@@ -1,158 +1,453 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 
-export default function TacticalBanner({ placement = 'feed_sidebar', ad: propAd }) {
+export default function TacticalBanner({
+  placement = 'feed_sidebar',
+  ad: propAd
+}) {
   const [ad, setAd] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isHidden, setIsHidden] = useState(false)
 
+  const impressionTracked = useRef(false)
+
+  // ── Load advertisement ──────────────────────────────────────────────────
   useEffect(() => {
-    // Check if the user has dismissed this specific ad profile during their current session
-    if (propAd && sessionStorage.getItem(`hide-ad-${propAd.id}`)) {
-      setIsHidden(true)
-      setIsLoading(false)
-      return
-    }
+    let cancelled = false
 
-    if (propAd) {
-      setAd(propAd)
-      setIsLoading(false)
-      
-      // Track impression view metrics asynchronously
-      supabase.rpc('increment_banner_impressions', { banner_id: propAd.id })
-        .then(() => {})
-      return
-    }
+    async function loadAd() {
+      setIsLoading(true)
+      setIsHidden(false)
+      setAd(null)
+      impressionTracked.current = false
 
-    async function fetchActiveAd() {
       try {
-        setIsLoading(true)
+
+        // When an ad is supplied by the carousel,
+        // use that exact advertisement.
+        if (propAd) {
+
+          if (
+            sessionStorage.getItem(
+              `hide-ad-${propAd.id}`
+            )
+          ) {
+            if (!cancelled) {
+              setIsHidden(true)
+              setIsLoading(false)
+            }
+
+            return
+          }
+
+          if (!cancelled) {
+            setAd(propAd)
+            setIsLoading(false)
+          }
+
+          return
+        }
+
+
+        // ── Standalone banner mode ─────────────────────────────────────
         const { data, error } = await supabase
           .from('platform_banners')
           .select('*')
           .eq('is_active', true)
           .eq('placement', placement)
+          .order('created_at', {
+            ascending: false
+          })
 
-        if (error) throw error
-
-        if (data && data.length > 0) {
-          const randomSelectedAd = data[Math.floor(Math.random() * data.length)]
-          
-          if (sessionStorage.getItem(`hide-ad-${randomSelectedAd.id}`)) {
-            setIsHidden(true)
-            return
-          }
-
-          setAd(randomSelectedAd)
-          supabase.rpc('increment_banner_impressions', { banner_id: randomSelectedAd.id })
-            .then(() => {})
+        if (error) {
+          throw error
         }
-      } catch (err) {
-        console.error('Failed bringing down promotional banner layer:', err)
-      } finally {
+
+        if (cancelled) {
+          return
+        }
+
+        if (!data || data.length === 0) {
+          setAd(null)
+          setIsLoading(false)
+          return
+        }
+
+        const selectedAd = data[0]
+
+        if (
+          sessionStorage.getItem(
+            `hide-ad-${selectedAd.id}`
+          )
+        ) {
+          setIsHidden(true)
+          setIsLoading(false)
+          return
+        }
+
+        setAd(selectedAd)
         setIsLoading(false)
+
+      } catch (err) {
+
+        console.error(
+          'Failed loading promotional banner:',
+          err
+        )
+
+        if (!cancelled) {
+          setAd(null)
+          setIsLoading(false)
+        }
+
       }
     }
 
-    fetchActiveAd()
+    loadAd()
+
+    return () => {
+      cancelled = true
+    }
+
   }, [placement, propAd])
 
-  const handleBannerClick = async (e) => {
-    // Prevent event bubbling if interactive action buttons are targeted
-    if (e.target.closest('.cancel-ad-trigger')) return
 
-    if (!ad) return
-    try {
-      await supabase.rpc('increment_banner_clicks', { banner_id: ad.id })
-    } catch (err) {
-      console.error('Analytics tracking registration error:', err)
+  // ── Track impression once per session ───────────────────────────────────
+  useEffect(() => {
+    if (
+      !ad ||
+      isHidden ||
+      impressionTracked.current
+    ) {
+      return
     }
+
+    const impressionKey =
+      `impression-ad-${ad.id}`
+
+    if (
+      sessionStorage.getItem(impressionKey)
+    ) {
+      impressionTracked.current = true
+      return
+    }
+
+    impressionTracked.current = true
+
+    sessionStorage.setItem(
+      impressionKey,
+      'true'
+    )
+
+    supabase
+      .rpc(
+        'increment_banner_impressions',
+        {
+          banner_id: ad.id
+        }
+      )
+      .then(({ error }) => {
+        if (error) {
+          console.error(
+            'Ad impression tracking error:',
+            error
+          )
+        }
+      })
+
+  }, [ad, isHidden])
+
+
+  // ── Track click ─────────────────────────────────────────────────────────
+  const handleBannerClick = () => {
+    if (!ad) return
+
+    supabase
+      .rpc(
+        'increment_banner_clicks',
+        {
+          banner_id: ad.id
+        }
+      )
+      .then(({ error }) => {
+        if (error) {
+          console.error(
+            'Ad click tracking error:',
+            error
+          )
+        }
+      })
   }
 
+
+  // ── Dismiss advertisement ───────────────────────────────────────────────
   const handleCancelClick = (e) => {
     e.preventDefault()
     e.stopPropagation()
+
     if (!ad) return
-    
-    // Store localized dismissal flag in browser session memory cache
-    sessionStorage.setItem(`hide-ad-${ad.id}`, 'true')
+
+    sessionStorage.setItem(
+      `hide-ad-${ad.id}`,
+      'true'
+    )
+
     setIsHidden(true)
   }
 
-  if (isLoading || !ad || isHidden) return null
+
+  if (
+    isLoading ||
+    !ad ||
+    isHidden
+  ) {
+    return null
+  }
+
+
+  const mediaUrl =
+    ad.media_url || ad.mediaUrl
+
+  const redirectUrl =
+    ad.redirect_url || ad.redirectUrl
+
+  const mediaType =
+    (
+      ad.media_type ||
+      ad.mediaType ||
+      'image'
+    ).toLowerCase()
+
 
   return (
-    <div className="group relative flex flex-col w-full bg-transparent overflow-hidden rounded-xl border border-neutral-800 transition-all duration-300 hover:border-neutral-700 hover:shadow-xl hover:shadow-black/40 animate-fade-in">
-      
-      {/* 🎬 1. ASPECT VIDEO THUMBNAIL CANVAS FRAME */}
+    <div
+      className="
+        group
+        relative
+        w-full
+        overflow-hidden
+        rounded-xl
+        border
+        border-neutral-800
+        bg-neutral-950
+        shadow-xl
+        shadow-black/30
+        animate-fade-in
+      "
+    >
+
+      {/* ── Main Advertisement ─────────────────────────────────────────── */}
       <a
-        href={ad.redirect_url || ad.redirectUrl}
+        href={redirectUrl || '#'}
         target="_blank"
         rel="noopener noreferrer"
         onClick={handleBannerClick}
-        className="relative w-full aspect-video overflow-hidden bg-neutral-950 block z-10"
+        className="
+          relative
+          block
+          w-full
+          aspect-[5/1]
+          min-h-[120px]
+          max-h-[300px]
+          overflow-hidden
+          bg-neutral-950
+        "
       >
-        {ad.media_type === 'video' ? (
+
+        {mediaType === 'video' ? (
+
           <video
-            src={ad.media_url || ad.mediaUrl}
+            src={mediaUrl}
             autoPlay
             loop
             muted
             playsInline
-            className="w-full h-full object-cover opacity-85 group-hover:opacity-100 transition-opacity duration-300"
+            preload="metadata"
+            className="
+              absolute
+              inset-0
+              w-full
+              h-full
+              object-cover
+              transition-transform
+              duration-700
+              group-hover:scale-[1.015]
+            "
           />
+
         ) : (
+
           <img
-            src={ad.media_url || ad.mediaUrl}
-            alt=""
-            className="w-full h-full object-cover opacity-85 transition-all duration-500 ease-out group-hover:scale-[1.02] group-hover:opacity-100"
+            src={mediaUrl}
+            alt={ad.label || 'Advertisement'}
+            loading="lazy"
+            className="
+              absolute
+              inset-0
+              w-full
+              h-full
+              object-cover
+              transition-transform
+              duration-700
+              group-hover:scale-[1.015]
+            "
           />
+
         )}
 
-        {/* Heavy Bottom Gradient Bar Cover Mask */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent z-10 pointer-events-none" />
 
-        {/* Floating Header Clearance Badge */}
-        <div className="absolute top-2.5 right-2.5 z-20 bg-neutral-950/80 backdrop-blur-md border border-neutral-800/80 text-neutral-400 font-mono text-[8px] font-black tracking-widest px-1.5 py-0.5 rounded uppercase shadow-md select-none group-hover:text-white group-hover:border-neutral-700 transition-colors">
+        {/* ── Subtle overlay ──────────────────────────────────────────── */}
+        <div
+          className="
+            absolute
+            inset-0
+            bg-gradient-to-r
+            from-black/40
+            via-transparent
+            to-black/20
+            pointer-events-none
+          "
+        />
+
+
+        {/* ── AD label ────────────────────────────────────────────────── */}
+        <div
+          className="
+            absolute
+            top-3
+            left-3
+            z-20
+            rounded
+            bg-black/70
+            backdrop-blur-md
+            border
+            border-white/10
+            px-2
+            py-1
+            text-[8px]
+            font-mono
+            font-black
+            tracking-[0.2em]
+            text-neutral-300
+            uppercase
+          "
+        >
           AD
         </div>
+
+
+        {/* ── Dismiss button ──────────────────────────────────────────── */}
+        <button
+          type="button"
+          onClick={handleCancelClick}
+          className="
+            absolute
+            top-3
+            right-3
+            z-30
+            flex
+            h-7
+            w-7
+            items-center
+            justify-center
+            rounded-full
+            bg-black/70
+            backdrop-blur-md
+            border
+            border-white/10
+            text-neutral-400
+            text-sm
+            opacity-0
+            transition-all
+            group-hover:opacity-100
+            hover:bg-black
+            hover:text-white
+          "
+          aria-label="Dismiss advertisement"
+          title="Dismiss advertisement"
+        >
+          ×
+        </button>
+
       </a>
 
-      {/* 📡 2. INTERACTIVE ACTIONS PANEL (YouTube Layout Standard) */}
-      <div className="bg-neutral-950 border-t border-neutral-900 p-3.5 flex flex-col gap-3 w-full z-20">
-        
-        {/* Ad Title Block */}
-        <div className="flex flex-col min-w-0">
-          <h4 className="text-neutral-100 font-display font-bold text-sm tracking-wide uppercase line-clamp-1">
+
+      {/* ── Minimal Sponsor Footer ────────────────────────────────────── */}
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          gap-4
+          border-t
+          border-neutral-900
+          bg-neutral-950
+          px-4
+          py-2.5
+        "
+      >
+
+        <div className="min-w-0">
+
+          <p
+            className="
+              truncate
+              text-[11px]
+              font-display
+              font-bold
+              uppercase
+              tracking-wider
+              text-neutral-200
+            "
+          >
             {ad.label}
-          </h4>
-          <span className="text-[10px] font-mono text-neutral-500 truncate mt-0.5">
-            {(ad.redirect_url || ad.redirectUrl || '').replace(/^(https?:\/\/)?(www\.)?/, '')}
-          </span>
+          </p>
+
+          <p
+            className="
+              truncate
+              text-[9px]
+              font-mono
+              uppercase
+              tracking-wider
+              text-neutral-600
+            "
+          >
+            Sponsored
+          </p>
+
         </div>
 
-        {/* Action Button Row Layout Grid */}
-        <div className="flex items-center justify-between gap-3 w-full mt-1">
-          {/* Tactical Redirect Button Link */}
+
+        {redirectUrl && (
           <a
-            href={ad.redirect_url || ad.redirectUrl}
+            href={redirectUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={handleBannerClick}
-            className="flex-1 text-center bg-white text-black hover:bg-neutral-200 text-[11px] font-mono font-bold py-2 px-4 rounded-lg tracking-widest uppercase transition-all shadow-md active:scale-[0.98] decoration-transparent"
+            className="
+              shrink-0
+              rounded-md
+              border
+              border-neutral-700
+              bg-neutral-900
+              px-4
+              py-1.5
+              text-[9px]
+              font-mono
+              font-bold
+              uppercase
+              tracking-widest
+              text-neutral-200
+              transition-all
+              hover:border-valo-red
+              hover:bg-valo-red
+              hover:text-white
+            "
           >
-            Click Here
+            Visit
           </a>
-
-          {/* Minimal Cancel Button Anchor link node */}
-          <button
-            onClick={handleCancelClick}
-            className="cancel-ad-trigger shrink-0 text-neutral-500 hover:text-[#ff4655] text-[10px] font-mono font-bold tracking-widest uppercase py-2 px-3 transition-colors rounded hover:bg-neutral-900/40"
-            title="Dismiss Promotional Content Profile"
-          >
-            Cancel
-          </button>
-        </div>
+        )}
 
       </div>
 
