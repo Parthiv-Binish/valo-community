@@ -195,8 +195,8 @@ export default function AdminBannersPage() {
                     onChange={handleInputChange}
                     className="bg-neutral-900 border border-neutral-800 rounded p-2 text-white outline-none focus:border-[#ff4655] transition-colors uppercase tracking-wider text-[11px]"
                   >
+                    <option value="feed_top">FEED TOP</option>
                     <option value="feed_sidebar">FEED SIDEBAR</option>
-                    <option value="grid_break">GRID BREAK LINK</option>
                   </select>
                 </div>
               </div>
