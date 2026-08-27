@@ -15,7 +15,7 @@ export default function AdminBannersPage() {
     media_url: '',
     media_type: 'image',
     redirect_url: '',
-    placement: 'feed_sidebar',
+    placement: 'feed_top',
     is_active: true
   })
 
