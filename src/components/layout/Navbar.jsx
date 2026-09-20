@@ -22,7 +22,7 @@ export default function Navbar() {
     { name: 'Submit', path: '/submit' },
     { name: 'About', path: '/about' },
     { name: 'Leaderboard', path: '/leaderboard' },
-    { name: 'Streamer Predictions', path: '/predictions' },
+    { name: 'Radar Forecast', path: '/predictions' },
     { name: 'Privacy Policy', path: '/privacy' }
   ]
 
