@@ -13,7 +13,7 @@ export default function AllStreamersPage() {
     isLoading,
     error,
     refresh,
-    lastRefreshed
+    lastRefreshed,
   } = useAllStreamers()
 
   const [platformFilter, setPlatformFilter] = useState('all')
@@ -22,7 +22,7 @@ export default function AllStreamersPage() {
   const [searchOpen, setSearchOpen] = useState(false)
   const [banners, setBanners] = useState([])
 
-  // ── Fetch only active TOP-FEED advertisements ────────────────────────────
+  // ── Fetch only active TOP-FEED advertisements ──────────────────────────
   useEffect(() => {
     async function fetchTopBanners() {
       try {
@@ -31,7 +31,9 @@ export default function AllStreamersPage() {
           .select('*')
           .eq('is_active', true)
           .eq('placement', 'feed_top')
-          .order('created_at', { ascending: false })
+          .order('created_at', {
+            ascending: false,
+          })
 
         if (bannerError) {
           console.error(
@@ -53,41 +55,46 @@ export default function AllStreamersPage() {
     fetchTopBanners()
   }, [])
 
-  // ── Streamer data ───────────────────────────────────────────────────────
+  // ── Streamer data ──────────────────────────────────────────────────────
   const safeStreamers = useMemo(
     () => streamers || [],
     [streamers]
   )
 
-  // Language chips only appear once at least one streamer has been tagged
-  // (see supabase/optional-hardening.sql).
+  // ── Languages ──────────────────────────────────────────────────────────
   const languages = useMemo(
     () =>
-      [...new Set(
-        safeStreamers
-          .map((s) => s.language)
-          .filter(Boolean)
-      )].sort(),
+      [
+        ...new Set(
+          safeStreamers
+            .map((s) => s.language)
+            .filter(Boolean)
+        ),
+      ].sort(),
     [safeStreamers]
   )
 
-  const activeLanguage = languages.includes(languageFilter)
+  const activeLanguage = languages.includes(
+    languageFilter
+  )
     ? languageFilter
     : 'all'
 
-  // ── Filtering ───────────────────────────────────────────────────────────
+  // ── Filtering ──────────────────────────────────────────────────────────
   const filtered = useMemo(() => {
     let s = safeStreamers
 
     if (activeLanguage !== 'all') {
       s = s.filter(
-        (st) => st.language === activeLanguage
+        (st) =>
+          st.language === activeLanguage
       )
     }
 
     if (platformFilter !== 'all') {
       s = s.filter(
-        (st) => st.platform === platformFilter
+        (st) =>
+          st.platform === platformFilter
       )
     }
 
@@ -110,30 +117,33 @@ export default function AllStreamersPage() {
     safeStreamers,
     platformFilter,
     activeLanguage,
-    search
+    search,
   ])
 
-  // ── Platform counts ─────────────────────────────────────────────────────
+  // ── Platform counts ────────────────────────────────────────────────────
   const counts = useMemo(
     () => ({
       all: safeStreamers.length,
 
       youtube: safeStreamers.filter(
-        (s) => s.platform === 'youtube'
+        (s) =>
+          s.platform === 'youtube'
       ).length,
 
       kick: safeStreamers.filter(
-        (s) => s.platform === 'kick'
+        (s) =>
+          s.platform === 'kick'
       ).length,
     }),
     [safeStreamers]
   )
 
-  // ── Live / Offline ──────────────────────────────────────────────────────
+  // ── Live / Offline ─────────────────────────────────────────────────────
   const liveStreams = useMemo(
     () =>
       filtered.filter(
-        (s) => s.isLive || s.is_live
+        (s) =>
+          s.isLive || s.is_live
       ),
     [filtered]
   )
@@ -141,23 +151,93 @@ export default function AllStreamersPage() {
   const offlineStreams = useMemo(
     () =>
       filtered.filter(
-        (s) => !s.isLive && !s.is_live
+        (s) =>
+          !s.isLive && !s.is_live
       ),
     [filtered]
   )
 
+  // ── Close search when Escape is pressed ────────────────────────────────
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setSearch('')
+
+        if (searchOpen) {
+          setSearchOpen(false)
+        }
+      }
+    }
+
+    window.addEventListener(
+      'keydown',
+      handleKeyDown
+    )
+
+    return () => {
+      window.removeEventListener(
+        'keydown',
+        handleKeyDown
+      )
+    }
+  }, [searchOpen])
+
   return (
     <MainLayout>
-      <div className="space-y-8 max-w-[1680px] mx-auto px-4 animate-fade-in">
+      <div
+        className="
+          space-y-8
+          max-w-[1680px]
+          mx-auto
+          px-4
+          animate-fade-in
+          overflow-x-hidden
+        "
+      >
 
         {/* ═══════════════════════════════════════════════════════════════
             HEADER
             ═══════════════════════════════════════════════════════════════ */}
-        <div className="flex items-start justify-between flex-wrap gap-4 border-b border-neutral-900 pb-5">
+        <div
+          className="
+            flex
+            flex-col
+            sm:flex-row
+            sm:items-start
+            sm:justify-between
+            gap-4
+            border-b
+            border-neutral-900
+            pb-5
+          "
+        >
 
-          <div>
-            <h1 className="font-display font-black text-2xl tracking-wider text-white uppercase flex items-center gap-3">
-              <span className="w-2 h-6 bg-valo-red rounded-full inline-block" />
+          {/* Title */}
+          <div className="min-w-0">
+
+            <h1
+              className="
+                font-display
+                font-black
+                text-2xl
+                tracking-wider
+                text-white
+                uppercase
+                flex
+                items-center
+                gap-3
+              "
+            >
+              <span
+                className="
+                  w-2
+                  h-6
+                  bg-valo-red
+                  rounded-full
+                  inline-block
+                  shrink-0
+                "
+              />
 
               COMMUNITY
 
@@ -167,8 +247,18 @@ export default function AllStreamersPage() {
             </h1>
 
             {!isLoading && (
-              <p className="text-valo-muted text-xs font-mono uppercase tracking-widest mt-1.5 pl-5">
-
+              <p
+                className="
+                  text-valo-muted
+                  text-xs
+                  font-mono
+                  uppercase
+                  tracking-widest
+                  mt-1.5
+                  pl-5
+                  whitespace-nowrap
+                "
+              >
                 <span className="text-green-400 font-bold">
                   {liveStreams.length} live
                 </span>
@@ -188,17 +278,36 @@ export default function AllStreamersPage() {
                 <span>
                   {filtered.length} total
                 </span>
-
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Header controls */}
+          <div
+            className="
+              flex
+              items-center
+              gap-3
+              w-full
+              sm:w-auto
+            "
+          >
 
             {lastRefreshed && (
-              <span className="text-xs text-valo-muted font-mono hidden sm:block uppercase tracking-wider">
+              <span
+                className="
+                  text-xs
+                  text-valo-muted
+                  font-mono
+                  hidden
+                  sm:block
+                  uppercase
+                  tracking-wider
+                "
+              >
                 Sync //{' '}
-                {typeof lastRefreshed === 'string'
+                {typeof lastRefreshed ===
+                'string'
                   ? lastRefreshed
                   : lastRefreshed.toLocaleTimeString()}
               </span>
@@ -222,6 +331,8 @@ export default function AllStreamersPage() {
                 border-neutral-800
                 bg-neutral-950
                 text-white
+                w-fit
+                sm:ml-auto
               "
             >
               <RefreshIcon
@@ -234,7 +345,6 @@ export default function AllStreamersPage() {
 
               Refresh
             </button>
-
           </div>
         </div>
 
@@ -242,168 +352,191 @@ export default function AllStreamersPage() {
         {/* ═══════════════════════════════════════════════════════════════
             SEARCH + PLATFORM CONTROLS
             ═══════════════════════════════════════════════════════════════ */}
-        <div className="flex items-center gap-3">
+        <div className="w-full">
 
-          {/* ─────────────────────────────────────────────────────────────
-              COMPACT SEARCH
-              ───────────────────────────────────────────────────────────── */}
           <div
-            className={`
-              relative
-              shrink-0
+            className="
               flex
               items-center
-              h-[60px]
-              rounded-2xl
-              border
-              bg-neutral-950/70
-              backdrop-blur-md
-              overflow-hidden
-              transition-all
-              duration-300
-              ${
-                searchOpen
-                  ? 'w-[260px] border-valo-red/50 shadow-[0_0_24px_rgba(255,68,68,0.08)]'
-                  : 'w-[86px] border-neutral-800 hover:border-neutral-700'
-              }
-            `}
+              gap-3
+              w-full
+            "
           >
 
-            {/* Search button */}
-            <button
-              type="button"
-              onClick={() => {
-                setSearchOpen(true)
-
-                setTimeout(() => {
-                  document
-                    .getElementById('streamer-search')
-                    ?.focus()
-                }, 50)
-              }}
-              aria-label="Search streamers"
+            {/* ─────────────────────────────────────────────────────────
+                COMPACT SEARCH
+                ───────────────────────────────────────────────────────── */}
+            <div
               className={`
+                relative
                 shrink-0
                 flex
                 items-center
-                justify-center
+                h-[60px]
+                rounded-2xl
+                border
+                bg-neutral-950/70
+                backdrop-blur-md
+                overflow-hidden
                 transition-all
-                duration-200
+                duration-300
+
                 ${
                   searchOpen
-                    ? 'w-11 text-valo-red'
-                    : 'w-full text-neutral-500 hover:text-white'
+                    ? `
+                      w-[min(260px,calc(100vw-32px))]
+                      border-valo-red/50
+                      shadow-[0_0_24px_rgba(255,68,68,0.08)]
+                    `
+                    : `
+                      w-[86px]
+                      border-neutral-800
+                      hover:border-neutral-700
+                    `
                 }
               `}
             >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="8"
-                />
 
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-            </button>
-
-
-            {/* Search input */}
-            <input
-              id="streamer-search"
-              type="text"
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              onBlur={() => {
-                if (!search) {
-                  setSearchOpen(false)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Escape') {
-                  setSearch('')
-
-                  if (!search) {
-                    setSearchOpen(false)
-                  }
-                }
-              }}
-              placeholder="SEARCH AGENTS..."
-              aria-label="Search streamers"
-              className={`
-                min-w-0
-                flex-1
-                h-full
-                bg-transparent
-                outline-none
-                text-white
-                placeholder-neutral-600
-                font-mono
-                text-[10px]
-                tracking-wider
-                transition-opacity
-                duration-200
-                ${
-                  searchOpen
-                    ? 'opacity-100'
-                    : 'opacity-0'
-                }
-              `}
-            />
-
-
-            {/* Clear */}
-            {searchOpen && search && (
               <button
                 type="button"
                 onClick={() => {
-                  setSearch('')
-                  setSearchOpen(false)
+                  setSearchOpen(true)
+
+                  setTimeout(() => {
+                    document
+                      .getElementById(
+                        'streamer-search'
+                      )
+                      ?.focus()
+                  }, 50)
                 }}
-                aria-label="Clear search"
-                className="
-                  mr-3
+                aria-label="Search streamers"
+                className={`
                   shrink-0
-                  text-neutral-600
-                  hover:text-white
-                  transition-colors
-                "
+                  flex
+                  items-center
+                  justify-center
+                  transition-all
+                  duration-200
+
+                  ${
+                    searchOpen
+                      ? 'w-11 text-valo-red'
+                      : 'w-full text-neutral-500 hover:text-white'
+                  }
+                `}
               >
                 <svg
-                  width="13"
-                  height="13"
+                  width="18"
+                  height="18"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
                 >
-                  <path d="M18 6 6 18" />
-                  <path d="m6 6 12 12" />
+                  <circle
+                    cx="11"
+                    cy="11"
+                    r="8"
+                  />
+
+                  <path d="m21 21-4.35-4.35" />
                 </svg>
               </button>
-            )}
+
+              <input
+                id="streamer-search"
+                type="text"
+                value={search}
+                onChange={(e) =>
+                  setSearch(
+                    e.target.value
+                  )
+                }
+                onBlur={() => {
+                  if (!search) {
+                    setSearchOpen(false)
+                  }
+                }}
+                placeholder="SEARCH AGENTS..."
+                aria-label="Search streamers"
+                className={`
+                  min-w-0
+                  flex-1
+                  h-full
+                  bg-transparent
+                  outline-none
+                  text-white
+                  placeholder-neutral-600
+                  font-mono
+                  text-[10px]
+                  tracking-wider
+                  ${
+                    searchOpen
+                      ? 'opacity-100'
+                      : 'opacity-0'
+                  }
+                `}
+              />
+
+              {searchOpen && search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('')
+                    setSearchOpen(false)
+                  }}
+                  aria-label="Clear search"
+                  className="
+                    mr-3
+                    shrink-0
+                    text-neutral-600
+                    hover:text-white
+                    transition-colors
+                  "
+                >
+                  <svg
+                    width="13"
+                    height="13"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+
+
+            {/* ─────────────────────────────────────────────────────────
+                PLATFORM FILTER
+
+                IMPORTANT:
+                Only this area scrolls horizontally on mobile.
+                The whole page does NOT overflow.
+                ───────────────────────────────────────────────────────── */}
+            <div
+              className="
+                min-w-0
+                flex-1
+                overflow-x-auto
+                scrollbar-none
+                pb-0.5
+              "
+            >
+              <div className="w-max min-w-full">
+                <FilterBar
+                  active={platformFilter}
+                  onChange={setPlatformFilter}
+                  counts={counts}
+                />
+              </div>
+            </div>
 
           </div>
-
-
-          {/* ─────────────────────────────────────────────────────────────
-              PLATFORM FILTER
-              ───────────────────────────────────────────────────────────── */}
-          <FilterBar
-            active={platformFilter}
-            onChange={setPlatformFilter}
-            counts={counts}
-          />
-
         </div>
 
 
@@ -419,12 +552,17 @@ export default function AllStreamersPage() {
               overflow-x-auto
               scrollbar-none
               -mt-4
+              pb-1
+              max-w-full
             "
             role="group"
             aria-label="Filter by language"
           >
 
-            {['all', ...languages].map((lang) => (
+            {[
+              'all',
+              ...languages,
+            ].map((lang) => (
               <button
                 key={lang}
                 type="button"
@@ -436,8 +574,8 @@ export default function AllStreamersPage() {
                 }
                 className={`
                   shrink-0
-                  px-3.5
-                  py-1
+                  px-4
+                  py-1.5
                   rounded-full
                   text-xs
                   font-display
@@ -445,10 +583,20 @@ export default function AllStreamersPage() {
                   border
                   transition-all
                   duration-150
+
                   ${
                     activeLanguage === lang
-                      ? 'bg-white text-black border-white'
-                      : 'border-valo-border text-valo-muted hover:border-valo-muted hover:text-valo-text'
+                      ? `
+                        bg-white
+                        text-black
+                        border-white
+                      `
+                      : `
+                        border-valo-border
+                        text-valo-muted
+                        hover:border-valo-muted
+                        hover:text-valo-text
+                      `
                   }
                 `}
               >
@@ -465,11 +613,12 @@ export default function AllStreamersPage() {
         {/* ═══════════════════════════════════════════════════════════════
             TOP ADVERTISEMENT
             ═══════════════════════════════════════════════════════════════ */}
-        {!isLoading && banners.length > 0 && (
-          <TopAdCarousel
-            banners={banners}
-          />
-        )}
+        {!isLoading &&
+          banners.length > 0 && (
+            <TopAdCarousel
+              banners={banners}
+            />
+          )}
 
 
         {/* ═══════════════════════════════════════════════════════════════
@@ -500,7 +649,6 @@ export default function AllStreamersPage() {
             ═══════════════════════════════════════════════════════════════ */}
         <div className="space-y-12">
 
-          {/* Loading */}
           {isLoading ? (
 
             <div
@@ -514,18 +662,17 @@ export default function AllStreamersPage() {
                 gap-y-8
               "
             >
-              {Array.from({ length: 8 }).map(
-                (_, i) => (
-                  <StreamerCardSkeleton
-                    key={i}
-                  />
-                )
-              )}
+              {Array.from({
+                length: 8,
+              }).map((_, i) => (
+                <StreamerCardSkeleton
+                  key={i}
+                />
+              ))}
             </div>
 
           ) : filtered.length === 0 ? (
 
-            /* Empty */
             <EmptyState
               search={search}
               platform={platformFilter}
@@ -535,16 +682,18 @@ export default function AllStreamersPage() {
 
             <>
 
-              {/* ═════════════════════════════════════════════════════════
-                  LIVE STREAMS
-                  ═════════════════════════════════════════════════════ */}
+              {/* ─────────────────────────────────────────────────────────
+                  LIVE
+                  ───────────────────────────────────────────────────────── */}
               {liveStreams.length > 0 && (
                 <section className="space-y-5">
 
                   <SectionLabel
                     icon={<LiveDot />}
                     label="Live Now"
-                    count={liveStreams.length}
+                    count={
+                      liveStreams.length
+                    }
                     accent
                   />
 
@@ -559,7 +708,6 @@ export default function AllStreamersPage() {
                       gap-y-8
                     "
                   >
-
                     {liveStreams.map(
                       (s, idx) => {
                         const elementKey =
@@ -575,23 +723,24 @@ export default function AllStreamersPage() {
                         )
                       }
                     )}
-
                   </div>
 
                 </section>
               )}
 
 
-              {/* ═════════════════════════════════════════════════════════
-                  OFFLINE CHANNELS
-                  ═════════════════════════════════════════════════════ */}
+              {/* ─────────────────────────────────────────────────────────
+                  OFFLINE
+                  ───────────────────────────────────────────────────────── */}
               {offlineStreams.length > 0 && (
                 <section className="space-y-5">
 
                   <SectionLabel
                     icon={<OfflineDot />}
                     label="Offline"
-                    count={offlineStreams.length}
+                    count={
+                      offlineStreams.length
+                    }
                   />
 
                   <div
@@ -605,7 +754,6 @@ export default function AllStreamersPage() {
                       gap-y-8
                     "
                   >
-
                     {offlineStreams.map(
                       (s, idx) => {
                         const elementKey =
@@ -621,7 +769,6 @@ export default function AllStreamersPage() {
                         )
                       }
                     )}
-
                   </div>
 
                 </section>
@@ -636,24 +783,25 @@ export default function AllStreamersPage() {
         {/* ═══════════════════════════════════════════════════════════════
             FOOTER META
             ═══════════════════════════════════════════════════════════════ */}
-        {!isLoading && filtered.length > 0 && (
-          <p
-            className="
-              text-center
-              text-[10px]
-              text-valo-muted
-              font-mono
-              uppercase
-              tracking-widest
-              pt-12
-              pb-4
-              border-t
-              border-neutral-900/60
-            "
-          >
-            Realtime Matrix Sync active · Frequency sweep loop configured at 60s
-          </p>
-        )}
+        {!isLoading &&
+          filtered.length > 0 && (
+            <p
+              className="
+                text-center
+                text-[10px]
+                text-valo-muted
+                font-mono
+                uppercase
+                tracking-widest
+                pt-12
+                pb-4
+                border-t
+                border-neutral-900/60
+              "
+            >
+              Realtime Matrix Sync active · Frequency sweep loop configured at 60s
+            </p>
+          )}
 
       </div>
     </MainLayout>
@@ -665,12 +813,14 @@ export default function AllStreamersPage() {
    TOP AD CAROUSEL
    ═══════════════════════════════════════════════════════════════════════════ */
 
-function TopAdCarousel({ banners }) {
-  const [activeIndex, setActiveIndex] = useState(0)
+function TopAdCarousel({
+  banners,
+}) {
+  const [activeIndex, setActiveIndex] =
+    useState(0)
 
   const total = banners.length
 
-  // Keep active index valid if advertisements change.
   useEffect(() => {
     if (total === 0) {
       setActiveIndex(0)
@@ -682,7 +832,6 @@ function TopAdCarousel({ banners }) {
     }
   }, [total, activeIndex])
 
-  // Auto rotate only when there are multiple advertisements.
   useEffect(() => {
     if (total <= 1) return
 
@@ -693,14 +842,16 @@ function TopAdCarousel({ banners }) {
       )
     }, 7000)
 
-    return () => clearInterval(timer)
+    return () =>
+      clearInterval(timer)
   }, [total])
 
   if (total === 0) {
     return null
   }
 
-  const currentAd = banners[activeIndex]
+  const currentAd =
+    banners[activeIndex]
 
   if (!currentAd) {
     return null
@@ -719,13 +870,13 @@ function TopAdCarousel({ banners }) {
 
         {total > 1 && (
           <>
-
-            {/* Previous */}
             <button
               type="button"
               onClick={() =>
                 setActiveIndex(
-                  (activeIndex - 1 + total) %
+                  (activeIndex -
+                    1 +
+                    total) %
                     total
                 )
               }
@@ -757,8 +908,6 @@ function TopAdCarousel({ banners }) {
               ‹
             </button>
 
-
-            {/* Next */}
             <button
               type="button"
               onClick={() =>
@@ -794,17 +943,21 @@ function TopAdCarousel({ banners }) {
             >
               ›
             </button>
-
           </>
         )}
 
       </div>
 
-
-      {/* Carousel indicators */}
       {total > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-3">
-
+        <div
+          className="
+            flex
+            items-center
+            justify-center
+            gap-2
+            mt-3
+          "
+        >
           {banners.map(
             (banner, index) => (
               <button
@@ -820,8 +973,10 @@ function TopAdCarousel({ banners }) {
                   h-1.5
                   rounded-full
                   transition-all
+
                   ${
-                    index === activeIndex
+                    index ===
+                    activeIndex
                       ? 'w-7 bg-valo-red'
                       : 'w-1.5 bg-neutral-700 hover:bg-neutral-500'
                   }
@@ -829,7 +984,6 @@ function TopAdCarousel({ banners }) {
               />
             )
           )}
-
         </div>
       )}
 
@@ -846,11 +1000,18 @@ function SectionLabel({
   icon,
   label,
   count,
-  accent = false
+  accent = false,
 }) {
   return (
-    <div className="flex items-center gap-2.5 py-1 select-none">
-
+    <div
+      className="
+        flex
+        items-center
+        gap-2.5
+        py-1
+        select-none
+      "
+    >
       {icon}
 
       <h2
@@ -888,7 +1049,6 @@ function SectionLabel({
       </span>
 
       <div className="flex-1 h-px bg-neutral-900" />
-
     </div>
   )
 }
@@ -939,7 +1099,7 @@ function OfflineDot() {
 
 function EmptyState({
   search,
-  platform
+  platform,
 }) {
   return (
     <div
@@ -959,7 +1119,6 @@ function EmptyState({
         w-full
       "
     >
-
       <div
         className="
           w-14
@@ -1005,14 +1164,10 @@ function EmptyState({
       >
         {search
           ? `No matching profiles register under keys: "${search}"`
-
           : platform !== 'all'
             ? `No configured ${platform} agents present in repository.`
-
-            : 'Zero live feeds or tracking points detected.'
-        }
+            : 'Zero live feeds or tracking points detected.'}
       </p>
-
     </div>
   )
 }
@@ -1023,7 +1178,7 @@ function EmptyState({
    ═══════════════════════════════════════════════════════════════════════════ */
 
 function RefreshIcon({
-  className = ''
+  className = '',
 }) {
   return (
     <svg
