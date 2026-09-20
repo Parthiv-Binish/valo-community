@@ -1,5 +1,11 @@
-import { formatViewerCount } from '../../utils/format'
+import { useState } from 'react'
+import { formatViewerCount, formatLiveDuration } from '../../utils/format'
 import NotifyButton from '../common/NotifyButton';
+
+// Live Kick cards used to autoplay a muted iframe player each, which loads N
+// video players at once on a busy grid (heavy on phones / mobile data). By
+// default the preview now loads on tap. Set to true to restore autoplay.
+const AUTOPLAY_KICK_PREVIEWS = false
 
 const PLATFORM_CONFIG = {
   youtube: {
@@ -23,6 +29,9 @@ function getKickEmbedUrl(streamer) {
 }
 
 export default function StreamerCard({ streamer }) {
+  // Hooks must run before any early return (rules of hooks).
+  const [previewOn, setPreviewOn] = useState(false);
+
   if (!streamer) return null;
 
   const isUnscrapedYoutube = streamer.platform === 'youtube' &&
@@ -57,6 +66,10 @@ export default function StreamerCard({ streamer }) {
 
   const avatarLetter = (streamer?.channelName || '?').charAt(0).toUpperCase();
   const kickEmbedUrl = platform === 'kick' && isLive ? getKickEmbedUrl(streamer) : null;
+  const showKickPlayer = !!kickEmbedUrl && (AUTOPLAY_KICK_PREVIEWS || previewOn);
+  // Only trust a thumbnail while the stream is live (stored ones go stale).
+  const liveThumb = isLive && streamer.thumbnail ? streamer.thumbnail : null;
+  const liveFor = isLive ? formatLiveDuration(streamer.startedAt) : null;
 
   const watchBtnClass = [
     'flex-1 text-center text-xs font-display font-semibold py-2 rounded',
@@ -72,20 +85,67 @@ export default function StreamerCard({ streamer }) {
       {/* Preview area */}
       <div className="relative aspect-video bg-[#111] overflow-hidden">
 
-        {platform === 'kick' && kickEmbedUrl ? (
-          /* Kick live: iframe embed */
+        {platform === 'kick' && kickEmbedUrl && showKickPlayer ? (
+          /* Kick live: iframe embed (loaded on tap unless autoplay is enabled) */
           <iframe
             src={kickEmbedUrl}
+            title={`${streamer.channelName} live preview`}
             className="absolute inset-0 w-full h-full"
             allow="autoplay; fullscreen"
             allowFullScreen
             sandbox="allow-scripts allow-same-origin allow-popups"
           />
+        ) : platform === 'kick' && kickEmbedUrl ? (
+          /* Kick live: lightweight poster with a play-preview button */
+          <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
+            {liveThumb && (
+              <img
+                src={liveThumb}
+                alt=""
+                loading="lazy"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
+            )}
+            {!liveThumb && streamer.avatar && (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <img
+                  src={streamer.avatar}
+                  alt={streamer.channelName}
+                  loading="lazy"
+                  className="w-20 h-20 rounded-full object-cover shadow-xl border-4 border-white/10"
+                  onError={(e) => { e.target.style.display = 'none' }}
+                />
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setPreviewOn(true)}
+              aria-label={`Play live preview of ${streamer.channelName}`}
+              className="absolute inset-0 z-[5] flex items-center justify-center bg-black/25 hover:bg-black/40 transition-colors"
+            >
+              <span className="flex items-center gap-2 bg-black/70 backdrop-blur-sm text-white text-xs font-display font-semibold px-3 py-1.5 rounded-full border border-white/10">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                Play preview
+              </span>
+            </button>
+          </div>
         ) : (
-          /* YouTube (Both Live & Offline) + Kick Offline: avatar centered */
+          /* YouTube (Both Live & Offline) + Kick Offline */
           <a href={href} target="_blank" rel="noopener noreferrer" className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-4">
+            {platform === 'youtube' && liveThumb && (
+              <img
+                src={liveThumb}
+                alt=""
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(e) => { e.target.style.display = 'none' }}
+              />
+            )}
+            <div className={`absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 ${platform === 'youtube' && liveThumb ? 'opacity-0 pointer-events-none' : ''}`}>
               {streamer.avatar ? (
                 <img
                   src={streamer.avatar}
@@ -137,7 +197,7 @@ export default function StreamerCard({ streamer }) {
         </div>
         {isLive && streamer.viewerCount != null && (
           <div className="absolute bottom-3 left-3 z-10 pointer-events-none bg-black/70 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
-            {formatViewerCount(streamer.viewerCount)} watching
+            {formatViewerCount(streamer.viewerCount)} watching{liveFor ? ` · ${liveFor}` : ''}
           </div>
         )}
       </div>
@@ -145,12 +205,32 @@ export default function StreamerCard({ streamer }) {
       {/* Meta description row */}
       <a href={href} target="_blank" rel="noopener noreferrer" className="block">
         <div className="px-3 pt-3">
-          <p className="text-sm font-body text-valo-muted">
-            {platform === 'youtube' 
-              ? (isLive ? `${streamer.channelName} is live on YouTube` : `${streamer.channelName} is offline`)
-              : (isLive ? `${streamer.channelName} is currently live` : `Visit ${streamer.channelName}'s channel`)
-            }
-          </p>
+          {isLive && streamer.title && streamer.title !== 'Live Stream' ? (
+            <p className="text-sm font-body text-white/90 line-clamp-2" title={streamer.title}>
+              {streamer.title}
+            </p>
+          ) : (
+            <p className="text-sm font-body text-valo-muted">
+              {platform === 'youtube'
+                ? (isLive ? `${streamer.channelName} is live on YouTube` : `${streamer.channelName} is offline`)
+                : (isLive ? `${streamer.channelName} is currently live` : `Visit ${streamer.channelName}'s channel`)
+              }
+            </p>
+          )}
+          {(streamer.language || (isLive && streamer.category)) && (
+            <div className="flex flex-wrap items-center gap-1.5 mt-2">
+              {streamer.language && (
+                <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/5 text-neutral-300 border border-white/10">
+                  {streamer.language}
+                </span>
+              )}
+              {isLive && streamer.category && (
+                <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-valo-red/10 text-valo-red border border-valo-red/20 truncate max-w-[160px]">
+                  {streamer.category}
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </a>
 
