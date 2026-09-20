@@ -363,7 +363,7 @@ export default function AllStreamersPage() {
 
   return (
     <MainLayout>
-      <div className="relative min-h-full w-full overflow-x-hidden bg-[#050608]">
+      <div className="relative min-h-full w-full overflow-x-hidden bg-[#0f0f0f]">
         {/* Ambient background — decorative only, no data/logic changes */}
         <div
           aria-hidden="true"
