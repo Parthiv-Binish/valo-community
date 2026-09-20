@@ -14,8 +14,7 @@ export default function BottomBar() {
   // Primary persistent bottom action items
   const primaryTabs = [
     { to: '/', label: 'Home', end: true, icon: <HomeIcon /> },
-    { to: '/subscriptions', label: 'Followed', end: true, icon: <SubscriptionsIcon /> },
-    { to: '/predictions', label: 'Radar', end: true, icon: <PredictionsIcon /> },
+    { to: '/subscriptions', label: 'Followed', end: true, icon: <SubscriptionsIcon /> }
   ]
 
   // Overflow array designed to fan out symmetrically over the navigation bar
