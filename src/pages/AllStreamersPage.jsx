@@ -417,7 +417,7 @@ export default function AllStreamersPage() {
 
               <div className="relative hidden min-h-[390px] overflow-hidden lg:block">
                 <img
-                  src="https://iili.io/Bp6m8Xa.png"
+                  src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news_live/7b60e8bb6c1828831931dad87633604c2264fa26-3440x1020.jpg"
                   alt=""
                   aria-hidden="true"
                   className="absolute inset-0 h-full w-full object-cover object-center opacity-35 saturate-75"
