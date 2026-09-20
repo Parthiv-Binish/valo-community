@@ -50,8 +50,8 @@ export default function BottomBar() {
       </AnimatePresence>
 
       {/* VCT Tactical HUD mobile dock */}
-      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 lg:hidden px-2 sm:px-3 pb-2 sm:pb-3">
-        <div className="relative mx-auto max-w-[560px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070707]/95 shadow-[0_-18px_50px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 px-2 pb-2 sm:px-3 sm:pb-3 lg:hidden">
+        <div className="relative mx-auto max-w-[560px] overflow-visible rounded-2xl border border-white/[0.08] bg-[#070707]/95 shadow-[0_-18px_50px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/60 to-transparent" />
           <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
@@ -106,7 +106,7 @@ export default function BottomBar() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.96 }}
                     transition={{ duration: 0.16 }}
-                    className="absolute bottom-[76px] right-1 w-[190px] overflow-hidden rounded-2xl border border-white/[0.09] bg-[#090909]/98 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+                    className="absolute bottom-[76px] right-1 z-20 w-[190px] overflow-hidden rounded-2xl border border-white/[0.09] bg-[#090909]/98 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
                   >
                     <div className="mb-1 px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-neutral-600">
                       Navigation // More
@@ -175,51 +175,6 @@ export default function BottomBar() {
           <div className="pointer-events-none absolute bottom-2 left-2 h-2 w-2 border-b border-l border-white/[0.12]" />
           <div className="pointer-events-none absolute bottom-2 right-2 h-2 w-2 border-b border-r border-white/[0.12]" />
         </div>
-      </div>
-              )}
-            </AnimatePresence>
-
-            {/* More trigger */}
-            <button
-              type="button"
-              onClick={() => setShowRadialMenu(!showRadialMenu)}
-              aria-label={showRadialMenu ? 'Close more navigation' : 'Open more navigation'}
-              aria-expanded={showRadialMenu}
-              className="relative flex h-full w-full items-center justify-center outline-none"
-            >
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                className={`relative flex h-[52px] w-full max-w-[100px] flex-col items-center justify-center gap-1 rounded-xl transition-colors ${
-                  showRadialMenu ? 'text-[#ff4655]' : 'text-neutral-500'
-                }`}
-              >
-                <span
-                  className={`absolute inset-0 rounded-xl border transition-all ${
-                    showRadialMenu
-                      ? 'border-[#ff4655]/25 bg-[#ff4655]/[0.08] shadow-[0_0_24px_rgba(255,70,85,0.08)]'
-                      : 'border-transparent'
-                  }`}
-                />
-
-                <motion.span
-                  animate={{ rotate: showRadialMenu ? 135 : 0 }}
-                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-                  className="relative z-10"
-                >
-                  {showRadialMenu ? <CloseIcon /> : <MoreIcon />}
-                </motion.span>
-
-                <span className="relative z-10 font-mono text-[8px] font-bold uppercase tracking-[0.12em]">
-                  More
-                </span>
-              </motion.div>
-            </button>
-          </div>
-
-          {/* Balanced right-side navigation space.
-              Keeps the center control visually centered on all phone widths. */}
-          <div className="flex-1" />
-        </nav>
       </div>
     </>
   )
