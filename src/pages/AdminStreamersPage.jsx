@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase.js' // Adjust this path to your Supabase client instance
 import AdminLayout from '../layouts/AdminLayout'
 import ToastContainer, { useToast } from '../components/common/Toast'
+import { LANGUAGES, fetchLanguageMap, invalidateLanguageCache } from '../services/languageService'
 
 // =========================================================
 // ADD MODAL SUB-COMPONENT
@@ -101,6 +102,10 @@ function EditModal({ streamer, onClose, onSave }) {
   const [value, setValue] = useState(
     streamer.platform === 'youtube' ? streamer.youtube_channel_id : streamer.kick_username
   )
+  // `streamer.language` is undefined when the DB column doesn't exist yet,
+  // in which case the language control is hidden entirely.
+  const languageSupported = streamer.language !== undefined
+  const [language, setLanguage] = useState(streamer.language || '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -111,6 +116,9 @@ function EditModal({ streamer, onClose, onSave }) {
       const updates = streamer.platform === 'youtube'
         ? { youtube_channel_id: value.trim() }
         : { kick_username: value.trim() }
+      if (languageSupported && (language || null) !== (streamer.language || null)) {
+        updates.language = language || null
+      }
       await onSave(streamer.id, updates)
       onClose()
     } catch (err) {
@@ -135,6 +143,19 @@ function EditModal({ streamer, onClose, onSave }) {
           </label>
           <input type="text" value={value} onChange={(e) => setValue(e.target.value)} className="input-field" />
         </div>
+        {languageSupported && (
+          <div>
+            <label className="block text-xs font-display font-semibold text-valo-muted uppercase tracking-widest mb-2">
+              Stream language
+            </label>
+            <select value={language} onChange={(e) => setLanguage(e.target.value)} className="input-field">
+              <option value="">Not set</option>
+              {LANGUAGES.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </select>
+          </div>
+        )}
         {error && <div className="bg-red-900/20 border border-red-700/30 rounded p-3 text-xs text-red-300">{error}</div>}
         <div className="flex gap-3">
           <button onClick={onClose} className="valo-btn-ghost flex-1 py-2.5 text-sm">Cancel</button>
@@ -187,7 +208,16 @@ export default function AdminStreamersPage() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setStreamers(data || [])
+
+      // Optional: merge language tags in when the column exists (else undefined).
+      invalidateLanguageCache()
+      const languageMap = await fetchLanguageMap({ force: true })
+      setStreamers(
+        (data || []).map((s) => ({
+          ...s,
+          language: languageMap ? languageMap.get(s.id) ?? null : undefined,
+        }))
+      )
     } catch (err) {
       console.error(err)
       setGlobalError('Failed to load streamer profiles from database application tables.')
@@ -433,6 +463,11 @@ export default function AdminStreamersPage() {
                             <p className="text-white font-semibold text-sm">
                               {hasBeenScraped ? metadata?.channel_name : 'New Channel Registration'}
                             </p>
+                            {s.language && (
+                              <p className="text-[10px] text-valo-muted font-mono uppercase tracking-wider mt-0.5">
+                                {s.language}
+                              </p>
+                            )}
                             {!hasBeenScraped && (
                               <p className="text-[10px] text-valo-red font-mono font-bold uppercase tracking-wider animate-pulse mt-0.5">
                                 Syncing database records...
