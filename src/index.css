@@ -629,3 +629,11 @@ body,
 
   background-color: #0f0f0f !important;
 }
+/* =========================================================
+   NUCLEAR FIX — MAIN CONTENT CANVAS
+   ========================================================= */
+
+div[class*="max-w-[1800px]"][style] {
+  background: #0f0f0f !important;
+  background-color: #0f0f0f !important;
+}
