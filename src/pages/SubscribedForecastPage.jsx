@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
+import { toLocalSlot, formatSlotLabel } from '../utils/timezone'
 
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 
@@ -96,49 +97,41 @@ export default function SubscribedForecastPage() {
     loadRadarMatrix()
   }, [user])
 
-  // Process timeline data rows with automatic client-side timezone alignment
+  // Timeline rows for the selected local weekday, aligned to the viewer's timezone.
+  // Insight rows are stored as UTC (day_of_week, hour_of_day). Conversion is done
+  // in minutes so half-hour zones such as IST (UTC+5:30) land on the right slot.
   const dayTimeline = useMemo(() => {
-    const hoursArray = Array.from({ length: 24 }, (_, i) => i)
-    
-    // 🎯 DYNAMIC TIMEZONE CALIBRATOR: Maps structural server integer values accurately back to local system clock index
-    const timezoneOffsetHours = -(new Date().getTimezoneOffset() / 60)
-    const floorOffset = Math.floor(timezoneOffsetHours) 
+    const offsetMinutes = -new Date().getTimezoneOffset()
+    const slots = new Map()
 
-    return hoursArray.map(localHour => {
-      const activeMatches = subscribedStreamers.map(streamer => {
-        
-        const savedLog = dbInsights.find(p => {
-          if (String(p.streamer_id).toLowerCase() !== String(streamer.streamer_id).toLowerCase()) return false
+    for (const insight of dbInsights) {
+      const probability = parseFloat(insight.live_probability)
+      if (!(probability > 0)) continue
 
-          // 🔄 SHIFT LAYER: Convert raw DB hour integer back to local device hours via standard modulo parameters
-          let convertedLocalHour = (Number(p.hour_of_day) + floorOffset) % 24
-          if (convertedLocalHour < 0) convertedLocalHour += 24
+      const streamer = subscribedStreamers.find(
+        (s) => String(s.streamer_id).toLowerCase() === String(insight.streamer_id).toLowerCase()
+      )
+      if (!streamer) continue
 
-          // 🔄 WEEKDAY BOUNDARY ROLLOVERS: Handle cases where timezone calculation steps over a day dividing line
-          let targetDay = Number(p.day_of_week)
-          if (Number(p.hour_of_day) + timezoneOffsetHours >= 24) {
-            targetDay = (targetDay + 1) % 7
-          } else if (Number(p.hour_of_day) + timezoneOffsetHours < 0) {
-            targetDay = (targetDay - 1 + 7) % 7
-          }
+      const { day, minuteOfDay } = toLocalSlot(insight.day_of_week, insight.hour_of_day, offsetMinutes)
+      if (day !== Number(selectedDay)) continue
 
-          return convertedLocalHour === localHour && targetDay === Number(selectedDay)
-        })
+      const event = {
+        streamer,
+        probability,
+        confidence: probability > 75 ? 'VERY LIKELY' : probability > 45 ? 'LIKELY' : 'POSSIBLE'
+      }
+      if (!slots.has(minuteOfDay)) slots.set(minuteOfDay, [])
+      slots.get(minuteOfDay).push(event)
+    }
 
-        const probability = savedLog ? parseFloat(savedLog.live_probability) : 0
-
-        if (probability > 0) {
-          return {
-            streamer,
-            probability,
-            confidence: probability > 75 ? 'HIGH CLEARANCE' : probability > 45 ? 'MID CONTEXT' : 'LOW MARGIN'
-          }
-        }
-        return null
-      }).filter(Boolean)
-
-      return { hour: localHour, events: activeMatches }
-    }).filter(h => h.events.length > 0)
+    return [...slots.entries()]
+      .sort((a, b) => a[0] - b[0])
+      .map(([minuteOfDay, events]) => ({
+        key: minuteOfDay,
+        label: formatSlotLabel(minuteOfDay),
+        events
+      }))
   }, [subscribedStreamers, dbInsights, selectedDay])
 
   // Extract top performers with metrics recorded for the radar bar gauges
@@ -219,8 +212,8 @@ export default function SubscribedForecastPage() {
               </div>
             ) : (
               <div className="relative border-l border-neutral-900/80 pl-4 ml-2 space-y-4 py-1">
-                {dayTimeline.map(({ hour, events }) => (
-                  <div key={hour} className="relative group">
+                {dayTimeline.map(({ key, label, events }) => (
+                  <div key={key} className="relative group">
                     {/* Node Pointer Bullet */}
                     <div className="absolute -left-[20.5px] top-4 w-2 h-2 bg-neutral-900 border border-neutral-700 group-hover:bg-[#ff4655] group-hover:border-[#ff4655] group-hover:shadow-[0_0_8px_rgba(255,70,85,0.4)] transition-all duration-150 transform rotate-45" />
                     
@@ -230,7 +223,7 @@ export default function SubscribedForecastPage() {
 
                       {/* Clean localized formatted output string */}
                       <div className="shrink-0 font-mono text-xs font-black text-neutral-400 uppercase tracking-widest min-w-[75px] pt-0.5 select-none">
-                        {hour === 0 ? '12 AM' : hour === 12 ? '12 PM' : hour > 12 ? `${hour - 12} PM` : `${hour} AM`}
+                        {label}
                       </div>
 
                       {/* Satellite Node Links List Grid */}
