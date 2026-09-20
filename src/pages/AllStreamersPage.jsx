@@ -237,680 +237,329 @@ export default function AllStreamersPage() {
 
   return (
     <MainLayout>
-
-      <div
-        className="
-          w-full
-          max-w-[1680px]
-          mx-auto
-          px-4
-          sm:px-5
-          lg:px-6
-          space-y-8
-          animate-fade-in
-          overflow-x-hidden
-        "
-      >
-
-
-        {/* ═══════════════════════════════════════════════════════════════
-            HEADER
-            ═══════════════════════════════════════════════════════════ */}
-
+      <div className="relative min-h-full w-full overflow-x-hidden bg-[#050608]">
+        {/* Ambient background — decorative only, no data/logic changes */}
         <div
-          className="
-            flex
-            flex-col
-            sm:flex-row
-            sm:items-start
-            sm:justify-between
-            gap-4
-            border-b
-            border-neutral-900
-            pb-5
-          "
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 h-[620px] overflow-hidden"
         >
-
-          <div>
-
-            <h1
-              className="
-                font-display
-                font-black
-                text-2xl
-                tracking-wider
-                text-white
-                uppercase
-                flex
-                items-center
-                gap-3
-              "
-            >
-
-              <span
-                className="
-                  w-2
-                  h-6
-                  bg-valo-red
-                  rounded-full
-                  inline-block
-                  shrink-0
-                "
-              />
-
-              COMMUNITY
-
-              <span className="text-valo-red">
-                AGENTS
-              </span>
-
-            </h1>
-
-
-            {!isLoading && (
-              <p
-                className="
-                  text-valo-muted
-                  text-xs
-                  font-mono
-                  uppercase
-                  tracking-widest
-                  mt-1.5
-                  pl-5
-                  whitespace-nowrap
-                "
-              >
-
-                <span
-                  className="
-                    text-green-400
-                    font-bold
-                  "
-                >
-                  {liveStreams.length} live
-                </span>
-
-
-                <span
-                  className="
-                    mx-2
-                    text-neutral-800
-                  "
-                >
-                  •
-                </span>
-
-
-                <span>
-                  {offlineStreams.length} offline
-                </span>
-
-
-                <span
-                  className="
-                    mx-2
-                    text-neutral-800
-                  "
-                >
-                  •
-                </span>
-
-
-                <span>
-                  {filtered.length} total
-                </span>
-
-              </p>
-            )}
-
-          </div>
-
-
-          {/* Desktop refresh / sync */}
-
-          <div
-            className="
-              flex
-              items-center
-              gap-3
-              w-full
-              sm:w-auto
-            "
-          >
-
-            {lastRefreshed && (
-              <span
-                className="
-                  hidden
-                  sm:block
-                  text-xs
-                  text-valo-muted
-                  font-mono
-                  uppercase
-                  tracking-wider
-                "
-              >
-                Sync //{' '}
-
-                {typeof lastRefreshed ===
-                'string'
-                  ? lastRefreshed
-                  : lastRefreshed.toLocaleTimeString()}
-              </span>
-            )}
-
-
-            <button
-              onClick={refresh}
-              disabled={isLoading}
-              className="
-                valo-btn-ghost
-                text-xs
-                py-1.5
-                px-3.5
-                flex
-                items-center
-                gap-2
-                font-mono
-                uppercase
-                tracking-wider
-                border
-                border-neutral-800
-                bg-neutral-950
-                text-white
-                w-fit
-                sm:ml-auto
-              "
-            >
-
-              <RefreshIcon
-                className={
-                  isLoading
-                    ? 'animate-spin'
-                    : ''
-                }
-              />
-
-              Refresh
-
-            </button>
-
-          </div>
-
+          <div className="absolute -left-32 top-[-180px] h-[520px] w-[520px] rounded-full bg-valo-red/[0.08] blur-[140px]" />
+          <div className="absolute right-[-180px] top-[80px] h-[420px] w-[420px] rounded-full bg-red-500/[0.05] blur-[130px]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.018)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.018)_1px,transparent_1px)] bg-[size:56px_56px] [mask-image:linear-gradient(to_bottom,black,transparent_75%)]" />
         </div>
 
+        <div
+          className="relative z-10 mx-auto w-full max-w-[1680px] space-y-10 px-4 pb-8 sm:px-5 sm:pb-10 lg:px-6 lg:space-y-12"
+        >
+          {/* ===============================================================
+              HERO
+             =============================================================== */}
+          <section className="relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-neutral-950/70 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_20%,rgba(255,68,68,0.16),transparent_30%),radial-gradient(circle_at_15%_90%,rgba(255,68,68,0.08),transparent_28%)]" />
+            <div className="absolute right-0 top-0 h-full w-[48%] bg-[linear-gradient(135deg,transparent_0%,rgba(255,68,68,0.035)_45%,rgba(255,68,68,0.09)_100%)]" />
 
-
-        {/* ═══════════════════════════════════════════════════════════════
-            FILTER AREA
-            ═══════════════════════════════════════════════════════════ */}
-
-        <section className="w-full">
-
-          {/* ─────────────────────────────────────────────────────────────
-              SEARCH
-
-              Desktop:
-              compact search box
-
-              Mobile:
-              full-width search field
-              ───────────────────────────────────────────────────────── */}
-
-          <div className="w-full">
-
-            <label
-              htmlFor="streamer-search"
-              className="sr-only"
-            >
-              Search streamers
-            </label>
-
-
-            <div
-              className="
-                relative
-                w-full
-                h-12
-                sm:h-11
-              "
-            >
-
-              <svg
-                className="
-                  absolute
-                  left-4
-                  top-1/2
-                  -translate-y-1/2
-                  text-neutral-600
-                  pointer-events-none
-                "
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.2"
-              >
-
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="8"
-                />
-
-                <path d="m21 21-4.35-4.35" />
-
-              </svg>
-
-
-              <input
-                id="streamer-search"
-                type="text"
-                value={search}
-                onChange={(event) =>
-                  setSearch(
-                    event.target.value
-                  )
-                }
-                placeholder="Search agents or stream titles..."
-                autoComplete="off"
-                className="
-                  w-full
-                  h-full
-                  rounded-xl
-                  border
-                  border-neutral-800
-                  bg-neutral-950/70
-                  backdrop-blur-md
-                  text-white
-                  placeholder-neutral-600
-                  outline-none
-                  pl-11
-                  pr-11
-                  font-mono
-                  text-xs
-                  tracking-wide
-                  transition-all
-                  duration-200
-                  focus:border-valo-red/50
-                  focus:shadow-[0_0_24px_rgba(255,68,68,0.07)]
-                "
-              />
-
-
-              {search && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSearch('')
-                  }
-                  aria-label="Clear search"
-                  className="
-                    absolute
-                    right-3
-                    top-1/2
-                    -translate-y-1/2
-                    w-7
-                    h-7
-                    flex
-                    items-center
-                    justify-center
-                    rounded-md
-                    text-neutral-600
-                    hover:text-white
-                    hover:bg-white/[0.05]
-                    transition-colors
-                  "
-                >
-
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="M18 6 6 18" />
-
-                    <path d="m6 6 12 12" />
-                  </svg>
-
-                </button>
-              )}
-
-            </div>
-
-          </div>
-
-
-
-          {/* ─────────────────────────────────────────────────────────────
-              PLATFORM FILTER
-              ───────────────────────────────────────────────────────── */}
-
-          <div className="mt-3 sm:mt-4">
-
-            <FilterBar
-              active={platformFilter}
-              onChange={setPlatformFilter}
-              counts={counts}
-            />
-
-          </div>
-
-
-
-          {/* ─────────────────────────────────────────────────────────────
-              LANGUAGE
-
-              Mobile:
-              dropdown
-
-              Desktop:
-              chips
-              ───────────────────────────────────────────────────────── */}
-
-          {languages.length > 0 && (
-
-            <div className="mt-4">
-
-              {/* Mobile dropdown */}
-
-              <div className="sm:hidden">
-
-                <label
-                  htmlFor="language-filter"
-                  className="
-                    block
-                    mb-2
-                    text-[9px]
-                    font-mono
-                    uppercase
-                    tracking-[0.18em]
-                    text-neutral-600
-                  "
-                >
-                  Language
-                </label>
-
-
-                <div className="relative">
-
-                  <select
-                    id="language-filter"
-                    value={activeLanguage}
-                    onChange={(event) =>
-                      setLanguageFilter(
-                        event.target.value
-                      )
-                    }
-                    className="
-                      appearance-none
-                      w-full
-                      h-11
-                      rounded-xl
-                      border
-                      border-neutral-800
-                      bg-neutral-950/70
-                      text-neutral-300
-                      outline-none
-                      px-3.5
-                      pr-10
-                      font-display
-                      text-xs
-                      font-semibold
-                      focus:border-valo-red/50
-                      transition-colors
-                    "
-                  >
-
-                    <option value="all">
-                      All languages
-                    </option>
-
-                    {languages.map(
-                      (language) => (
-                        <option
-                          key={language}
-                          value={language}
-                        >
-                          {language}
-                        </option>
-                      )
-                    )}
-
-                  </select>
-
-
-                  <svg
-                    className="
-                      absolute
-                      right-3
-                      top-1/2
-                      -translate-y-1/2
-                      pointer-events-none
-                      text-neutral-500
-                    "
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-
+            <div className="relative grid min-h-[390px] items-center lg:grid-cols-[1.15fr_0.85fr]">
+              <div className="px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
+                <div className="mb-5 flex items-center gap-3">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-valo-red shadow-[0_0_18px_rgba(255,68,68,0.8)]" />
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-[0.28em] text-valo-red sm:text-[10px]">
+                    Valorant Community Network
+                  </span>
                 </div>
 
+                <h1 className="max-w-3xl font-display text-4xl font-black uppercase leading-[0.94] tracking-[-0.045em] text-white sm:text-5xl lg:text-7xl">
+                  The Valorant
+                  <br />
+                  Community{' '}
+                  <span className="text-valo-red [text-shadow:0_0_35px_rgba(255,68,68,0.25)]">
+                    Is Live.
+                  </span>
+                </h1>
+
+                <p className="mt-5 max-w-xl text-sm leading-6 text-neutral-400 sm:text-base sm:leading-7">
+                  Discover Valorant streamers across the community, find live
+                  feeds, and jump straight into the action.
+                </p>
+
+                <div className="mt-8 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
+                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-3 py-3 sm:px-4">
+                    <div className="font-display text-xl font-black text-white sm:text-2xl">
+                      {liveStreams.length}
+                    </div>
+                    <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-500 sm:text-[9px]">
+                      Live now
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-3 py-3 sm:px-4">
+                    <div className="font-display text-xl font-black text-white sm:text-2xl">
+                      {filtered.length}
+                    </div>
+                    <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-500 sm:text-[9px]">
+                      In view
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-3 py-3 sm:px-4">
+                    <div className="font-display text-xl font-black text-white sm:text-2xl">
+                      {counts.all}
+                    </div>
+                    <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-500 sm:text-[9px]">
+                      Streamers
+                    </div>
+                  </div>
+                </div>
               </div>
 
+              <div className="relative hidden min-h-[390px] overflow-hidden lg:block">
+                <div className="absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-neutral-950/90 to-transparent" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_35%,rgba(255,68,68,0.08)_100%)]" />
+                <div className="absolute right-12 top-1/2 -translate-y-1/2">
+                  <div className="relative flex h-64 w-64 items-center justify-center rounded-full border border-valo-red/10">
+                    <div className="absolute h-48 w-48 rounded-full border border-valo-red/15" />
+                    <div className="absolute h-32 w-32 rounded-full border border-valo-red/20" />
+                    <div className="h-16 w-16 rounded-full bg-valo-red/10 shadow-[0_0_80px_rgba(255,68,68,0.2)]" />
+                    <div className="absolute h-px w-72 rotate-45 bg-gradient-to-r from-transparent via-valo-red/50 to-transparent" />
+                    <div className="absolute h-px w-72 -rotate-45 bg-gradient-to-r from-transparent via-valo-red/20 to-transparent" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
 
+          {/* ===============================================================
+              DISCOVERY / FILTERS
+             =============================================================== */}
+          <section className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="mb-2 flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                  <span className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-neutral-500">
+                    Discover
+                  </span>
+                </div>
+                <h2 className="font-display text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
+                  Find your next stream.
+                </h2>
+              </div>
 
-              {/* Desktop language chips */}
+              {lastRefreshed && (
+                <div className="flex items-center gap-3 font-mono text-[9px] uppercase tracking-[0.16em] text-neutral-600">
+                  <span className="hidden sm:inline">Sync // </span>
+                  <span>
+                    {typeof lastRefreshed === 'string'
+                      ? lastRefreshed
+                      : lastRefreshed.toLocaleTimeString()}
+                  </span>
+                </div>
+              )}
+            </div>
 
-              <div
-                className="
-                  hidden
-                  sm:flex
-                  items-center
-                  gap-2
-                  overflow-x-auto
-                  scrollbar-none
-                  pb-1
-                "
-                role="group"
-                aria-label="Filter by language"
-              >
+            <div className="rounded-2xl border border-white/[0.07] bg-neutral-950/65 p-3 shadow-[0_20px_70px_rgba(0,0,0,0.22)] backdrop-blur-xl sm:p-4">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="relative min-w-0 flex-1">
+                  <label htmlFor="streamer-search" className="sr-only">
+                    Search streamers
+                  </label>
 
-                {[
-                  'all',
-                  ...languages,
-                ].map((language) => (
-
-                  <button
-                    key={language}
-                    type="button"
-                    onClick={() =>
-                      setLanguageFilter(
-                        language
-                      )
-                    }
-                    aria-pressed={
-                      activeLanguage ===
-                      language
-                    }
-                    className={`
-                      shrink-0
-                      px-4
-                      py-1.5
-                      rounded-full
-                      text-xs
-                      font-display
-                      font-semibold
-                      border
-                      transition-all
-                      duration-150
-
-                      ${
-                        activeLanguage ===
-                        language
-                          ? `
-                            bg-white
-                            text-black
-                            border-white
-                          `
-                          : `
-                            border-valo-border
-                            text-valo-muted
-                            hover:border-valo-muted
-                            hover:text-valo-text
-                          `
-                      }
-                    `}
+                  <svg
+                    className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-neutral-600"
+                    width="17"
+                    height="17"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
                   >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
 
-                    {language === 'all'
-                      ? 'All languages'
-                      : language}
-
-                  </button>
-
-                ))}
-
-              </div>
-
-            </div>
-
-          )}
-
-        </section>
-
-
-
-        {/* ═══════════════════════════════════════════════════════════════
-            TOP ADVERTISEMENT
-            ═══════════════════════════════════════════════════════════ */}
-
-        {!isLoading &&
-          banners.length > 0 && (
-            <TopAdCarousel
-              banners={banners}
-            />
-          )}
-
-
-
-        {/* ═══════════════════════════════════════════════════════════════
-            ERROR
-            ═══════════════════════════════════════════════════════════ */}
-
-        {error && (
-
-          <div
-            className="
-              bg-red-950/20
-              border
-              border-red-900/40
-              rounded-xl
-              p-4
-              text-xs
-              text-red-400
-              font-mono
-              uppercase
-              tracking-wider
-            "
-          >
-            ⚠️ SYSTEM REJECTION // {error}
-          </div>
-
-        )}
-
-
-
-        {/* ═══════════════════════════════════════════════════════════════
-            STREAM CONTENT
-            ═══════════════════════════════════════════════════════════ */}
-
-        <div className="space-y-12">
-
-          {/* Loading */}
-
-          {isLoading ? (
-
-            <div
-              className="
-                grid
-                grid-cols-1
-                sm:grid-cols-2
-                lg:grid-cols-3
-                xl:grid-cols-4
-                gap-x-4
-                gap-y-8
-              "
-            >
-
-              {Array.from({
-                length: 8,
-              }).map((_, index) => (
-
-                <StreamCardSkeleton
-                  key={index}
-                />
-
-              ))}
-
-            </div>
-
-          ) : filtered.length === 0 ? (
-
-            <EmptyState
-              search={search}
-              platform={platformFilter}
-            />
-
-          ) : (
-
-            <>
-
-              {/* LIVE */}
-
-              {liveStreams.length > 0 && (
-
-                <section className="space-y-5">
-
-                  <SectionLabel
-                    icon={<LiveDot />}
-                    label="Live Now"
-                    count={
-                      liveStreams.length
-                    }
-                    accent
+                  <input
+                    id="streamer-search"
+                    type="text"
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Search streamers, titles, channels..."
+                    autoComplete="off"
+                    className="h-12 w-full rounded-xl border border-white/[0.08] bg-black/40 pl-11 pr-11 font-mono text-xs tracking-wide text-white outline-none transition-all placeholder:text-neutral-600 focus:border-valo-red/45 focus:bg-black/60 focus:shadow-[0_0_30px_rgba(255,68,68,0.07)]"
                   />
 
+                  {search && (
+                    <button
+                      type="button"
+                      onClick={() => setSearch('')}
+                      aria-label="Clear search"
+                      className="absolute right-2.5 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-neutral-600 transition-colors hover:bg-white/[0.06] hover:text-white"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M18 6 6 18" />
+                        <path d="m6 6 12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                <div className="hidden h-8 w-px bg-white/[0.07] lg:block" />
+
+                <button
+                  onClick={refresh}
+                  disabled={isLoading}
+                  className="flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl border border-white/[0.08] bg-white/[0.025] px-5 font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-300 transition-all hover:border-valo-red/30 hover:bg-valo-red/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <RefreshIcon className={isLoading ? 'animate-spin' : ''} />
+                  Refresh
+                </button>
+              </div>
+
+              <div className="mt-3">
+                <FilterBar
+                  active={platformFilter}
+                  onChange={setPlatformFilter}
+                  counts={counts}
+                />
+              </div>
+
+              {languages.length > 0 && (
+                <div className="mt-3 border-t border-white/[0.05] pt-3">
+                  <div className="sm:hidden">
+                    <label
+                      htmlFor="language-filter"
+                      className="mb-2 block font-mono text-[9px] font-bold uppercase tracking-[0.18em] text-neutral-600"
+                    >
+                      Language
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="language-filter"
+                        value={activeLanguage}
+                        onChange={(event) =>
+                          setLanguageFilter(event.target.value)
+                        }
+                        className="h-11 w-full appearance-none rounded-xl border border-white/[0.07] bg-black/30 px-3.5 pr-10 font-display text-xs font-semibold text-neutral-300 outline-none transition-colors focus:border-valo-red/50"
+                      >
+                        <option value="all">All languages</option>
+                        {languages.map((language) => (
+                          <option key={language} value={language}>
+                            {language}
+                          </option>
+                        ))}
+                      </select>
+                      <svg
+                        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="m6 9 6 6 6-6" />
+                      </svg>
+                    </div>
+                  </div>
 
                   <div
-                    className="
-                      grid
-                      grid-cols-1
-                      sm:grid-cols-2
-                      lg:grid-cols-3
-                      xl:grid-cols-4
-                      gap-x-4
-                      gap-y-8
-                    "
+                    className="hidden items-center gap-2 overflow-x-auto pb-1 scrollbar-none sm:flex"
+                    role="group"
+                    aria-label="Filter by language"
                   >
+                    <span className="mr-1 shrink-0 font-mono text-[9px] font-bold uppercase tracking-[0.16em] text-neutral-600">
+                      Language
+                    </span>
+                    {['all', ...languages].map((language) => (
+                      <button
+                        key={language}
+                        type="button"
+                        onClick={() => setLanguageFilter(language)}
+                        aria-pressed={activeLanguage === language}
+                        className={`shrink-0 rounded-full border px-4 py-1.5 font-display text-xs font-semibold transition-all duration-150 ${
+                          activeLanguage === language
+                            ? 'border-white bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.08)]'
+                            : 'border-white/[0.07] bg-white/[0.015] text-neutral-500 hover:border-white/[0.15] hover:text-white'
+                        }`}
+                      >
+                        {language === 'all' ? 'All languages' : language}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
 
-                    {liveStreams.map(
-                      (streamer, index) => {
+          {/* ===============================================================
+              TOP ADVERTISEMENT
+             =============================================================== */}
+          {!isLoading && banners.length > 0 && (
+            <TopAdCarousel banners={banners} />
+          )}
 
+          {/* ===============================================================
+              ERROR
+             =============================================================== */}
+          {error && (
+            <div className="flex items-start gap-3 rounded-2xl border border-red-500/15 bg-red-950/20 p-4 text-xs text-red-400 shadow-[0_0_40px_rgba(255,0,0,0.04)] font-mono uppercase tracking-wider">
+              <span className="mt-0.5">⚠</span>
+              <span>System rejection // {error}</span>
+            </div>
+          )}
+
+          {/* ===============================================================
+              STREAM CONTENT
+             =============================================================== */}
+          <div className="space-y-14">
+            {isLoading ? (
+              <section className="space-y-5">
+                <SectionLabel
+                  icon={<LiveDot />}
+                  label="Loading Community"
+                  count={8}
+                  accent
+                />
+                <div className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-y-8">
+                  {Array.from({ length: 8 }).map((_, index) => (
+                    <StreamCardSkeleton key={index} />
+                  ))}
+                </div>
+              </section>
+            ) : filtered.length === 0 ? (
+              <EmptyState search={search} platform={platformFilter} />
+            ) : (
+              <>
+                {liveStreams.length > 0 && (
+                  <section id="live-streams" className="space-y-6">
+                    <div className="flex items-end justify-between gap-4">
+                      <div>
+                        <div className="mb-2 flex items-center gap-2">
+                          <LiveDot />
+                          <span className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-valo-red">
+                            Live right now
+                          </span>
+                        </div>
+                        <h2 className="font-display text-2xl font-black uppercase tracking-tight text-white sm:text-3xl">
+                          Live Now
+                        </h2>
+                      </div>
+                      <span className="hidden rounded-full border border-valo-red/15 bg-valo-red/[0.05] px-3 py-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-valo-red sm:inline-flex">
+                        {liveStreams.length} active
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-y-9">
+                      {liveStreams.map((streamer, index) => {
                         const elementKey =
                           streamer.id ||
                           streamer.streamer_id ||
                           `live-${index}`
-
 
                         return (
                           <StreamerCard
@@ -918,52 +567,36 @@ export default function AllStreamersPage() {
                             streamer={streamer}
                           />
                         )
-                      }
-                    )}
+                      })}
+                    </div>
+                  </section>
+                )}
 
-                  </div>
+                {offlineStreams.length > 0 && (
+                  <section className="space-y-6 border-t border-white/[0.05] pt-10">
+                    <div className="flex items-end justify-between gap-4">
+                      <div>
+                        <div className="mb-2 flex items-center gap-2">
+                          <OfflineDot />
+                          <span className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-neutral-600">
+                            Community directory
+                          </span>
+                        </div>
+                        <h2 className="font-display text-2xl font-black uppercase tracking-tight text-neutral-300 sm:text-3xl">
+                          Offline
+                        </h2>
+                      </div>
+                      <span className="hidden rounded-full border border-white/[0.07] bg-white/[0.02] px-3 py-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.15em] text-neutral-600 sm:inline-flex">
+                        {offlineStreams.length} profiles
+                      </span>
+                    </div>
 
-                </section>
-
-              )}
-
-
-
-              {/* OFFLINE */}
-
-              {offlineStreams.length > 0 && (
-
-                <section className="space-y-5">
-
-                  <SectionLabel
-                    icon={<OfflineDot />}
-                    label="Offline"
-                    count={
-                      offlineStreams.length
-                    }
-                  />
-
-
-                  <div
-                    className="
-                      grid
-                      grid-cols-1
-                      sm:grid-cols-2
-                      lg:grid-cols-3
-                      xl:grid-cols-4
-                      gap-x-4
-                      gap-y-8
-                    "
-                  >
-
-                    {offlineStreams.map(
-                      (streamer, index) => {
-
+                    <div className="grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-y-9">
+                      {offlineStreams.map((streamer, index) => {
                         const elementKey =
                           streamer.id ||
                           streamer.streamer_id ||
                           `offline-${index}`
-
 
                         return (
                           <StreamerCard
@@ -971,51 +604,29 @@ export default function AllStreamersPage() {
                             streamer={streamer}
                           />
                         )
-                      }
-                    )}
+                      })}
+                    </div>
+                  </section>
+                )}
+              </>
+            )}
+          </div>
 
-                  </div>
-
-                </section>
-
-              )}
-
-            </>
-
+          {/* ===============================================================
+              FOOTER STATUS
+             =============================================================== */}
+          {!isLoading && filtered.length > 0 && (
+            <div className="border-t border-white/[0.05] pt-8 pb-2 text-center">
+              <div className="flex flex-wrap items-center justify-center gap-2 font-mono text-[8px] font-bold uppercase tracking-[0.2em] text-neutral-700 sm:text-[9px]">
+                <span className="h-1.5 w-1.5 rounded-full bg-green-500/70 shadow-[0_0_10px_rgba(34,197,94,0.4)]" />
+                <span>Realtime matrix sync active</span>
+                <span className="text-neutral-800">•</span>
+                <span>Frequency sweep loop configured at 60s</span>
+              </div>
+            </div>
           )}
-
         </div>
-
-
-
-        {/* ═══════════════════════════════════════════════════════════════
-            FOOTER
-            ═══════════════════════════════════════════════════════════ */}
-
-        {!isLoading &&
-          filtered.length > 0 && (
-
-            <p
-              className="
-                text-center
-                text-[10px]
-                text-valo-muted
-                font-mono
-                uppercase
-                tracking-widest
-                pt-12
-                pb-4
-                border-t
-                border-neutral-900/60
-              "
-            >
-              Realtime Matrix Sync active · Frequency sweep loop configured at 60s
-            </p>
-
-          )}
-
       </div>
-
     </MainLayout>
   )
 }
