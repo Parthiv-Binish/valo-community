@@ -17,6 +17,7 @@ import ComingSoonPage from './pages/ComingSoonPage'
 // small share of visitors, so they load on demand instead of in the main bundle.
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage.jsx'))
+const StreamerProfilePage = lazy(() => import('./pages/StreamerProfilePage'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const AdminStreamersPage = lazy(() => import('./pages/AdminStreamersPage'))
 const AdminSubmissionsPage = lazy(() => import('./pages/AdminSubmissionsPage'))
@@ -163,8 +164,11 @@ function AppRouterContainer() {
 
   const isAdminUser = userRole === 'admin'
 
+  // overflow-x-clip clips like "hidden" but does NOT turn this div into a scroll container
+  // (which silently breaks position: sticky inside it). "hidden" stays as the fallback for
+  // older browsers that don't understand "clip".
   return (
-    <div className="min-h-screen bg-black w-full overflow-x-hidden">
+    <div className="min-h-screen bg-black w-full overflow-x-hidden overflow-x-clip">
       <BrowserRouter>
         <RouteMeta />
         <Suspense fallback={<RouteFallback />}>
@@ -194,6 +198,7 @@ function AppRouterContainer() {
             <>
               {/* CONDITIONAL COMPONENT GATEWAY EVALUATIONS */}
               <Route path="/" element={pageGates.home || isAdminUser ? <AllStreamersPage /> : <ComingSoonPage />} />
+              <Route path="/streamer/:platform/:handle" element={pageGates.home || isAdminUser ? <StreamerProfilePage /> : <ComingSoonPage />} />
               <Route path="/subscriptions" element={pageGates.subscriptions || isAdminUser ? <MySubscriptionsPage /> : <ComingSoonPage />} />
               <Route path="/submit" element={pageGates.submit || isAdminUser ? <SubmitPage /> : <ComingSoonPage />} />
               <Route path='/about' element={pageGates.about || isAdminUser ? <AboutPage /> : <ComingSoonPage />} />
