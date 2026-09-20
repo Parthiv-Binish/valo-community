@@ -80,11 +80,11 @@ export default function StreamerProfilePage() {
 
   return (
     <MainLayout>
-      <div className="max-w-5xl mx-auto space-y-8 animate-fade-in">
+      <div className="mx-auto w-full max-w-6xl space-y-8 animate-fade-in">
 
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-[11px] font-mono uppercase tracking-widest text-valo-muted hover:text-white transition-colors"
+          className="group inline-flex items-center gap-2 rounded-lg border border-white/[0.06] bg-white/[0.02] px-3 py-2 text-[9px] font-mono font-bold uppercase tracking-[0.16em] text-neutral-500 transition-all hover:border-[#ff4655]/20 hover:bg-[#ff4655]/5 hover:text-white"
         >
           <span aria-hidden="true">←</span> All streamers
         </Link>
@@ -169,7 +169,7 @@ function ProfileHeader({ streamer }) {
     : streamer.channelUrl
 
   return (
-    <header className="relative overflow-hidden rounded-2xl border border-valo-border bg-valo-card">
+    <header className="group relative overflow-hidden rounded-2xl border border-white/[0.08] bg-[#090909] shadow-[0_20px_70px_rgba(0,0,0,0.28)]">
 
       <div
         aria-hidden="true"
@@ -180,7 +180,7 @@ function ProfileHeader({ streamer }) {
         }}
       />
 
-      <div className="relative p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center gap-5">
+      <div className="relative flex flex-col gap-5 p-5 sm:p-7 md:flex-row md:items-center">
 
         <div className="relative shrink-0 self-start">
 
@@ -189,9 +189,9 @@ function ProfileHeader({ streamer }) {
               src={streamer.avatar}
               alt={streamer.channelName}
               referrerPolicy="no-referrer"
-              className={`w-24 h-24 rounded-full object-cover border-4 ${
+              className={`h-24 w-24 rounded-2xl object-cover border-2 ${
                 streamer.isLive
-                  ? 'border-valo-red'
+                  ? 'border-[#ff4655] shadow-[0_0_28px_rgba(255,70,85,0.18)]'
                   : 'border-white/10'
               }`}
               onError={(e) => {
@@ -200,7 +200,7 @@ function ProfileHeader({ streamer }) {
             />
           ) : (
             <div
-              className="w-24 h-24 rounded-full flex items-center justify-center text-3xl font-display font-black border-4 border-white/10"
+              className="flex h-24 w-24 items-center justify-center rounded-2xl border border-white/10 text-3xl font-display font-black"
               style={{
                 background: `${accent}20`,
                 color: accent
@@ -211,7 +211,7 @@ function ProfileHeader({ streamer }) {
           )}
 
           {streamer.isLive && (
-            <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 live-badge">
+            <span className="absolute -bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full border border-[#ff4655]/30 bg-[#ff4655] px-2.5 py-1 font-mono text-[8px] font-black uppercase tracking-[0.16em] text-white shadow-[0_6px_20px_rgba(255,70,85,0.3)]">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
               Live
             </span>
@@ -224,7 +224,7 @@ function ProfileHeader({ streamer }) {
 
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
 
-              <h1 className="font-display font-black text-2xl sm:text-3xl text-white truncate max-w-full">
+              <h1 className="truncate max-w-full font-display text-2xl font-black tracking-tight text-white sm:text-3xl">
                 {streamer.channelName}
               </h1>
 
@@ -245,15 +245,15 @@ function ProfileHeader({ streamer }) {
               <span
                 className={
                   isKick
-                    ? 'platform-badge-kick'
-                    : 'platform-badge-yt'
+                    ? 'rounded-md border border-[#53fc18]/20 bg-[#53fc18]/5 px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-[#53fc18]'
+                    : 'rounded-md border border-[#ff4444]/20 bg-[#ff4444]/5 px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-[#ff4444]'
                 }
               >
                 {platformLabel(streamer.platform)}
               </span>
 
               {streamer.language && (
-                <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-1 rounded bg-white/5 text-neutral-300 border border-white/10">
+                <span className="rounded-md border border-white/[0.08] bg-white/[0.035] px-2.5 py-1 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-400">
                   {streamer.language}
                 </span>
               )}
@@ -266,7 +266,7 @@ function ProfileHeader({ streamer }) {
               href={watchUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="valo-btn inline-flex items-center gap-2"
+              className="inline-flex items-center gap-2 rounded-lg border border-[#ff4655]/30 bg-[#ff4655]/10 px-3.5 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-[#ff4655] transition-all hover:border-[#ff4655]/60 hover:bg-[#ff4655] hover:text-white active:scale-[0.98]"
             >
               {streamer.isLive
                 ? 'Watch live'
@@ -303,10 +303,10 @@ function LivePanel({ streamer }) {
   return (
     <section
       aria-label="Live now"
-      className="grid md:grid-cols-5 gap-5 rounded-2xl border border-valo-red/30 bg-valo-card p-4 sm:p-5 border-glow"
+      className="grid gap-5 rounded-2xl border border-[#ff4655]/20 bg-[#090909] p-3.5 shadow-[0_0_50px_rgba(255,70,85,0.05)] sm:p-5 md:grid-cols-5"
     >
 
-      <div className="md:col-span-3 relative aspect-video rounded-xl overflow-hidden bg-black">
+      <div className="relative aspect-video overflow-hidden rounded-xl bg-black md:col-span-3">
 
         {embed && previewOn ? (
           <iframe
@@ -324,7 +324,7 @@ function LivePanel({ streamer }) {
                 src={thumb}
                 alt=""
                 referrerPolicy="no-referrer"
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.015]"
                 onError={(e) => {
                   e.target.style.display = 'none'
                 }}
@@ -367,14 +367,14 @@ function LivePanel({ streamer }) {
         )}
       </div>
 
-      <div className="md:col-span-2 flex flex-col justify-center gap-4 min-w-0">
+      <div className="flex min-w-0 flex-col justify-center gap-4 md:col-span-2">
 
         <div>
-          <p className="text-[10px] font-mono uppercase tracking-widest text-valo-red mb-1.5">
+          <p className="mb-1.5 font-mono text-[8px] font-black uppercase tracking-[0.2em] text-[#ff4655]">
             Streaming now
           </p>
 
-          <h2 className="font-display font-bold text-lg text-white leading-snug line-clamp-3">
+          <h2 className="line-clamp-3 font-display text-lg font-black leading-snug text-white">
             {streamer.title &&
             streamer.title !== 'Live Stream'
               ? streamer.title
@@ -410,7 +410,7 @@ function OfflinePanel({ streamer, slots }) {
   return (
     <section
       aria-label="Offline"
-      className="rounded-2xl border border-valo-border bg-valo-card p-5 sm:p-6 flex items-start gap-4"
+      className="flex items-start gap-4 rounded-2xl border border-white/[0.07] bg-[#090909] p-5 shadow-[0_14px_50px_rgba(0,0,0,0.2)] sm:p-6"
     >
       <span
         className="w-2.5 h-2.5 mt-1.5 rounded-full bg-neutral-600 shrink-0"
@@ -533,11 +533,11 @@ function StreamingStats({ stats, isLoading }) {
       </SectionTitle>
 
       {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {items.map(([label]) => (
             <div
               key={label}
-              className="rounded-xl border border-valo-border bg-valo-card px-4 py-4 space-y-2"
+              className="space-y-2 rounded-xl border border-white/[0.06] bg-[#090909] px-4 py-4"
             >
               <div className="h-3 w-2/3 rounded shimmer" />
               <div className="h-5 w-1/2 rounded shimmer" />
@@ -553,17 +553,17 @@ function StreamingStats({ stats, isLoading }) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {items.map(([label, value]) => (
               <div
                 key={label}
-                className="rounded-xl border border-valo-border bg-valo-card px-4 py-4"
+                className="rounded-xl border border-white/[0.06] bg-[#090909] px-4 py-4 transition-colors hover:border-white/[0.1]"
               >
-                <div className="text-[9px] font-mono uppercase tracking-widest text-valo-muted">
+                <div className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-neutral-600">
                   {label}
                 </div>
 
-                <div className="mt-1 font-display font-black text-lg text-white truncate">
+                <div className="mt-1 truncate font-display text-lg font-black text-white">
                   {value}
                 </div>
               </div>
@@ -572,8 +572,8 @@ function StreamingStats({ stats, isLoading }) {
 
           <div className="grid grid-cols-2 gap-3">
 
-            <div className="rounded-xl border border-valo-border bg-valo-card px-4 py-3">
-              <div className="text-[9px] font-mono uppercase tracking-widest text-valo-muted">
+            <div className="rounded-xl border border-white/[0.06] bg-[#090909] px-4 py-3">
+              <div className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-neutral-600">
                 Usually starts
               </div>
 
@@ -582,8 +582,8 @@ function StreamingStats({ stats, isLoading }) {
               </div>
             </div>
 
-            <div className="rounded-xl border border-valo-border bg-valo-card px-4 py-3">
-              <div className="text-[9px] font-mono uppercase tracking-widest text-valo-muted">
+            <div className="rounded-xl border border-white/[0.06] bg-[#090909] px-4 py-3">
+              <div className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-neutral-600">
                 Most active day
               </div>
 
@@ -613,7 +613,7 @@ function UsuallyLive({ slots, name }) {
         Usually live
       </SectionTitle>
 
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
 
         {slots.map((slot) => (
           <li
@@ -741,12 +741,12 @@ function PastStreams({
 
       {isLoading &&
       streams.length === 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
           {[1, 2, 3].map((item) => (
             <div
               key={item}
-              className="rounded-xl border border-valo-border bg-valo-card overflow-hidden"
+              className="overflow-hidden rounded-2xl border border-white/[0.06] bg-[#090909]"
             >
               <div className="aspect-video shimmer" />
 
@@ -760,7 +760,7 @@ function PastStreams({
         </div>
       ) : streams.length === 0 ? (
 
-        <div className="rounded-xl border border-valo-border bg-valo-card px-5 py-8 text-center">
+        <div className="rounded-2xl border border-white/[0.06] bg-[#090909] px-5 py-10 text-center">
           <p className="text-sm text-valo-muted">
             No past streams have been recorded yet.
           </p>
@@ -769,7 +769,7 @@ function PastStreams({
       ) : (
 
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
             {streams.map((stream) => {
               const url =
@@ -787,7 +787,7 @@ function PastStreams({
               return (
                 <article
                   key={stream.id}
-                  className="group overflow-hidden rounded-xl border border-valo-border bg-valo-card hover:border-white/15 transition-colors"
+                  className="group overflow-hidden rounded-2xl border border-white/[0.06] bg-[#090909] shadow-[0_12px_40px_rgba(0,0,0,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:border-white/[0.13] hover:shadow-[0_18px_50px_rgba(0,0,0,0.28)]"
                 >
 
                   {url ? (
@@ -812,9 +812,9 @@ function PastStreams({
                     />
                   )}
 
-                  <div className="p-4 space-y-3">
+                  <div className="space-y-3 p-4">
 
-                    <h3 className="font-display font-bold text-sm text-white leading-snug line-clamp-2">
+                    <h3 className="line-clamp-2 font-display text-sm font-bold leading-snug text-white">
                       {title}
                     </h3>
 
@@ -847,7 +847,7 @@ function PastStreams({
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
+                        className="inline-flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1 text-[9px] font-mono font-bold uppercase tracking-[0.12em] text-neutral-500 transition-all hover:border-white/[0.07] hover:bg-white/[0.03] hover:text-white"
                       >
                         Watch stream
                         <span aria-hidden="true">
@@ -893,7 +893,7 @@ function StreamHistoryThumbnail({
   platform
 }) {
   return (
-    <div className="relative aspect-video overflow-hidden bg-neutral-950">
+    <div className="group relative aspect-video overflow-hidden bg-[#050505]">
 
       {src ? (
         <img
@@ -909,9 +909,9 @@ function StreamHistoryThumbnail({
         <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
       )}
 
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
 
-      <span className="absolute left-3 bottom-3 px-2 py-1 rounded bg-black/75 backdrop-blur-sm border border-white/10 text-[9px] font-mono uppercase tracking-wider text-white">
+      <span className="absolute bottom-3 left-3 rounded-md border border-white/10 bg-black/70 px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-[0.14em] text-white backdrop-blur-md">
         {platform}
       </span>
 
@@ -971,7 +971,7 @@ function ShareButton({ streamer }) {
     <button
       type="button"
       onClick={handleShare}
-      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded font-mono text-[10px] font-bold tracking-wider uppercase border border-neutral-800 bg-neutral-950 text-neutral-300 hover:text-white hover:border-neutral-600 select-none transition-all duration-150 active:scale-95"
+      className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3.5 py-2 font-mono text-[9px] font-bold uppercase tracking-[0.12em] text-neutral-300 transition-all hover:border-white/[0.18] hover:bg-white/[0.06] hover:text-white active:scale-[0.98]"
     >
       <svg
         width="12"
@@ -1023,13 +1023,13 @@ function Stat({
 
 function SectionTitle({ children }) {
   return (
-    <div className="flex items-center gap-2.5 select-none">
+    <div className="flex select-none items-center gap-2.5">
 
-      <h2 className="font-display font-black text-xs uppercase tracking-widest text-neutral-400">
+      <h2 className="font-display text-[10px] font-black uppercase tracking-[0.18em] text-neutral-500">
         {children}
       </h2>
 
-      <div className="flex-1 h-px bg-neutral-900" />
+      <div className="h-px flex-1 bg-white/[0.06]" />
 
     </div>
   )
@@ -1043,7 +1043,7 @@ function ProfileSkeleton() {
       aria-label="Loading streamer profile"
     >
 
-      <div className="rounded-2xl border border-valo-border bg-valo-card p-7 flex items-center gap-5">
+      <div className="flex items-center gap-5 rounded-2xl border border-white/[0.06] bg-[#090909] p-6 sm:p-7">
 
         <div className="w-24 h-24 rounded-full shimmer shrink-0" />
 
@@ -1064,16 +1064,16 @@ function ProfileSkeleton() {
 
 function NotFound() {
   return (
-    <div className="flex flex-col items-center text-center py-20 rounded-2xl border border-valo-border bg-valo-card px-6">
+    <div className="flex flex-col items-center rounded-2xl border border-white/[0.07] bg-[#090909] px-6 py-20 text-center shadow-[0_20px_70px_rgba(0,0,0,0.2)]">
 
       <div
-        className="w-14 h-14 rounded-xl bg-neutral-900/60 border border-neutral-800 flex items-center justify-center mb-4 text-xl"
+        className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#ff4655]/15 bg-[#ff4655]/5 text-xl shadow-[0_0_30px_rgba(255,70,85,0.06)]"
         aria-hidden="true"
       >
         🔎
       </div>
 
-      <h1 className="font-display font-black text-lg text-white mb-1">
+      <h1 className="mb-1 font-display text-lg font-black text-white">
         Streamer not found
       </h1>
 
