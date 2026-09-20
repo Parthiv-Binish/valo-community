@@ -5,6 +5,7 @@ import NotifyButton from '../components/common/NotifyButton'
 import StreamCard from '../components/stream/StreamCard'
 import { useAllStreamers } from '../hooks/useAllStreamers'
 import { useStreamerInsights } from '../hooks/useStreamerInsights'
+import { useStreamHistory } from '../hooks/useStreamHistory'
 import { formatViewerCount, formatLiveDuration } from '../utils/format'
 import { matchesProfile, profilePath, platformLabel } from '../utils/profile'
 
@@ -25,6 +26,12 @@ export default function StreamerProfilePage() {
   )
 
   const { slots: usualSlots } = useStreamerInsights(streamer?.dbId)
+  const {
+    streams: pastStreams,
+    isLoading: historyLoading,
+    hasMore: historyHasMore,
+    loadMore: loadMoreHistory,
+  } = useStreamHistory(streamer?.dbId)
 
   // Other streamers who are live right now (same language first).
   const alsoLive = useMemo(() => {
@@ -72,6 +79,13 @@ export default function StreamerProfilePage() {
             <ProfileHeader streamer={streamer} />
             {streamer.isLive ? <LivePanel streamer={streamer} /> : <OfflinePanel streamer={streamer} slots={usualSlots} />}
             {usualSlots.length > 0 && <UsuallyLive slots={usualSlots} name={streamer.channelName} />}
+
+            <PastStreams
+              streams={pastStreams}
+              isLoading={historyLoading}
+              hasMore={historyHasMore}
+              onLoadMore={loadMoreHistory}
+            />
 
             {alsoLive.length > 0 && (
               <section className="space-y-4" aria-label="Also live now">
@@ -311,6 +325,194 @@ function UsuallyLive({ slots, name }) {
         Estimated from {name}&apos;s past streams and shown in your local time. It&apos;s a pattern, not an official schedule.
       </p>
     </section>
+  )
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAST STREAMS
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function PastStreams({ streams, isLoading, hasMore, onLoadMore }) {
+  const formatDate = (value) => {
+    if (!value) return 'Unknown date'
+
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return 'Unknown date'
+
+    return new Intl.DateTimeFormat(undefined, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(date)
+  }
+
+  const formatDuration = (seconds) => {
+    if (seconds == null || Number.isNaN(Number(seconds))) return '—'
+
+    const total = Math.max(0, Number(seconds))
+    const hours = Math.floor(total / 3600)
+    const minutes = Math.floor((total % 3600) / 60)
+
+    if (hours > 0) return `${hours}h ${minutes}m`
+    return `${minutes}m`
+  }
+
+  const platformName = (stream) => {
+    if (stream.platform) {
+      return String(stream.platform).toLowerCase() === 'kick' ? 'Kick' : 'YouTube'
+    }
+
+    return String(stream.stream_url || '').includes('kick.com') ? 'Kick' : 'YouTube'
+  }
+
+  const platformClass = (stream) =>
+    platformName(stream) === 'Kick'
+      ? 'text-[#53fc18] border-[#53fc18]/20 bg-[#53fc18]/5'
+      : 'text-[#ff4444] border-[#ff4444]/20 bg-[#ff4444]/5'
+
+  return (
+    <section className="space-y-4" aria-label="Past streams">
+      <SectionTitle>Past Streams</SectionTitle>
+
+      {isLoading && streams.length === 0 ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="rounded-xl border border-valo-border bg-valo-card overflow-hidden"
+            >
+              <div className="aspect-video shimmer" />
+              <div className="p-4 space-y-2">
+                <div className="h-4 w-4/5 rounded shimmer" />
+                <div className="h-3 w-2/5 rounded shimmer" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : streams.length === 0 ? (
+        <div className="rounded-xl border border-valo-border bg-valo-card px-5 py-8 text-center">
+          <p className="text-sm text-valo-muted">
+            No past streams have been recorded yet.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {streams.map((stream) => {
+              const url = stream.stream_url || stream.streamUrl
+              const thumbnail = stream.thumbnail_url || stream.thumbnail
+              const title = stream.title || 'Untitled stream'
+
+              return (
+                <article
+                  key={stream.id}
+                  className="group overflow-hidden rounded-xl border border-valo-border bg-valo-card hover:border-white/15 transition-colors"
+                >
+                  {url ? (
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Watch ${title}`}
+                      className="block"
+                    >
+                      <StreamHistoryThumbnail
+                        src={thumbnail}
+                        title={title}
+                        platform={platformName(stream)}
+                      />
+                    </a>
+                  ) : (
+                    <StreamHistoryThumbnail
+                      src={thumbnail}
+                      title={title}
+                      platform={platformName(stream)}
+                    />
+                  )}
+
+                  <div className="p-4 space-y-3">
+                    <h3 className="font-display font-bold text-sm text-white leading-snug line-clamp-2">
+                      {title}
+                    </h3>
+
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] font-mono">
+                      <span className={`px-2 py-1 rounded border ${platformClass(stream)}`}>
+                        {platformName(stream)}
+                      </span>
+
+                      <span className="text-valo-muted">
+                        {formatDate(stream.went_live_at)}
+                      </span>
+
+                      <span className="text-neutral-500">•</span>
+
+                      <span className="text-valo-muted">
+                        {formatDuration(stream.duration_seconds)}
+                      </span>
+                    </div>
+
+                    {url && (
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-neutral-400 hover:text-white transition-colors"
+                      >
+                        Watch stream
+                        <span aria-hidden="true">↗</span>
+                      </a>
+                    )}
+                  </div>
+                </article>
+              )
+            })}
+          </div>
+
+          {hasMore && (
+            <div className="flex justify-center pt-2">
+              <button
+                type="button"
+                onClick={onLoadMore}
+                disabled={isLoading}
+                className="valo-btn-ghost disabled:opacity-50 disabled:pointer-events-none"
+              >
+                {isLoading ? 'Loading…' : 'Load more'}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </section>
+  )
+}
+
+function StreamHistoryThumbnail({ src, title, platform }) {
+  return (
+    <div className="relative aspect-video overflow-hidden bg-neutral-950">
+      {src ? (
+        <img
+          src={src}
+          alt=""
+          referrerPolicy="no-referrer"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+          onError={(e) => {
+            e.currentTarget.style.display = 'none'
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
+      )}
+
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+
+      <span className="absolute left-3 bottom-3 px-2 py-1 rounded bg-black/75 backdrop-blur-sm border border-white/10 text-[9px] font-mono uppercase tracking-wider text-white">
+        {platform}
+      </span>
+
+      {title && (
+        <span className="sr-only">{title}</span>
+      )}
+    </div>
   )
 }
 
