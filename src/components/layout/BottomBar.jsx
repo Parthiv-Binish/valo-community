@@ -15,6 +15,7 @@ export default function BottomBar() {
   const primaryTabs = [
     { to: '/', label: 'Home', end: true, icon: <HomeIcon /> },
     { to: '/subscriptions', label: 'Followed', end: true, icon: <SubscriptionsIcon /> },
+    { to: '/predictions', label: 'Radar', end: true, icon: <PredictionsIcon /> },
   ]
 
   // Overflow array designed to fan out symmetrically over the navigation bar
@@ -110,7 +111,7 @@ export default function BottomBar() {
                           <div className="scale-105">{item.icon}</div>
                           
                           {/* Floating Micro Labels under geometric ring nodes */}
-                          <span className="absolute -bottom-4 font-mono text-[7px] font-bold uppercase tracking-wider text-neutral-500 scale-90 select-none whitespace-nowrap pointer-events-none bg-black/40 px-1 rounded">
+                          <span className="absolute -bottom-4 font-mono text-[9px] font-bold uppercase tracking-wider text-neutral-400 select-none whitespace-nowrap pointer-events-none bg-black/40 px-1 rounded">
                             {item.label}
                           </span>
                         </Link>
