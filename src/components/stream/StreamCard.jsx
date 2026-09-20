@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { profilePath } from '../../utils/profile'
 import { formatViewerCount, formatLiveDuration } from '../../utils/format'
 import NotifyButton from '../common/NotifyButton';
 
@@ -237,7 +239,11 @@ export default function StreamerCard({ streamer }) {
       {/* Footer */}
       <div className="p-3 pt-1 space-y-3">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
+          <Link
+            to={profilePath(streamer)}
+            title={`View ${streamer.channelName}'s profile`}
+            className="group/profile flex items-center gap-2 min-w-0 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-valo-red"
+          >
             {streamer.avatar ? (
               <img
                 src={streamer.avatar}
@@ -254,7 +260,7 @@ export default function StreamerCard({ streamer }) {
               </div>
             )}
             <div className="flex items-center gap-1 min-w-0">
-              <span className="text-xs text-valo-muted font-body truncate">
+              <span className="text-xs text-valo-muted font-body truncate group-hover/profile:text-white group-hover/profile:underline underline-offset-2">
                 {streamer.channelName}
               </span>
               {streamer.verified && (
@@ -263,7 +269,7 @@ export default function StreamerCard({ streamer }) {
                 </svg>
               )}
             </div>
-          </div>
+          </Link>
           <span className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-display font-semibold px-2 py-0.5 rounded ${cfg.bgClass}`}>
             <img
               src={cfg.logo}
