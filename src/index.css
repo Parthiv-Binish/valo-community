@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* =========================================================
-   BASE
-   ========================================================= */
-
 @layer base {
   *,
   *::before,
@@ -91,10 +87,6 @@
     scrollbar-color: #2a2a2a #0f0f0f;
   }
 }
-
-/* =========================================================
-   COMPONENTS
-   ========================================================= */
 
 @layer components {
   .shimmer {
@@ -309,10 +301,6 @@
   }
 }
 
-/* =========================================================
-   UTILITIES
-   ========================================================= */
-
 @layer utilities {
   .text-gradient {
     background: linear-gradient(90deg, #ffffff 0%, #ff4655 100%);
@@ -344,10 +332,6 @@
   }
 }
 
-/* =========================================================
-   ANIMATIONS
-   ========================================================= */
-
 @keyframes shimmer {
   0% {
     background-position: 200% 0;
@@ -359,19 +343,10 @@
 }
 
 /* =========================================================
-   PAGE BACKGROUND FIX
-   IMPORTANT:
-   Only targets the actual application shell.
-   It does NOT override every .bg-black element.
+   PAGE BACKGROUND — TARGET ONLY THE ACTUAL APP SHELL
    ========================================================= */
-
-#root > div.min-h-screen.bg-black {
-  background: #0f0f0f !important;
-  background-color: #0f0f0f !important;
-}
 
 #root > div.min-h-screen.bg-black
   > div.min-h-screen.bg-valo-dark {
-  background: #0f0f0f !important;
   background-color: #0f0f0f !important;
 }
