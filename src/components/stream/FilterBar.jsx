@@ -26,23 +26,23 @@ export default function FilterBar({
 }) {
   return (
     <div className="w-full">
-
-      {/* Desktop / mobile filter container */}
       <div
         className="
-          inline-flex
+          flex
+          w-full
           items-center
-          gap-1
-          p-1
-          rounded-xl
+          gap-2
+          overflow-x-auto
+          scrollbar-none
+          rounded-2xl
           border
-          border-valo-border
-          bg-black/30
-          backdrop-blur-md
-          shadow-[0_8px_30px_rgba(0,0,0,0.18)]
+          border-white/[0.07]
+          bg-[#0b0c10]/90
+          p-1.5
+          backdrop-blur-xl
+          shadow-[0_12px_40px_rgba(0,0,0,0.2)]
         "
       >
-
         {FILTERS.map((filter) => {
           const isActive = active === filter.id
           const count = counts[filter.id]
@@ -57,60 +57,57 @@ export default function FilterBar({
                 group
                 relative
                 flex
+                min-h-[42px]
+                shrink-0
+                flex-1
                 items-center
                 justify-center
                 gap-2
-                min-h-[38px]
+                rounded-xl
                 px-3
-                sm:px-4
-                rounded-lg
+                sm:px-5
                 font-display
-                font-semibold
-                text-[11px]
+                text-[10px]
+                font-bold
                 uppercase
-                tracking-wider
+                tracking-[0.12em]
+                outline-none
                 transition-all
                 duration-200
-                select-none
-                outline-none
                 focus-visible:ring-2
                 focus-visible:ring-valo-red/70
-
                 ${
                   isActive
                     ? `
                       bg-valo-red
                       text-white
-                      shadow-[0_0_18px_rgba(255,68,68,0.22)]
+                      shadow-[0_0_24px_rgba(255,68,68,0.16)]
                     `
                     : `
-                      text-valo-muted
+                      text-neutral-500
+                      hover:bg-white/[0.035]
                       hover:text-white
-                      hover:bg-white/[0.05]
                     `
                 }
               `}
             >
-
-              {/* Active indicator */}
               {isActive && (
                 <span
                   className="
                     absolute
-                    left-1.5
-                    top-1/2
-                    -translate-y-1/2
-                    w-1
-                    h-1
+                    bottom-1.5
+                    left-1/2
+                    h-0.5
+                    w-5
+                    -translate-x-1/2
                     rounded-full
                     bg-white
-                    shadow-[0_0_8px_rgba(255,255,255,0.8)]
+                    shadow-[0_0_8px_rgba(255,255,255,0.75)]
                   "
                   aria-hidden="true"
                 />
               )}
 
-              {/* Platform logo */}
               {filter.logo ? (
                 <img
                   src={filter.logo}
@@ -125,7 +122,7 @@ export default function FilterBar({
                     ${
                       isActive
                         ? 'opacity-100'
-                        : 'opacity-60 group-hover:opacity-100'
+                        : 'opacity-45 group-hover:opacity-100'
                     }
                   `}
                   onError={(e) => {
@@ -133,10 +130,9 @@ export default function FilterBar({
                   }}
                 />
               ) : (
-                /* All platforms icon */
                 <svg
-                  width="14"
-                  height="14"
+                  width="15"
+                  height="15"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -144,7 +140,7 @@ export default function FilterBar({
                   aria-hidden="true"
                   className={`
                     transition-transform
-                    duration-200
+                    duration-300
                     ${
                       isActive
                         ? 'rotate-90'
@@ -159,27 +155,24 @@ export default function FilterBar({
                 </svg>
               )}
 
-              {/* Label */}
               <span className="hidden sm:inline">
                 {filter.label}
               </span>
 
-              {/* Mobile label */}
               <span className="sm:hidden">
                 {filter.shortLabel}
               </span>
 
-              {/* Count */}
               {count != null && (
                 <span
                   className={`
-                    min-w-[20px]
-                    h-5
-                    px-1.5
                     inline-flex
+                    min-w-[22px]
+                    h-5
                     items-center
                     justify-center
                     rounded-md
+                    px-1.5
                     text-[9px]
                     font-mono
                     font-bold
@@ -188,20 +181,17 @@ export default function FilterBar({
                     ${
                       isActive
                         ? 'bg-white/20 text-white'
-                        : 'bg-white/[0.05] text-neutral-400 group-hover:text-white'
+                        : 'bg-white/[0.05] text-neutral-500 group-hover:text-white'
                     }
                   `}
                 >
                   {count}
                 </span>
               )}
-
             </button>
           )
         })}
-
       </div>
-
     </div>
   )
 }
