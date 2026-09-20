@@ -267,6 +267,28 @@ export default function AllStreamersPage() {
     [filtered]
   )
 
+  /* ═════════════════════════════════════════════════════════════════════
+     HERO STATS
+     Values are calculated from the complete DB-backed streamer collection.
+     "In view" remains filter/search aware.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  const heroStats = useMemo(() => {
+    const totalStreamers = safeStreamers.length
+
+    const totalLive = safeStreamers.filter(
+      (streamer) =>
+        streamer.isLive ||
+        streamer.is_live
+    ).length
+
+    return {
+      live: totalLive,
+      inView: filtered.length,
+      total: totalStreamers,
+    }
+  }, [safeStreamers, filtered])
+
 
   /* ═════════════════════════════════════════════════════════════════════
      DISCOVERY GROUPS
@@ -358,84 +380,79 @@ export default function AllStreamersPage() {
           {/* ===============================================================
               HERO
              =============================================================== */}
-          <section className="relative overflow-hidden rounded-[24px] border border-white/[0.07] bg-neutral-950/70 shadow-[0_30px_100px_rgba(0,0,0,0.35)] backdrop-blur-xl">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_82%_20%,rgba(255,68,68,0.16),transparent_30%),radial-gradient(circle_at_15%_90%,rgba(255,68,68,0.08),transparent_28%)]" />
-            <div className="absolute right-0 top-0 h-full w-[48%] bg-[linear-gradient(135deg,transparent_0%,rgba(255,68,68,0.035)_45%,rgba(255,68,68,0.09)_100%)]" />
+          <section className="relative min-h-[430px] overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#070708] shadow-[0_30px_110px_rgba(0,0,0,0.45)] sm:min-h-[500px]">
+            {/* Full-bleed cinematic background */}
+            <img
+              src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news_live/7b60e8bb6c1828831931dad87633604c2264fa26-3440x1020.jpg"
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 h-full w-full object-cover object-center opacity-55 saturate-75"
+            />
 
-            <div className="relative grid min-h-[390px] items-center lg:grid-cols-[1.15fr_0.85fr]">
-              <div className="px-6 py-10 sm:px-10 sm:py-14 lg:px-14 lg:py-16">
-                <div className="mb-5 flex items-center gap-3">
+            {/* Readability + VALORANT red atmosphere */}
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(5,5,6,0.98)_0%,rgba(5,5,6,0.90)_30%,rgba(5,5,6,0.55)_58%,rgba(5,5,6,0.28)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(0deg,rgba(5,5,6,0.96)_0%,transparent_42%,rgba(5,5,6,0.28)_100%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_76%_42%,rgba(255,68,68,0.22),transparent_30%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,68,68,0.08),transparent_38%,rgba(255,68,68,0.05)_100%)]" />
+
+            {/* Tactical HUD grid */}
+            <div
+              aria-hidden="true"
+              className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:linear-gradient(to_bottom,black,transparent_88%)]"
+            />
+
+            {/* Radar focal point */}
+            <div className="absolute right-[8%] top-1/2 hidden -translate-y-1/2 md:block">
+              <div className="relative flex h-56 w-56 items-center justify-center rounded-full border border-valo-red/20 bg-black/10 shadow-[0_0_100px_rgba(255,68,68,0.12)] backdrop-blur-[1px] lg:h-72 lg:w-72">
+                <div className="absolute h-[78%] w-[78%] rounded-full border border-valo-red/15" />
+                <div className="absolute h-[55%] w-[55%] rounded-full border border-valo-red/20" />
+                <div className="absolute h-[32%] w-[32%] rounded-full border border-valo-red/25" />
+                <div className="h-3 w-3 rounded-full bg-valo-red shadow-[0_0_30px_rgba(255,68,68,0.9)]" />
+                <div className="absolute h-px w-[125%] rotate-45 bg-gradient-to-r from-transparent via-valo-red/45 to-transparent" />
+                <div className="absolute h-px w-[125%] -rotate-45 bg-gradient-to-r from-transparent via-valo-red/20 to-transparent" />
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="relative z-10 flex min-h-[430px] items-end px-6 py-9 sm:min-h-[500px] sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+              <div className="w-full max-w-4xl">
+                <div className="mb-4 flex items-center gap-3 sm:mb-5">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-valo-red shadow-[0_0_18px_rgba(255,68,68,0.8)]" />
                   <span className="font-mono text-[9px] font-bold uppercase tracking-[0.28em] text-valo-red sm:text-[10px]">
                     Valorant Community Network
                   </span>
                 </div>
 
-                <h1 className="max-w-3xl font-display text-4xl font-black uppercase leading-[0.94] tracking-[-0.045em] text-white sm:text-5xl lg:text-7xl">
+                <h1 className="max-w-4xl font-display text-4xl font-black uppercase leading-[0.92] tracking-[-0.045em] text-white sm:text-6xl lg:text-8xl">
                   The Valorant
                   <br />
                   Community{' '}
-                  <span className="text-valo-red [text-shadow:0_0_35px_rgba(255,68,68,0.25)]">
+                  <span className="text-valo-red [text-shadow:0_0_35px_rgba(255,68,68,0.3)]">
                     Is Live.
                   </span>
                 </h1>
 
-                <p className="mt-5 max-w-xl text-sm leading-6 text-neutral-400 sm:text-base sm:leading-7">
+                <p className="mt-5 max-w-2xl text-sm leading-6 text-neutral-300/80 sm:text-base sm:leading-7">
                   Discover Valorant streamers across the community, find live
                   feeds, and jump straight into the action.
                 </p>
 
-                <div className="mt-8 grid max-w-2xl grid-cols-3 gap-2 sm:gap-3">
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-3 py-3 sm:px-4">
-                    <div className="font-display text-xl font-black text-white sm:text-2xl">
-                      {liveStreams.length}
-                    </div>
-                    <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-500 sm:text-[9px]">
-                      Live now
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-3 py-3 sm:px-4">
-                    <div className="font-display text-xl font-black text-white sm:text-2xl">
-                      {filtered.length}
-                    </div>
-                    <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-500 sm:text-[9px]">
-                      In view
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-white/[0.07] bg-white/[0.025] px-3 py-3 sm:px-4">
-                    <div className="font-display text-xl font-black text-white sm:text-2xl">
-                      {counts.all}
-                    </div>
-                    <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-500 sm:text-[9px]">
-                      Streamers
-                    </div>
-                  </div>
+                <div className="mt-7 grid max-w-3xl grid-cols-3 gap-2 sm:mt-8 sm:gap-3">
+                  <HeroStat value={heroStats.live} label="Live now" accent />
+                  <HeroStat value={heroStats.inView} label="In view" />
+                  <HeroStat value={heroStats.total} label="Streamers" />
                 </div>
               </div>
+            </div>
 
-              <div className="relative hidden min-h-[390px] overflow-hidden lg:block">
-                <img
-                  src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news_live/7b60e8bb6c1828831931dad87633604c2264fa26-3440x1020.jpg"
-                  alt=""
-                  aria-hidden="true"
-                  className="absolute inset-0 h-full w-full object-cover object-center opacity-35 saturate-75"
-                />
-                <div className="absolute inset-0 bg-gradient-to-l from-black/20 via-neutral-950/45 to-neutral-950" />
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_30%,rgba(255,68,68,0.10)_100%)]" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(255,68,68,0.20),transparent_32%)]" />
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:42px_42px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]" />
-                <div className="absolute right-10 top-1/2 -translate-y-1/2">
-                  <div className="relative flex h-64 w-64 items-center justify-center rounded-full border border-valo-red/15 bg-black/10 backdrop-blur-[2px]">
-                    <div className="absolute h-48 w-48 rounded-full border border-valo-red/15" />
-                    <div className="absolute h-32 w-32 rounded-full border border-valo-red/20" />
-                    <div className="h-16 w-16 rounded-full bg-valo-red/10 shadow-[0_0_80px_rgba(255,68,68,0.28)]" />
-                    <div className="absolute h-px w-72 rotate-45 bg-gradient-to-r from-transparent via-valo-red/50 to-transparent" />
-                    <div className="absolute h-px w-72 -rotate-45 bg-gradient-to-r from-transparent via-valo-red/20 to-transparent" />
-                  </div>
-                </div>
-              </div>
+            {/* Bottom HUD line */}
+            <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-between border-t border-white/[0.07] bg-black/25 px-5 py-2.5 backdrop-blur-md sm:px-8">
+              <span className="font-mono text-[7px] font-bold uppercase tracking-[0.24em] text-neutral-500 sm:text-[8px]">
+                LIVE FEED // COMMUNITY MATRIX
+              </span>
+              <span className="font-mono text-[7px] font-bold uppercase tracking-[0.2em] text-valo-red sm:text-[8px]">
+                REALTIME
+              </span>
             </div>
           </section>
 
@@ -787,6 +804,38 @@ export default function AllStreamersPage() {
   )
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   HERO STAT
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function HeroStat({
+  value,
+  label,
+  accent = false,
+}) {
+  return (
+    <div
+      className={`rounded-2xl border px-3 py-3 backdrop-blur-md sm:px-4 sm:py-3.5 ${
+        accent
+          ? 'border-valo-red/25 bg-valo-red/[0.08]'
+          : 'border-white/[0.08] bg-black/30'
+      }`}
+    >
+      <div
+        className={`font-display text-xl font-black sm:text-2xl ${
+          accent ? 'text-valo-red' : 'text-white'
+        }`}
+      >
+        {value}
+      </div>
+      <div className="mt-1 font-mono text-[8px] uppercase tracking-[0.18em] text-neutral-500 sm:text-[9px]">
+        {label}
+      </div>
+    </div>
+  )
+}
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
