@@ -16,12 +16,12 @@
   html {
     margin: 0 !important;
     padding: 0 !important;
-
     width: 100%;
     min-height: 100%;
 
     scroll-behavior: smooth;
 
+    background: #0f0f0f !important;
     background-color: #0f0f0f !important;
   }
 
@@ -33,6 +33,7 @@
     min-width: 320px;
     min-height: 100vh;
 
+    background: #0f0f0f !important;
     background-color: #0f0f0f !important;
 
     color: #e7e7e7;
@@ -41,6 +42,7 @@
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
     text-rendering: optimizeLegibility;
 
     overflow-x: hidden;
@@ -53,6 +55,7 @@
     width: 100%;
     min-height: 100vh;
 
+    background: #0f0f0f !important;
     background-color: #0f0f0f !important;
   }
 
@@ -133,9 +136,9 @@
 
 @layer components {
 
-  /* =======================================================
-     GLOBAL SURFACE
-     ======================================================= */
+  /* ---------------------------------------------------------
+     SURFACE
+     --------------------------------------------------------- */
 
   .valo-surface {
     @apply border border-white/[0.07]
@@ -152,9 +155,9 @@
     background: rgba(255, 255, 255, 0.035);
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      PANEL
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .valo-panel {
     @apply rounded-2xl
@@ -166,9 +169,9 @@
       0 20px 70px rgba(0, 0, 0, 0.22);
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      SHIMMER
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .shimmer {
     background:
@@ -184,9 +187,9 @@
     animation: shimmer 1.5s infinite;
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      CARD HOVER
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .card-hover {
     @apply transition-all duration-200;
@@ -200,9 +203,9 @@
       0 0 28px rgba(255, 70, 85, 0.09);
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      PRIMARY BUTTON
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .valo-btn {
     @apply inline-flex
@@ -225,17 +228,16 @@
       disabled:cursor-not-allowed;
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      GHOST BUTTON
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .valo-btn-ghost {
     @apply inline-flex
       items-center
       justify-center
       gap-2
-      border
-      border-white/[0.09]
+      border border-white/[0.09]
       bg-white/[0.02]
       text-valo-text
       font-display
@@ -252,15 +254,14 @@
       active:scale-95;
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      INPUT
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .input-field {
     @apply w-full
       bg-[#111111]
-      border
-      border-white/[0.08]
+      border border-white/[0.08]
       rounded-xl
       px-4
       py-2.5
@@ -274,9 +275,9 @@
       focus:bg-[#141414];
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      LIVE BADGE
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .live-badge {
     @apply inline-flex
@@ -297,9 +298,9 @@
       0 0 18px rgba(255, 70, 85, 0.18);
   }
 
-  /* =======================================================
-     YOUTUBE BADGE
-     ======================================================= */
+  /* ---------------------------------------------------------
+     YOUTUBE
+     --------------------------------------------------------- */
 
   .platform-badge-yt {
     @apply inline-flex
@@ -314,9 +315,9 @@
       rounded-lg;
   }
 
-  /* =======================================================
-     KICK BADGE
-     ======================================================= */
+  /* ---------------------------------------------------------
+     KICK
+     --------------------------------------------------------- */
 
   .platform-badge-kick {
     @apply inline-flex
@@ -331,9 +332,9 @@
       rounded-lg;
   }
 
-  /* =======================================================
-     TACTICAL GRID
-     ======================================================= */
+  /* ---------------------------------------------------------
+     HUD GRID
+     --------------------------------------------------------- */
 
   .hud-grid {
     background-image:
@@ -350,9 +351,9 @@
     background-size: 48px 48px;
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      HUD LINE
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .hud-line {
     background:
@@ -364,9 +365,9 @@
       );
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      SCANLINE
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .scanline {
     background:
@@ -378,9 +379,9 @@
       );
   }
 
-  /* =======================================================
+  /* ---------------------------------------------------------
      VALO GLOW
-     ======================================================= */
+     --------------------------------------------------------- */
 
   .valo-glow {
     box-shadow:
@@ -395,10 +396,6 @@
 
 @layer utilities {
 
-  /* =======================================================
-     GRADIENT TEXT
-     ======================================================= */
-
   .text-gradient {
     background:
       linear-gradient(
@@ -412,28 +409,16 @@
     background-clip: text;
   }
 
-  /* =======================================================
-     TEXT GLOW
-     ======================================================= */
-
   .text-glow {
     text-shadow:
       0 0 24px rgba(255, 70, 85, 0.24);
   }
-
-  /* =======================================================
-     BORDER GLOW
-     ======================================================= */
 
   .border-glow {
     box-shadow:
       0 0 0 1px rgba(255, 70, 85, 0.4),
       0 0 24px rgba(255, 70, 85, 0.1);
   }
-
-  /* =======================================================
-     HIDE SCROLLBAR
-     ======================================================= */
 
   .scrollbar-none {
     scrollbar-width: none;
@@ -443,17 +428,13 @@
     display: none;
   }
 
-  /* =======================================================
-     SAFE AREA
-     ======================================================= */
-
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
   }
 }
 
 /* =========================================================
-   ANIMATIONS
+   ANIMATION
    ========================================================= */
 
 @keyframes shimmer {
@@ -466,23 +447,27 @@
   }
 }
 
+
 /* =========================================================
-   GLOBAL PAGE BACKGROUND OVERRIDE
+   🔥 FORCE BACKGROUND OVERRIDE
    =========================================================
+   
+   This section intentionally uses !important.
 
-   This overrides page-level dark Tailwind backgrounds
-   without destroying component-level surfaces.
+   Your screenshot showed an inline:
+       style="background: #2b2b2b"
 
-   Target:
-   #0f0f0f
+   A normal stylesheet rule cannot beat a normal inline
+   style. The targeted !important rule can.
 
-   Prevent:
-   #050505
-   #050507
-   black
+   We only target the unwanted dark backgrounds instead
+   of destroying legitimate card/modal/hero backgrounds.
    ========================================================= */
 
-/* Root elements */
+
+/* ---------------------------------------------------------
+   FORCE ROOT
+   --------------------------------------------------------- */
 
 html,
 body,
@@ -490,63 +475,157 @@ body,
   margin: 0 !important;
   padding: 0 !important;
 
+  background: #0f0f0f !important;
   background-color: #0f0f0f !important;
 }
 
-/* Page-level min-height wrappers */
 
-.min-h-screen.bg-\[\#050505\] {
+/* ---------------------------------------------------------
+   FORCE EXACT #2B2B2B INLINE BACKGROUND
+   --------------------------------------------------------- */
+
+*[style*="#2b2b2b"] {
+  background: #0f0f0f !important;
   background-color: #0f0f0f !important;
 }
 
-.min-h-screen.bg-\[\#050507\] {
+*[style*="#2B2B2B"] {
+  background: #0f0f0f !important;
   background-color: #0f0f0f !important;
 }
 
+
+/* ---------------------------------------------------------
+   RGB VERSION
+   --------------------------------------------------------- */
+
+*[style*="rgb(43, 43, 43)"] {
+  background: #0f0f0f !important;
+  background-color: #0f0f0f !important;
+}
+
+*[style*="rgb(43,43,43)"] {
+  background: #0f0f0f !important;
+  background-color: #0f0f0f !important;
+}
+
+
+/* ---------------------------------------------------------
+   BACKGROUND-COLOR INLINE VARIANTS
+   --------------------------------------------------------- */
+
+*[style*="background-color:#2b2b2b"] {
+  background: #0f0f0f !important;
+  background-color: #0f0f0f !important;
+}
+
+*[style*="background-color: #2b2b2b"] {
+  background: #0f0f0f !important;
+  background-color: #0f0f0f !important;
+}
+
+*[style*="backgroundColor:#2b2b2b"] {
+  background: #0f0f0f !important;
+  background-color: #0f0f0f !important;
+}
+
+*[style*="backgroundColor: #2b2b2b"] {
+  background: #0f0f0f !important;
+  background-color: #0f0f0f !important;
+}
+
+
+/* ---------------------------------------------------------
+   TAILWIND #2B2B2B
+   --------------------------------------------------------- */
+
+.bg-\[\#2b2b2b\] {
+  background-color: #0f0f0f !important;
+}
+
+.bg-\[\#2B2B2B\] {
+  background-color: #0f0f0f !important;
+}
+
+
+/* ---------------------------------------------------------
+   TAILWIND #050505
+   --------------------------------------------------------- */
+
+.bg-\[\#050505\] {
+  background-color: #0f0f0f !important;
+}
+
+
+/* ---------------------------------------------------------
+   TAILWIND #050507
+   --------------------------------------------------------- */
+
+.bg-\[\#050507\] {
+  background-color: #0f0f0f !important;
+}
+
+
+/* ---------------------------------------------------------
+   FULL PAGE DARK WRAPPERS
+   --------------------------------------------------------- */
+
+.min-h-screen.bg-\[\#2b2b2b\],
+.min-h-screen.bg-\[\#2B2B2B\],
+.min-h-screen.bg-\[\#050505\],
+.min-h-screen.bg-\[\#050507\],
 .min-h-screen.bg-black {
   background-color: #0f0f0f !important;
 }
 
-/* Page-level width wrappers */
 
-.w-screen.bg-\[\#050505\] {
-  background-color: #0f0f0f !important;
-}
+/* ---------------------------------------------------------
+   WIDTH PAGE WRAPPERS
+   --------------------------------------------------------- */
 
-.w-screen.bg-\[\#050507\] {
-  background-color: #0f0f0f !important;
-}
-
+.w-screen.bg-\[\#2b2b2b\],
+.w-screen.bg-\[\#2B2B2B\],
+.w-screen.bg-\[\#050505\],
+.w-screen.bg-\[\#050507\],
 .w-screen.bg-black {
   background-color: #0f0f0f !important;
 }
 
-/* Page-level height wrappers */
 
-.h-screen.bg-\[\#050505\] {
-  background-color: #0f0f0f !important;
-}
+/* ---------------------------------------------------------
+   HEIGHT PAGE WRAPPERS
+   --------------------------------------------------------- */
 
-.h-screen.bg-\[\#050507\] {
-  background-color: #0f0f0f !important;
-}
-
+.h-screen.bg-\[\#2b2b2b\],
+.h-screen.bg-\[\#2B2B2B\],
+.h-screen.bg-\[\#050505\],
+.h-screen.bg-\[\#050507\],
 .h-screen.bg-black {
   background-color: #0f0f0f !important;
 }
 
+
 /* =========================================================
-   FINAL PAGE RESET
+   FORCE THE MAIN APPLICATION BACKGROUND
+   ========================================================= */
+
+#root > div {
+  background-color: #0f0f0f !important;
+}
+
+
+/* =========================================================
+   FINAL SAFETY RESET
    ========================================================= */
 
 html,
 body,
 #root {
+  width: 100% !important;
+  min-height: 100vh !important;
+
   margin: 0 !important;
   padding: 0 !important;
-
-  width: 100%;
-  min-height: 100vh;
 
   background-color: #0f0f0f !important;
 }
