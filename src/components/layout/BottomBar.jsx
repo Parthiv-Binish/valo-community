@@ -49,85 +49,133 @@ export default function BottomBar() {
         )}
       </AnimatePresence>
 
-      {/* Mobile dock */}
-      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 h-[68px] border-t border-white/[0.08] bg-[#070707]/95 px-2 shadow-[0_-12px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl lg:hidden">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/40 to-transparent" />
+      {/* VCT Tactical HUD mobile dock */}
+      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 lg:hidden px-2 sm:px-3 pb-2 sm:pb-3">
+        <div className="relative mx-auto max-w-[560px] overflow-hidden rounded-2xl border border-white/[0.08] bg-[#070707]/95 shadow-[0_-18px_50px_rgba(0,0,0,0.55)] backdrop-blur-2xl">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/60 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
-        <nav className="relative flex h-full w-full items-center">
-          {primaryTabs.map((item) => {
-            const isCurrentlyActive = location.pathname === item.to
+          <nav className="grid h-[68px] grid-cols-4 items-stretch">
+            {primaryTabs.map((item) => {
+              const isCurrentlyActive = location.pathname === item.to
 
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                end={item.end}
-                className="relative z-10 flex h-full flex-1 items-center justify-center no-underline"
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  className="relative flex min-w-0 items-center justify-center no-underline"
+                >
+                  <motion.div
+                    whileTap={{ scale: 0.94 }}
+                    className={`relative flex h-full w-full flex-col items-center justify-center gap-1 transition-colors ${
+                      isCurrentlyActive ? 'text-[#ff4655]' : 'text-neutral-500'
+                    }`}
+                  >
+                    {isCurrentlyActive && (
+                      <motion.span
+                        layoutId="activeTabIndicator"
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                        className="absolute inset-x-3 top-0 h-[2px] rounded-full bg-[#ff4655] shadow-[0_0_12px_rgba(255,70,85,0.75)]"
+                      />
+                    )}
+
+                    <span
+                      className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
+                        isCurrentlyActive
+                          ? 'bg-[#ff4655]/[0.09] text-[#ff4655]'
+                          : 'bg-white/[0.02] text-neutral-500'
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
+
+                    <span className="relative z-10 truncate px-1 font-mono text-[8px] font-bold uppercase tracking-[0.12em]">
+                      {item.label}
+                    </span>
+                  </motion.div>
+                </NavLink>
+              )
+            })}
+
+            <div className="relative flex min-w-0 items-center justify-center">
+              <AnimatePresence>
+                {showRadialMenu && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute bottom-[76px] right-1 w-[190px] overflow-hidden rounded-2xl border border-white/[0.09] bg-[#090909]/98 p-2 shadow-[0_20px_60px_rgba(0,0,0,0.65)] backdrop-blur-2xl"
+                  >
+                    <div className="mb-1 px-2 py-1 font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-neutral-600">
+                      Navigation // More
+                    </div>
+
+                    {hiddenTabs.map((item) => (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        className="group flex items-center gap-3 rounded-xl px-3 py-2.5 no-underline transition-colors hover:bg-white/[0.05]"
+                      >
+                        <span className="text-neutral-500 transition-colors group-hover:text-[#ff4655]">
+                          {item.icon}
+                        </span>
+                        <span className="font-mono text-[9px] font-bold uppercase tracking-[0.1em] text-neutral-400 group-hover:text-white">
+                          {item.label}
+                        </span>
+                      </Link>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <button
+                type="button"
+                onClick={() => setShowRadialMenu(!showRadialMenu)}
+                aria-label={showRadialMenu ? 'Close more navigation' : 'Open more navigation'}
+                aria-expanded={showRadialMenu}
+                className="relative flex h-full w-full items-center justify-center outline-none"
               >
                 <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className={`relative flex h-[52px] w-full max-w-[100px] flex-col items-center justify-center gap-1 rounded-xl transition-colors ${
-                    isCurrentlyActive ? 'text-[#ff4655]' : 'text-neutral-500'
+                  whileTap={{ scale: 0.94 }}
+                  className={`relative flex h-full w-full flex-col items-center justify-center gap-1 transition-colors ${
+                    showRadialMenu ? 'text-[#ff4655]' : 'text-neutral-500'
                   }`}
                 >
-                  {isCurrentlyActive && (
-                    <motion.span
-                      layoutId="activeTabIndicator"
-                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-                      className="absolute inset-0 rounded-xl border border-[#ff4655]/20 bg-[#ff4655]/[0.07] shadow-[0_0_24px_rgba(255,70,85,0.07)]"
-                    />
+                  {showRadialMenu && (
+                    <span className="absolute inset-x-3 top-0 h-[2px] rounded-full bg-[#ff4655] shadow-[0_0_12px_rgba(255,70,85,0.75)]" />
                   )}
 
-                  <span className="relative z-10">{item.icon}</span>
+                  <span
+                    className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-lg transition-all ${
+                      showRadialMenu
+                        ? 'bg-[#ff4655]/[0.09] text-[#ff4655]'
+                        : 'bg-white/[0.02] text-neutral-500'
+                    }`}
+                  >
+                    <motion.span
+                      animate={{ rotate: showRadialMenu ? 45 : 0 }}
+                      transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                    >
+                      {showRadialMenu ? <CloseIcon /> : <MoreIcon />}
+                    </motion.span>
+                  </span>
+
                   <span className="relative z-10 font-mono text-[8px] font-bold uppercase tracking-[0.12em]">
-                    {item.label}
+                    More
                   </span>
                 </motion.div>
-              </NavLink>
-            )
-          })}
+              </button>
+            </div>
+          </nav>
 
-          {/* Radial menu */}
-          <div className="relative z-10 flex h-full flex-1 items-center justify-center">
-            <AnimatePresence>
-              {showRadialMenu && (
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  {hiddenTabs.map((item, index) => {
-                    const offset = radialOffsets[index] || { x: 0, y: -90 }
-
-                    return (
-                      <motion.div
-                        key={item.to}
-                        initial={{ opacity: 0, scale: 0.4, x: 0, y: 0 }}
-                        animate={{
-                          opacity: 1,
-                          scale: 1,
-                          x: offset.x,
-                          y: offset.y
-                        }}
-                        exit={{ opacity: 0, scale: 0.4, x: 0, y: 0 }}
-                        transition={{
-                          type: 'spring',
-                          stiffness: 280,
-                          damping: 20,
-                          delay: index * 0.025
-                        }}
-                        className="pointer-events-auto absolute"
-                      >
-                        <Link
-                          to={item.to}
-                          className="group relative flex h-12 w-12 flex-col items-center justify-center rounded-2xl border border-white/[0.1] bg-[#0b0b0b]/95 text-neutral-400 shadow-2xl backdrop-blur-xl transition-all active:scale-95 hover:border-[#ff4655]/30 hover:text-white"
-                        >
-                          <span className="absolute inset-[2px] rounded-[14px] border border-white/[0.03] bg-white/[0.02]" />
-                          <span className="relative z-10">{item.icon}</span>
-                          <span className="absolute -bottom-5 whitespace-nowrap rounded bg-black/70 px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase tracking-wider text-neutral-400">
-                            {item.label}
-                          </span>
-                        </Link>
-                      </motion.div>
-                    )
-                  })}
-                </div>
+          <div className="pointer-events-none absolute left-2 top-2 h-2 w-2 border-l border-t border-[#ff4655]/40" />
+          <div className="pointer-events-none absolute right-2 top-2 h-2 w-2 border-r border-t border-[#ff4655]/40" />
+          <div className="pointer-events-none absolute bottom-2 left-2 h-2 w-2 border-b border-l border-white/[0.12]" />
+          <div className="pointer-events-none absolute bottom-2 right-2 h-2 w-2 border-b border-r border-white/[0.12]" />
+        </div>
+      </div>
               )}
             </AnimatePresence>
 
