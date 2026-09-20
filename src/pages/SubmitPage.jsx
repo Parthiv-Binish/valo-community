@@ -8,9 +8,37 @@ const EXAMPLES = {
   kick: ['https://kick.com/username', 'https://kick.com/shroud'],
 }
 
+// Returns an error string, or null when the link is acceptable for the platform.
+function validateStreamerUrl(platform, raw) {
+  let parsed
+  try {
+    parsed = new URL(raw)
+  } catch {
+    return 'That does not look like a valid link. Paste the full URL, including https://'
+  }
+  if (!/^https?:$/.test(parsed.protocol)) {
+    return 'Only http(s) links are accepted.'
+  }
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '')
+  if (platform === 'youtube') {
+    if (host !== 'youtube.com' && host !== 'youtu.be') {
+      return 'Please paste a YouTube channel link (youtube.com/@name or youtube.com/channel/…).'
+    }
+  } else if (platform === 'kick') {
+    if (host !== 'kick.com') {
+      return 'Please paste a Kick channel link (kick.com/username).'
+    }
+    if (parsed.pathname.replace(/\//g, '') === '') {
+      return 'Include the channel name, e.g. kick.com/username.'
+    }
+  }
+  return null
+}
+
 export default function SubmitPage() {
   const [platform, setPlatform] = useState('youtube')
   const [url, setUrl] = useState('')
+  const [honeypot, setHoneypot] = useState('') // real users never see or fill this
   const [status, setStatus] = useState('idle') // idle | loading | success | error
   const [errMsg, setErrMsg] = useState('')
 
@@ -19,6 +47,20 @@ export default function SubmitPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     if (!url.trim()) return
+
+    // Bots tend to fill every input. Pretend it worked, store nothing.
+    if (honeypot) {
+      setStatus('success')
+      setUrl('')
+      return
+    }
+
+    const invalid = validateStreamerUrl(platform, url.trim())
+    if (invalid) {
+      setErrMsg(invalid)
+      setStatus('error')
+      return
+    }
 
     setStatus('loading')
     setErrMsg('')
@@ -134,6 +176,20 @@ export default function SubmitPage() {
             <p className="text-valo-muted text-xs mt-2 font-body">
               Example: {EXAMPLES[platform][0]}
             </p>
+          </div>
+
+          {/* Honeypot – hidden from people and assistive tech */}
+          <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
+            <label>
+              Website
+              <input
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+              />
+            </label>
           </div>
 
           {/* Error */}
