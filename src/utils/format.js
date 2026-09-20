@@ -52,3 +52,18 @@ export function detectPlatform(url) {
   if (url.includes('kick.com')) return 'kick'
   return null
 }
+
+/**
+ * "1h 05m" style duration since an ISO timestamp. Returns null for missing or
+ * invalid input, so callers can simply hide the label.
+ */
+export function formatLiveDuration(startedAt, now = Date.now()) {
+  if (!startedAt) return null
+  const start = new Date(startedAt).getTime()
+  if (Number.isNaN(start)) return null
+  const mins = Math.floor((now - start) / 60000)
+  if (mins < 1 || mins > 60 * 48) return null // ignore clock skew / stale data
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return h > 0 ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}m`
+}
