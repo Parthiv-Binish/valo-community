@@ -1,123 +1,377 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* =========================================================
-   🔥 VALO COMMUNITY — FORCE SINGLE PAGE BACKGROUND
+   BASE
    ========================================================= */
 
-/* Root */
-html,
-body,
-#root {
-  margin: 0 !important;
-  padding: 0 !important;
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
 
-  width: 100% !important;
-  min-height: 100vh !important;
+  html {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    min-height: 100%;
+    scroll-behavior: smooth;
+    background: #0f0f0f;
+    background-color: #0f0f0f;
+  }
 
+  body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    min-width: 320px;
+    min-height: 100vh;
+    background: #0f0f0f;
+    background-color: #0f0f0f;
+    color: #e7e7e7;
+    font-family: "DM Sans", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  #root {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100%;
+    min-height: 100vh;
+    background: #0f0f0f;
+    background-color: #0f0f0f;
+  }
+
+  :focus-visible {
+    outline: 2px solid #ff4655;
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: rgba(255, 70, 85, 0.25);
+    color: #ffffff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      scroll-behavior: auto !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #0f0f0f;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: 3px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #ff4655;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #2a2a2a #0f0f0f;
+  }
+}
+
+/* =========================================================
+   COMPONENTS
+   ========================================================= */
+
+@layer components {
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.03) 25%,
+      rgba(255, 255, 255, 0.08) 50%,
+      rgba(255, 255, 255, 0.03) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  .card-hover {
+    transition:
+      transform 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-2px);
+    border-color: rgba(255, 70, 85, 0.35);
+    box-shadow:
+      0 12px 35px rgba(0, 0, 0, 0.35),
+      0 0 25px rgba(255, 70, 85, 0.05);
+  }
+
+  .valo-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.625rem 1rem;
+    border: 1px solid rgba(255, 70, 85, 0.5);
+    border-radius: 0.75rem;
+    background: #ff4655;
+    color: #ffffff;
+    font-weight: 700;
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease,
+      border-color 160ms ease;
+  }
+
+  .valo-btn:hover {
+    background: #e83d4c;
+    border-color: #ff4655;
+    box-shadow: 0 0 22px rgba(255, 70, 85, 0.2);
+    transform: translateY(-1px);
+  }
+
+  .valo-btn:active {
+    transform: translateY(0);
+  }
+
+  .valo-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 2.5rem;
+    padding: 0.625rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.035);
+    color: #e7e7e7;
+    font-weight: 600;
+    transition:
+      transform 160ms ease,
+      background-color 160ms ease,
+      border-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .valo-btn-ghost:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 70, 85, 0.35);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  .input-field {
+    width: 100%;
+    min-height: 2.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.75rem;
+    background: rgba(255, 255, 255, 0.035);
+    color: #ffffff;
+    outline: none;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .input-field::placeholder {
+    color: rgba(255, 255, 255, 0.35);
+  }
+
+  .input-field:focus {
+    border-color: rgba(255, 70, 85, 0.65);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(255, 70, 85, 0.08);
+  }
+
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid rgba(255, 70, 85, 0.3);
+    border-radius: 999px;
+    padding: 0.25rem 0.55rem;
+    background: rgba(255, 70, 85, 0.1);
+    color: #ff6975;
+    font-size: 0.7rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .live-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff4655;
+    box-shadow: 0 0 8px rgba(255, 70, 85, 0.8);
+  }
+
+  .platform-badge-yt,
+  .platform-badge-kick {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 1.5rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.45rem;
+    font-size: 0.65rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.03em;
+  }
+
+  .platform-badge-yt {
+    border: 1px solid rgba(255, 0, 0, 0.25);
+    background: rgba(255, 0, 0, 0.1);
+    color: #ff5a5a;
+  }
+
+  .platform-badge-kick {
+    border: 1px solid rgba(83, 252, 24, 0.22);
+    background: rgba(83, 252, 24, 0.08);
+    color: #6dff42;
+  }
+
+  .valo-surface {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.025);
+  }
+
+  .valo-panel {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(8, 9, 12, 0.82);
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.025);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+
+  .hud-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .hud-line {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 70, 85, 0.6),
+      transparent
+    );
+  }
+
+  .scanline {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 3px,
+      rgba(255, 255, 255, 0.012) 4px
+    );
+    mix-blend-mode: screen;
+  }
+
+  .valo-glow {
+    box-shadow:
+      0 0 0 1px rgba(255, 70, 85, 0.08),
+      0 0 30px rgba(255, 70, 85, 0.08);
+  }
+}
+
+/* =========================================================
+   UTILITIES
+   ========================================================= */
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(90deg, #ffffff 0%, #ff4655 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 20px rgba(255, 70, 85, 0.2);
+  }
+
+  .border-glow {
+    border-color: rgba(255, 70, 85, 0.35);
+    box-shadow: 0 0 18px rgba(255, 70, 85, 0.08);
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* =========================================================
+   ANIMATIONS
+   ========================================================= */
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* =========================================================
+   PAGE BACKGROUND FIX
+   IMPORTANT:
+   Only targets the actual application shell.
+   It does NOT override every .bg-black element.
+   ========================================================= */
+
+#root > div.min-h-screen.bg-black {
   background: #0f0f0f !important;
   background-color: #0f0f0f !important;
 }
 
-
-/* =========================================================
-   OUTER APPLICATION WRAPPERS
-   ========================================================= */
-
-/* bg-black */
-#root > .min-h-screen.bg-black {
+#root > div.min-h-screen.bg-black
+  > div.min-h-screen.bg-valo-dark {
   background: #0f0f0f !important;
-  background-color: #0f0f0f !important;
-}
-
-/* bg-valo-dark */
-#root > .min-h-screen.bg-black > .min-h-screen.bg-valo-dark {
-  background: #0f0f0f !important;
-  background-color: #0f0f0f !important;
-}
-
-
-/* =========================================================
-   MAIN CONTENT AREA
-   ========================================================= */
-
-/* Main page wrapper */
-main {
-  background: #0f0f0f !important;
-  background-color: #0f0f0f !important;
-}
-
-
-/* The max-width page container */
-main > div {
-  background: #0f0f0f !important;
-  background-color: #0f0f0f !important;
-}
-
-
-/* =========================================================
-   REMOVE THE #050608 CANVAS
-   ========================================================= */
-
-main div.bg-\[\#050608\] {
-  background: #0f0f0f !important;
-  background-color: #0f0f0f !important;
-}
-
-
-/* =========================================================
-   FORCE bg-valo-dark
-   ========================================================= */
-
-.bg-valo-dark {
-  background: #0f0f0f !important;
-  background-color: #0f0f0f !important;
-}
-
-
-/* =========================================================
-   FORCE COMMON DARK PAGE BACKGROUNDS
-   ========================================================= */
-
-.bg-black {
-  background-color: #0f0f0f !important;
-}
-
-.bg-\[\#050608\] {
-  background-color: #0f0f0f !important;
-}
-
-
-/* =========================================================
-   BUT DON'T DESTROY STREAMER CARDS
-   ========================================================= */
-
-article.bg-\[\#0b0c10\] {
-  background-color: #0b0c10 !important;
-}
-
-
-/* =========================================================
-   HERO STILL KEEPS ITS OWN BACKGROUND
-   ========================================================= */
-
-section.bg-\[\#070708\] {
-  background-color: #070708 !important;
-}
-
-
-/* =========================================================
-   FILTER PANEL
-   ========================================================= */
-
-div.bg-neutral-950\/65 {
-  background-color: rgba(10, 10, 10, 0.65) !important;
-}
-
-
-/* =========================================================
-   FINAL ROOT SAFETY
-   ========================================================= */
-
-html,
-body,
-#root {
   background-color: #0f0f0f !important;
 }
