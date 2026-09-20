@@ -17,6 +17,7 @@ export default function AllStreamersPage() {
   } = useAllStreamers()
 
   const [platformFilter, setPlatformFilter] = useState('all')
+  const [languageFilter, setLanguageFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [banners, setBanners] = useState([])
 
@@ -57,8 +58,21 @@ export default function AllStreamersPage() {
     [streamers]
   )
 
+  // Language chips only appear once at least one streamer has been tagged
+  // (see supabase/optional-hardening.sql).
+  const languages = useMemo(
+    () =>
+      [...new Set(safeStreamers.map((s) => s.language).filter(Boolean))].sort(),
+    [safeStreamers]
+  )
+  const activeLanguage = languages.includes(languageFilter) ? languageFilter : 'all'
+
   const filtered = useMemo(() => {
     let s = safeStreamers
+
+    if (activeLanguage !== 'all') {
+      s = s.filter((st) => st.language === activeLanguage)
+    }
 
     if (platformFilter !== 'all') {
       s = s.filter(
@@ -81,7 +95,7 @@ export default function AllStreamersPage() {
     }
 
     return s
-  }, [safeStreamers, platformFilter, search])
+  }, [safeStreamers, platformFilter, activeLanguage, search])
 
   // ── Platform counts ─────────────────────────────────────────────────────
   const counts = useMemo(
@@ -145,7 +159,7 @@ export default function AllStreamersPage() {
                 </span>
 
                 <span>
-                  {offlineStreams.length} standby
+                  {offlineStreams.length} offline
                 </span>
 
                 <span className="mx-2 text-neutral-800">
@@ -183,7 +197,7 @@ export default function AllStreamersPage() {
                 }
               />
 
-              Recalibrate
+              Refresh
             </button>
 
           </div>
@@ -219,7 +233,7 @@ export default function AllStreamersPage() {
               onChange={(e) =>
                 setSearch(e.target.value)
               }
-              placeholder="Search agent broadcast lines..."
+              placeholder="Search streamers or stream titles..."
               className="w-full bg-neutral-950 border border-neutral-800 focus:border-valo-red text-white placeholder-neutral-600 outline-none pl-9 pr-8 h-9 rounded-lg text-xs font-mono tracking-tight transition-all"
             />
 
@@ -250,6 +264,31 @@ export default function AllStreamersPage() {
           />
 
         </div>
+
+        {/* ── Language filter (shown only when streamers are tagged) ───── */}
+        {languages.length > 0 && (
+          <div
+            className="flex items-center gap-2 overflow-x-auto scrollbar-none -mt-4"
+            role="group"
+            aria-label="Filter by language"
+          >
+            {['all', ...languages].map((lang) => (
+              <button
+                key={lang}
+                type="button"
+                onClick={() => setLanguageFilter(lang)}
+                aria-pressed={activeLanguage === lang}
+                className={`shrink-0 px-3.5 py-1 rounded-full text-xs font-display font-semibold border transition-all duration-150 ${
+                  activeLanguage === lang
+                    ? 'bg-white text-black border-white'
+                    : 'border-valo-border text-valo-muted hover:border-valo-muted hover:text-valo-text'
+                }`}
+              >
+                {lang === 'all' ? 'All languages' : lang}
+              </button>
+            ))}
+          </div>
+        )}
 
 
         {/* ═══════════════════════════════════════════════════════════════
@@ -331,7 +370,7 @@ export default function AllStreamersPage() {
 
                   <SectionLabel
                     icon={<OfflineDot />}
-                    label="Offline standbys"
+                    label="Offline"
                     count={offlineStreams.length}
                   />
 
