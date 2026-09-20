@@ -14,18 +14,31 @@
   }
 
   html {
+    margin: 0 !important;
+    padding: 0 !important;
+
+    width: 100%;
+    min-height: 100%;
+
     scroll-behavior: smooth;
-    background: #0f0f0f;
+
+    background-color: #0f0f0f !important;
   }
 
   body {
-    margin: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+
+    width: 100%;
     min-width: 320px;
     min-height: 100vh;
-    background-color: #0f0f0f;
+
+    background-color: #0f0f0f !important;
+
     color: #e7e7e7;
 
     font-family: "DM Sans", sans-serif;
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
@@ -34,8 +47,13 @@
   }
 
   #root {
+    margin: 0 !important;
+    padding: 0 !important;
+
+    width: 100%;
     min-height: 100vh;
-    background-color: #0f0f0f;
+
+    background-color: #0f0f0f !important;
   }
 
   ::selection {
@@ -62,7 +80,10 @@
     background: rgba(255, 70, 85, 0.35);
   }
 
-  /* Reduced motion */
+  /* =======================================================
+     REDUCED MOTION
+     ======================================================= */
+
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -111,8 +132,9 @@
    ========================================================= */
 
 @layer components {
+
   /* =======================================================
-     SURFACES
+     GLOBAL SURFACE
      ======================================================= */
 
   .valo-surface {
@@ -129,6 +151,10 @@
     border-color: rgba(255, 255, 255, 0.11);
     background: rgba(255, 255, 255, 0.035);
   }
+
+  /* =======================================================
+     PANEL
+     ======================================================= */
 
   .valo-panel {
     @apply rounded-2xl
@@ -154,6 +180,7 @@
       );
 
     background-size: 200% 100%;
+
     animation: shimmer 1.5s infinite;
   }
 
@@ -207,7 +234,8 @@
       items-center
       justify-center
       gap-2
-      border border-white/[0.09]
+      border
+      border-white/[0.09]
       bg-white/[0.02]
       text-valo-text
       font-display
@@ -231,7 +259,8 @@
   .input-field {
     @apply w-full
       bg-[#111111]
-      border border-white/[0.08]
+      border
+      border-white/[0.08]
       rounded-xl
       px-4
       py-2.5
@@ -303,7 +332,7 @@
   }
 
   /* =======================================================
-     TACTICAL HUD GRID
+     TACTICAL GRID
      ======================================================= */
 
   .hud-grid {
@@ -365,6 +394,7 @@
    ========================================================= */
 
 @layer utilities {
+
   /* =======================================================
      GRADIENT TEXT
      ======================================================= */
@@ -439,40 +469,84 @@
 /* =========================================================
    GLOBAL PAGE BACKGROUND OVERRIDE
    =========================================================
-   
-   This is the important part for your screenshot.
 
-   It overrides page-level Tailwind backgrounds such as:
-   bg-[#050505]
-   bg-[#050507]
-   bg-black
+   This overrides page-level dark Tailwind backgrounds
+   without destroying component-level surfaces.
 
-   without affecting cards, modals, buttons, hero overlays, etc.
+   Target:
+   #0f0f0f
+
+   Prevent:
+   #050505
+   #050507
+   black
+   ========================================================= */
+
+/* Root elements */
+
+html,
+body,
+#root {
+  margin: 0 !important;
+  padding: 0 !important;
+
+  background-color: #0f0f0f !important;
+}
+
+/* Page-level min-height wrappers */
+
+.min-h-screen.bg-\[\#050505\] {
+  background-color: #0f0f0f !important;
+}
+
+.min-h-screen.bg-\[\#050507\] {
+  background-color: #0f0f0f !important;
+}
+
+.min-h-screen.bg-black {
+  background-color: #0f0f0f !important;
+}
+
+/* Page-level width wrappers */
+
+.w-screen.bg-\[\#050505\] {
+  background-color: #0f0f0f !important;
+}
+
+.w-screen.bg-\[\#050507\] {
+  background-color: #0f0f0f !important;
+}
+
+.w-screen.bg-black {
+  background-color: #0f0f0f !important;
+}
+
+/* Page-level height wrappers */
+
+.h-screen.bg-\[\#050505\] {
+  background-color: #0f0f0f !important;
+}
+
+.h-screen.bg-\[\#050507\] {
+  background-color: #0f0f0f !important;
+}
+
+.h-screen.bg-black {
+  background-color: #0f0f0f !important;
+}
+
+/* =========================================================
+   FINAL PAGE RESET
    ========================================================= */
 
 html,
 body,
 #root {
-  background-color: #0f0f0f !important;
-}
+  margin: 0 !important;
+  padding: 0 !important;
 
-/* Page-level dark backgrounds */
-.min-h-screen.bg-\[\#050505\],
-.min-h-screen.bg-\[\#050507\],
-.min-h-screen.bg-black {
-  background-color: #0f0f0f !important;
-}
+  width: 100%;
+  min-height: 100vh;
 
-/* Common full-page wrappers */
-.w-screen.bg-\[\#050505\],
-.w-screen.bg-\[\#050507\],
-.w-screen.bg-black {
-  background-color: #0f0f0f !important;
-}
-
-/* Full-height application wrappers */
-.h-screen.bg-\[\#050505\],
-.h-screen.bg-\[\#050507\],
-.h-screen.bg-black {
   background-color: #0f0f0f !important;
 }
