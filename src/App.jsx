@@ -1,25 +1,80 @@
-import { useState, useEffect } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { useState, useEffect, lazy, Suspense } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { supabase } from './lib/supabase.js'
 import { useAuth, AuthProvider } from './context/AuthContext.jsx'
 
 import LoadingScreen from './components/common/LoadingScreen'
 import AllStreamersPage from './pages/AllStreamersPage'
 import SubmitPage from './pages/SubmitPage'
-import AboutPage from './pages/AboutPage'
 import LeaderboardPage from './pages/LeaderboardPage'
-import AdminLoginPage from './pages/AdminLoginPage'
-import AdminStreamersPage from './pages/AdminStreamersPage'
-import AdminSubmissionsPage from './pages/AdminSubmissionsPage'
-import AdminAnnouncements from './pages/AdminAnnouncements'
 import MySubscriptionsPage from './pages/MySubscriptionsPage.jsx'
-import AdminBannersPage from './pages/AdminBannersPage.jsx'
 import SubscribedForecastPage from './pages/SubscribedForecastPage.jsx'
-import PrivacyPolicyPage from './pages/PrivacyPolicyPage.jsx'
-import AdminSettingsPage from './pages/AdminSettingsPage.jsx'
 
 import MaintenancePage from './pages/MaintenancePage'
 import ComingSoonPage from './pages/ComingSoonPage'
+
+// Code-split: the admin console, About and Privacy pages are only needed by a
+// small share of visitors, so they load on demand instead of in the main bundle.
+const AboutPage = lazy(() => import('./pages/AboutPage'))
+const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage.jsx'))
+const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
+const AdminStreamersPage = lazy(() => import('./pages/AdminStreamersPage'))
+const AdminSubmissionsPage = lazy(() => import('./pages/AdminSubmissionsPage'))
+const AdminAnnouncements = lazy(() => import('./pages/AdminAnnouncements'))
+const AdminBannersPage = lazy(() => import('./pages/AdminBannersPage.jsx'))
+const AdminSettingsPage = lazy(() => import('./pages/AdminSettingsPage.jsx'))
+
+// The cinematic intro is kept for first-time / returning-after-a-day visitors,
+// but skipped for people who were here within the last 24h.
+const INTRO_MS = 1200
+const INTRO_REPEAT_AFTER_MS = 24 * 60 * 60 * 1000
+function introDelay() {
+  try {
+    const last = Number(localStorage.getItem('valo_intro_seen') || 0)
+    const now = Date.now()
+    if (last && now - last < INTRO_REPEAT_AFTER_MS) return 0
+    localStorage.setItem('valo_intro_seen', String(now))
+  } catch {
+    /* storage unavailable – just show the intro */
+  }
+  return INTRO_MS
+}
+
+const SITE = "Let's Build VALO Community"
+const DEFAULT_DESCRIPTION =
+  'VALORANT live streamer community platform – watch live streams from YouTube and Kick'
+const ROUTE_META = {
+  '/': { title: SITE, description: DEFAULT_DESCRIPTION },
+  '/subscriptions': { title: `My Subscriptions | ${SITE}`, noindex: true },
+  '/predictions': { title: `Radar Forecast | ${SITE}`, noindex: true },
+  '/leaderboard': { title: `Live Leaderboard | ${SITE}`, description: 'Which VALORANT streamers are live right now, ranked by viewers.' },
+  '/submit': { title: `Submit a Streamer | ${SITE}`, description: 'Know a VALORANT streamer we should feature? Send us their YouTube or Kick link.' },
+  '/about': { title: `About | ${SITE}` },
+  '/privacy': { title: `Privacy Policy | ${SITE}` },
+}
+
+// Per-route <title>, description and robots hints for the single-page app.
+function RouteMeta() {
+  const { pathname } = useLocation()
+  useEffect(() => {
+    const isAdmin = pathname.startsWith('/admin')
+    const meta = ROUTE_META[pathname] || (isAdmin ? { title: `Admin | ${SITE}`, noindex: true } : { title: SITE })
+    document.title = meta.title
+    const desc = document.querySelector('meta[name="description"]')
+    if (desc) desc.setAttribute('content', meta.description || DEFAULT_DESCRIPTION)
+    const robots = document.querySelector('meta[name="robots"]')
+    if (robots) robots.setAttribute('content', meta.noindex || isAdmin ? 'noindex, nofollow' : 'index, follow')
+  }, [pathname])
+  return null
+}
+
+function RouteFallback() {
+  return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="w-5 h-5 border-2 border-[#ff4655] border-t-transparent rounded-full animate-spin" />
+    </div>
+  )
+}
 
 export default function App() {
   return (
@@ -49,12 +104,11 @@ function AppRouterContainer() {
   useEffect(() => {
     const bootstrapPlatform = async () => {
       try {
-        await supabase.from('streamers').select('id').limit(1)
-        
-        // Download all configuration keys concurrently
-        const { data: flags, error: flagError } = await supabase
-          .from('app_settings')
-          .select('key, value_bool')
+        // Warm-up ping and config download run together (they used to be sequential).
+        const [, { data: flags, error: flagError }] = await Promise.all([
+          supabase.from('streamers').select('id').limit(1),
+          supabase.from('app_settings').select('key, value_bool'),
+        ])
 
         if (flags && !flagError) {
           const maintenanceFlag = flags.find(f => f.key === 'maintenance_mode')
@@ -71,7 +125,7 @@ function AppRouterContainer() {
           })
         }
 
-        setTimeout(() => setDbLoaded(true), 1200)
+        setTimeout(() => setDbLoaded(true), introDelay())
       } catch (err) {
         console.error("Platform boot error:", err)
         setDbLoaded(true)
@@ -112,6 +166,8 @@ function AppRouterContainer() {
   return (
     <div className="min-h-screen bg-black w-full overflow-x-hidden">
       <BrowserRouter>
+        <RouteMeta />
+        <Suspense fallback={<RouteFallback />}>
         <Routes>
           
           {/* 🔓 SECURE MANAGEMENT CONTROL CONSOLES */}
@@ -150,6 +206,7 @@ function AppRouterContainer() {
           )}
 
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </div>
   )
