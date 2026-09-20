@@ -12,7 +12,7 @@ const navigationMatrix = [
   {
     category: 'Analytics & Tools',
     items: [
-      { to: '/predictions', label: 'Radar Forecasts', end: true, icon: <PredictionsIcon /> },
+      { to: '/predictions', label: 'Radar Forecast', end: true, icon: <PredictionsIcon /> },
       { to: '/leaderboard', label: 'Leaderboard', end: true, icon: <LeaderboardIcon /> },
       { to: '/submit', label: 'Submit Streamer', end: true, icon: <SubmitIcon /> },
     ]
