@@ -2,40 +2,40 @@ import { useState, useEffect } from 'react'
 import { NavLink, Link, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 
+// ── MOBILE NAVIGATION STRUCTURE ─────────────────────────────────────────────
 export default function BottomBar() {
   const [showRadialMenu, setShowRadialMenu] = useState(false)
   const location = useLocation()
 
-  // Auto-collapse radial menu when navigating away
   useEffect(() => {
     setShowRadialMenu(false)
   }, [location])
 
-  // Primary persistent bottom action items
   const primaryTabs = [
     { to: '/', label: 'Home', end: true, icon: <HomeIcon /> },
     { to: '/subscriptions', label: 'Followed', end: true, icon: <SubscriptionsIcon /> }
   ]
 
-  // Overflow array designed to fan out symmetrically over the navigation bar
   const hiddenTabs = [
     { to: '/submit', label: 'Submit', icon: <SubmitIcon /> },
     { to: '/leaderboard', label: 'Rankings', icon: <LeaderboardIcon /> },
+    { to: '/predictions', label: 'Radar', icon: <PredictionsIcon /> },
     { to: '/about', label: 'About', icon: <AboutIcon /> },
     { to: '/privacy', label: 'Privacy', icon: <PrivacyIcon /> }
   ]
 
-  //Symmetric coordinate multipliers for radial distribution offsets
+  // Positions are intentionally compact so the radial menu works on smaller phones.
   const radialOffsets = [
-    { x: -75, y: -75 }, // Submit (Top Left)
-    { x: -30, y: -115 }, // Rankings (Top Center-Left)
-    { x: 30, y: -115 },  // About (Top Center-Right)
-    { x: 75, y: -75 }   // Privacy (Top Right)
+    { x: -88, y: -72 },
+    { x: -44, y: -116 },
+    { x: 0, y: -132 },
+    { x: 44, y: -116 },
+    { x: 88, y: -72 }
   ]
 
   return (
     <>
-      {/* SCREEN BACKDROP DIMMING FILTER */}
+      {/* Backdrop */}
       <AnimatePresence>
         {showRadialMenu && (
           <motion.div
@@ -43,74 +43,83 @@ export default function BottomBar() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setShowRadialMenu(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-[2px] z-40 lg:hidden"
+            className="fixed inset-0 z-40 bg-black/70 backdrop-blur-[3px] lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      {/* CORE FOOTER DOCK INTERFACE */}
-      <div className="fixed bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black via-black/95 to-neutral-950/90 border-t border-neutral-900/80 flex lg:hidden z-50 px-2 safe-bottom select-none">
-        <nav className="flex w-full items-center justify-between relative">
-          
-          {/* PRIMARY APP NAVLINKS WITH DYNAMIC GLOW CAPSULES */}
+      {/* Mobile dock */}
+      <div className="safe-bottom fixed bottom-0 left-0 right-0 z-50 h-[68px] border-t border-white/[0.08] bg-[#070707]/95 px-2 shadow-[0_-12px_40px_rgba(0,0,0,0.45)] backdrop-blur-2xl lg:hidden">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/40 to-transparent" />
+
+        <nav className="relative flex h-full w-full items-center">
           {primaryTabs.map((item) => {
             const isCurrentlyActive = location.pathname === item.to
+
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className="flex flex-col items-center justify-center gap-1 flex-1 h-full relative z-10 no-underline"
+                className="relative z-10 flex h-full flex-1 items-center justify-center no-underline"
               >
                 <motion.div
                   whileTap={{ scale: 0.9 }}
-                  className={`flex flex-col items-center justify-center w-full h-full relative transition-colors duration-150 ${
+                  className={`relative flex h-[52px] w-full max-w-[100px] flex-col items-center justify-center gap-1 rounded-xl transition-colors ${
                     isCurrentlyActive ? 'text-[#ff4655]' : 'text-neutral-500'
                   }`}
                 >
-                  {/* Active Link Sliding Spring Pill */}
                   {isCurrentlyActive && (
                     <motion.span
                       layoutId="activeTabIndicator"
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                      className="absolute inset-x-2.5 top-2 bottom-2 bg-gradient-to-b from-[#ff4655]/10 to-[#ff4655]/5 border-t border-[#ff4655]/20 rounded-xl -z-10 shadow-[0_0_15px_rgba(255,70,85,0.05)]"
+                      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      className="absolute inset-0 rounded-xl border border-[#ff4655]/20 bg-[#ff4655]/[0.07] shadow-[0_0_24px_rgba(255,70,85,0.07)]"
                     />
                   )}
-                  <div className="shrink-0 scale-105 mb-0.5">{item.icon}</div>
-                  <span className="text-[9px] font-mono font-bold uppercase tracking-tight">{item.label}</span>
+
+                  <span className="relative z-10">{item.icon}</span>
+                  <span className="relative z-10 font-mono text-[8px] font-bold uppercase tracking-[0.12em]">
+                    {item.label}
+                  </span>
                 </motion.div>
               </NavLink>
             )
           })}
 
-          {/* GEOMETRIC EXPANDING RADIAL MENU DOCK */}
-          <div className="flex-1 h-full flex items-center justify-center relative z-10">
-            
-            {/* RADIAL LINK HOVERS CONTAINER */}
+          {/* Radial menu */}
+          <div className="relative z-10 flex h-full flex-1 items-center justify-center">
             <AnimatePresence>
               {showRadialMenu && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                   {hiddenTabs.map((item, index) => {
-                    const offset = radialOffsets[index] || { x: 0, y: -80 }
+                    const offset = radialOffsets[index] || { x: 0, y: -90 }
+
                     return (
                       <motion.div
                         key={item.to}
-                        initial={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                        animate={{ opacity: 1, scale: 1, x: offset.x, y: offset.y }}
-                        exit={{ opacity: 0, scale: 0, x: 0, y: 0 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 20, delay: index * 0.02 }}
-                        className="absolute pointer-events-auto"
+                        initial={{ opacity: 0, scale: 0.4, x: 0, y: 0 }}
+                        animate={{
+                          opacity: 1,
+                          scale: 1,
+                          x: offset.x,
+                          y: offset.y
+                        }}
+                        exit={{ opacity: 0, scale: 0.4, x: 0, y: 0 }}
+                        transition={{
+                          type: 'spring',
+                          stiffness: 280,
+                          damping: 20,
+                          delay: index * 0.025
+                        }}
+                        className="pointer-events-auto absolute"
                       >
                         <Link
                           to={item.to}
-                          className="flex flex-col items-center justify-center w-12 h-12 rounded-full bg-neutral-900 border border-neutral-800/80 shadow-2xl text-neutral-400 hover:text-white active:bg-neutral-800 transition-colors group relative"
+                          className="group relative flex h-12 w-12 flex-col items-center justify-center rounded-2xl border border-white/[0.1] bg-[#0b0b0b]/95 text-neutral-400 shadow-2xl backdrop-blur-xl transition-all active:scale-95 hover:border-[#ff4655]/30 hover:text-white"
                         >
-                          {/* Inner glowing core trace matching active link layout styles */}
-                          <div className="absolute inset-[2px] rounded-full bg-neutral-950 -z-10 group-active:bg-neutral-900" />
-                          <div className="scale-105">{item.icon}</div>
-                          
-                          {/* Floating Micro Labels under geometric ring nodes */}
-                          <span className="absolute -bottom-4 font-mono text-[9px] font-bold uppercase tracking-wider text-neutral-400 select-none whitespace-nowrap pointer-events-none bg-black/40 px-1 rounded">
+                          <span className="absolute inset-[2px] rounded-[14px] border border-white/[0.03] bg-white/[0.02]" />
+                          <span className="relative z-10">{item.icon}</span>
+                          <span className="absolute -bottom-5 whitespace-nowrap rounded bg-black/70 px-1.5 py-0.5 font-mono text-[7px] font-bold uppercase tracking-wider text-neutral-400">
                             {item.label}
                           </span>
                         </Link>
@@ -121,53 +130,64 @@ export default function BottomBar() {
               )}
             </AnimatePresence>
 
-            {/* MAIN RADIAL CORE TRIGGER TOGGLE */}
+            {/* More trigger */}
             <button
+              type="button"
               onClick={() => setShowRadialMenu(!showRadialMenu)}
-              className="flex flex-col items-center justify-center w-full h-full focus:outline-none relative"
+              aria-label={showRadialMenu ? 'Close more navigation' : 'Open more navigation'}
+              aria-expanded={showRadialMenu}
+              className="relative flex h-full w-full items-center justify-center outline-none"
             >
               <motion.div
                 whileTap={{ scale: 0.9 }}
-                className={`flex flex-col items-center justify-center w-full h-full transition-colors ${
+                className={`relative flex h-[52px] w-full max-w-[100px] flex-col items-center justify-center gap-1 rounded-xl transition-colors ${
                   showRadialMenu ? 'text-[#ff4655]' : 'text-neutral-500'
                 }`}
               >
-                {showRadialMenu && (
-                  <div className="absolute inset-x-2.5 top-2 bottom-2 bg-neutral-900/50 border border-neutral-800 rounded-xl -z-10 animate-fade-in" />
-                )}
-                
-                <motion.div
+                <span
+                  className={`absolute inset-0 rounded-xl border transition-all ${
+                    showRadialMenu
+                      ? 'border-[#ff4655]/25 bg-[#ff4655]/[0.08] shadow-[0_0_24px_rgba(255,70,85,0.08)]'
+                      : 'border-transparent'
+                  }`}
+                />
+
+                <motion.span
                   animate={{ rotate: showRadialMenu ? 135 : 0 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                  className="shrink-0 mb-0.5"
+                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                  className="relative z-10"
                 >
-                  {/* Seamless cross-morphing center utility trigger button */}
                   {showRadialMenu ? <CloseIcon /> : <MoreIcon />}
-                </motion.div>
-                <span className="text-[9px] font-mono font-bold uppercase tracking-tight">More</span>
+                </motion.span>
+
+                <span className="relative z-10 font-mono text-[8px] font-bold uppercase tracking-[0.12em]">
+                  More
+                </span>
               </motion.div>
             </button>
-
           </div>
 
+          {/* Balanced right-side navigation space.
+              Keeps the center control visually centered on all phone widths. */}
+          <div className="flex-1" />
         </nav>
       </div>
     </>
   )
 }
 
-// ── FIXED SYNCED SVG ICON CORE GRAPHICS INTERFACES ───────────────────────────────────
 function HomeIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
   )
 }
 
 function SubscriptionsIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
     </svg>
   )
@@ -183,16 +203,19 @@ function PredictionsIcon() {
 
 function MoreIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /><circle cx="5" cy="12" r="1.5" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="5" cy="12" r="1.5" />
+      <circle cx="12" cy="12" r="1.5" />
+      <circle cx="19" cy="12" r="1.5" />
     </svg>
   )
 }
 
 function CloseIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
   )
 }
@@ -208,7 +231,9 @@ function SubmitIcon() {
 function LeaderboardIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" />
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="9" y1="21" x2="9" y2="9" />
     </svg>
   )
 }
@@ -216,7 +241,9 @@ function LeaderboardIcon() {
 function AboutIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+      <circle cx="12" cy="12" r="10" />
+      <line x1="12" y1="16" x2="12" y2="12" />
+      <line x1="12" y1="8" x2="12.01" y2="8" />
     </svg>
   )
 }
