@@ -57,16 +57,17 @@ export default function StreamerCard({ streamer }) {
 
   if (isUnscrapedYoutube || isUnscrapedKick) {
     return (
-      <div className="bg-valo-card border border-valo-border rounded-xl p-6 flex flex-col items-center justify-center text-center h-[290px] md:h-[310px] animate-pulse">
-        <div className="w-14 h-14 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg shadow-inner">
+      <div className="relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0b0c10] min-h-[290px] md:min-h-[310px] flex flex-col items-center justify-center text-center px-6 py-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,rgba(255,68,68,0.07),transparent_42%)]" />
+        <div className="relative w-14 h-14 rounded-full bg-white/[0.03] border border-white/[0.08] flex items-center justify-center mb-4 text-neutral-500 font-mono text-lg">
           {loadingIcon()}
         </div>
 
-        <h3 className="font-display font-bold text-sm text-white uppercase tracking-wide mb-1">
+        <h3 className="relative font-display font-black text-sm text-white uppercase tracking-[0.16em] mb-2">
           Syncing Profile
         </h3>
 
-        <p className="text-xs text-valo-muted font-body max-w-[210px] leading-relaxed">
+        <p className="relative text-xs text-neutral-500 font-body max-w-[210px] leading-relaxed">
           This may take a moment.
         </p>
       </div>
@@ -140,34 +141,32 @@ export default function StreamerCard({ streamer }) {
 
   const watchBtnClass = [
     'flex-1',
+    'min-w-0',
     'text-center',
-    'text-xs',
+    'text-[11px]',
     'font-display',
-    'font-semibold',
-    'py-2',
-    'rounded',
+    'font-bold',
+    'uppercase',
+    'tracking-wide',
+    'py-2.5',
+    'rounded-lg',
     'transition-all',
-    'duration-150',
+    'duration-200',
     'decoration-transparent',
     'select-none',
     isLive
-      ? 'bg-valo-red text-white hover:brightness-110'
-      : 'border border-valo-border text-valo-muted hover:border-valo-muted hover:text-white',
+      ? 'bg-valo-red text-white hover:bg-[#ff5656] hover:shadow-[0_0_20px_rgba(255,68,68,0.18)]'
+      : 'border border-white/[0.08] text-neutral-400 hover:border-white/20 hover:text-white hover:bg-white/[0.03]',
   ].join(' ')
 
   return (
-    <article className="group bg-valo-card rounded-xl overflow-hidden border border-valo-border hover:border-valo-red/40 hover:shadow-[0_0_30px_rgba(255,68,68,0.08)] transition-all duration-200 animate-fade-in flex flex-col justify-between">
+    <article className="group relative overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0b0c10] hover:border-valo-red/30 hover:shadow-[0_18px_55px_rgba(0,0,0,0.35),0_0_35px_rgba(255,68,68,0.06)] transition-all duration-300 flex flex-col">
+      {/* Preview */}
+      <div className="relative aspect-video bg-[#08090c] overflow-hidden">
+        {/* Subtle top lighting */}
+        <div className="absolute inset-0 z-[1] pointer-events-none bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_30%,rgba(0,0,0,0.2))]" />
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          PREVIEW AREA
-          ═══════════════════════════════════════════════════════════════════ */}
-
-      <div className="relative aspect-video bg-[#111] overflow-hidden">
-
-        {/* ═══════════════════════════════════════════════════════════════
-            KICK LIVE
-            ═══════════════════════════════════════════════════════════════ */}
-
+        {/* KICK LIVE */}
         {platform === 'kick' &&
         kickEmbedUrl &&
         showKickPlayer ? (
@@ -181,17 +180,15 @@ export default function StreamerCard({ streamer }) {
               sandbox="allow-scripts allow-same-origin allow-popups"
             />
 
-            {/* Kick live indicator */}
             <div className="absolute top-3 left-3 z-20 pointer-events-none">
-              <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded bg-black/75 backdrop-blur-sm border border-[#53fc18]/30 text-[#53fc18] text-[9px] font-mono font-bold tracking-widest">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-black/75 backdrop-blur-md border border-[#53fc18]/25 text-[#53fc18] text-[9px] font-mono font-bold tracking-[0.16em] shadow-lg">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#53fc18] animate-pulse" />
                 LIVE
               </span>
             </div>
 
-            {/* Kick platform badge */}
             <div className="absolute top-3 right-3 z-20 pointer-events-none">
-              <div className="bg-black/70 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5 border border-white/10">
+              <div className="bg-black/70 backdrop-blur-md rounded-md px-2.5 py-1.5 flex items-center gap-1.5 border border-white/10">
                 <img
                   src={cfg.logo}
                   alt={cfg.label}
@@ -200,16 +197,14 @@ export default function StreamerCard({ streamer }) {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
-
-                <span className="text-[9px] font-mono font-bold text-white">
+                <span className="text-[9px] font-mono font-bold text-white tracking-wider">
                   KICK
                 </span>
               </div>
             </div>
 
-            {/* Viewer count */}
             {streamer.viewerCount != null && (
-              <div className="absolute bottom-3 left-3 z-20 pointer-events-none bg-black/75 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
+              <div className="absolute bottom-3 left-3 z-20 pointer-events-none bg-black/75 backdrop-blur-md border border-white/10 text-white text-[10px] font-mono px-2.5 py-1.5 rounded-md">
                 {formatViewerCount(streamer.viewerCount)}
                 {' watching'}
                 {liveFor
@@ -218,22 +213,16 @@ export default function StreamerCard({ streamer }) {
               </div>
             )}
 
-            {/* Open profile */}
             <Link
               to={profileUrl}
               aria-label={`View ${streamer.channelName}'s profile`}
-              className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/75 backdrop-blur-sm border border-white/10 hover:border-[#53fc18]/50 text-white hover:text-[#53fc18] text-[9px] font-mono uppercase tracking-wider px-2.5 py-1.5 rounded"
+              className="absolute bottom-3 right-3 z-20 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-black/75 backdrop-blur-md border border-white/10 hover:border-[#53fc18]/50 text-white hover:text-[#53fc18] text-[9px] font-mono uppercase tracking-wider px-2.5 py-1.5 rounded-md"
             >
               Profile →
             </Link>
           </>
-
         ) : platform === 'kick' ? (
-
-          /* ═══════════════════════════════════════════════════════════════
-             KICK OFFLINE / FALLBACK
-             ═══════════════════════════════════════════════════════════════ */
-
+          /* KICK OFFLINE / FALLBACK */
           <Link
             to={profileUrl}
             aria-label={`View ${streamer.channelName}'s profile`}
@@ -245,12 +234,12 @@ export default function StreamerCard({ streamer }) {
                 background: `
                   radial-gradient(
                     circle at 50% 35%,
-                    rgba(83, 252, 24, 0.18),
+                    rgba(83, 252, 24, 0.14),
                     transparent 45%
                   ),
                   radial-gradient(
                     circle at 15% 90%,
-                    rgba(83, 252, 24, 0.08),
+                    rgba(83, 252, 24, 0.06),
                     transparent 40%
                   ),
                   linear-gradient(
@@ -269,7 +258,7 @@ export default function StreamerCard({ streamer }) {
                 alt=""
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                className="absolute inset-0 w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
                 }}
@@ -279,36 +268,19 @@ export default function StreamerCard({ streamer }) {
             <div className="absolute inset-0 bg-black/35" />
 
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-4">
-
               {streamer.avatar ? (
                 <img
                   src={streamer.avatar}
                   alt={streamer.channelName}
                   loading="lazy"
-                  className="
-                    w-20 h-20
-                    rounded-full
-                    object-cover
-                    border-2
-                    border-[#53fc18]/60
-                    shadow-[0_0_35px_rgba(83,252,24,0.3)]
-                  "
+                  className="w-20 h-20 rounded-full object-cover border-2 border-[#53fc18]/50 shadow-[0_0_35px_rgba(83,252,24,0.22)]"
                   onError={(e) => {
                     e.currentTarget.style.display = 'none'
                   }}
                 />
               ) : (
                 <div
-                  className="
-                    w-20 h-20
-                    rounded-full
-                    flex items-center justify-center
-                    text-3xl
-                    font-display
-                    font-bold
-                    border-2
-                    border-[#53fc18]/50
-                  "
+                  className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-display font-bold border-2 border-[#53fc18]/40"
                   style={{
                     background:
                       'rgba(83,252,24,0.12)',
@@ -320,51 +292,28 @@ export default function StreamerCard({ streamer }) {
               )}
 
               <div className="text-center space-y-1">
-
                 <p className="text-white font-display font-bold text-lg line-clamp-1">
                   {streamer.channelName}
                 </p>
 
-                <p className="text-[#53fc18] text-[10px] font-mono uppercase tracking-widest">
+                <p className="text-[#53fc18] text-[10px] font-mono uppercase tracking-[0.16em]">
                   Offline on Kick
                 </p>
-
               </div>
 
-              <span className="
-                absolute
-                bottom-4
-                px-3
-                py-1.5
-                rounded-full
-                bg-black/75
-                backdrop-blur-sm
-                border
-                border-[#53fc18]/20
-                text-[#53fc18]
-                text-[9px]
-                font-mono
-                uppercase
-                tracking-widest
-              ">
+              <span className="absolute bottom-4 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-[#53fc18]/20 text-[#53fc18] text-[9px] font-mono uppercase tracking-widest">
                 View Profile →
               </span>
-
             </div>
           </Link>
-
         ) : (
-
-          /* ═══════════════════════════════════════════════════════════════
-             YOUTUBE LIVE / OFFLINE
-             ═══════════════════════════════════════════════════════════════ */
-
+          /* YOUTUBE LIVE / OFFLINE */
           <Link
             to={profileUrl}
             aria-label={`View ${streamer.channelName}'s profile`}
             className="absolute inset-0"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] to-[#111]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#18191d] to-[#0a0b0e]" />
 
             {platform === 'youtube' && liveThumb && (
               <img
@@ -372,12 +321,14 @@ export default function StreamerCard({ streamer }) {
                 alt=""
                 loading="lazy"
                 referrerPolicy="no-referrer"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.025]"
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.035]"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
                 }}
               />
             )}
+
+            <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent" />
 
             <div
               className={`absolute inset-0 flex flex-col items-center justify-center gap-4 p-4 ${
@@ -386,7 +337,6 @@ export default function StreamerCard({ streamer }) {
                   : ''
               }`}
             >
-
               {streamer.avatar ? (
                 <img
                   src={streamer.avatar}
@@ -415,50 +365,40 @@ export default function StreamerCard({ streamer }) {
               )}
 
               <div className="text-center space-y-1">
-
                 <p className="text-white font-display font-bold text-lg line-clamp-1">
                   {streamer.channelName}
                 </p>
 
-                <p className="text-sm text-valo-muted font-body">
+                <p className="text-sm text-neutral-400 font-body">
                   {isLive
                     ? `is live on ${cfg.label}`
                     : `is offline on ${cfg.label}`}
                 </p>
-
               </div>
 
               {liveThumb && (
-                <span className="absolute bottom-4 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-sm border border-white/10 text-[9px] font-mono uppercase tracking-widest text-white">
+                <span className="absolute bottom-4 px-3 py-1.5 rounded-full bg-black/75 backdrop-blur-md border border-white/10 text-[9px] font-mono uppercase tracking-widest text-white">
                   View Profile →
                 </span>
               )}
-
             </div>
           </Link>
         )}
 
-        {/* ═════════════════════════════════════════════════════════════════
-            GLOBAL LIVE BADGE
-            ═════════════════════════════════════════════════════════════════ */}
-
+        {/* LIVE BADGE */}
         {isLive && platform !== 'kick' && (
           <div className="absolute top-3 left-3 z-10 pointer-events-none">
-            <span className="live-badge">
+            <span className="inline-flex items-center gap-1.5 rounded-md bg-valo-red px-2.5 py-1.5 text-[9px] font-mono font-bold tracking-[0.16em] text-white shadow-[0_0_18px_rgba(255,68,68,0.22)]">
               <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse-red" />
               LIVE
             </span>
           </div>
         )}
 
-        {/* ═════════════════════════════════════════════════════════════════
-            PLATFORM BADGE
-            ═════════════════════════════════════════════════════════════════ */}
-
+        {/* PLATFORM BADGE */}
         {platform !== 'kick' && (
           <div className="absolute top-3 right-3 z-10 pointer-events-none">
-            <div className="bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 flex items-center gap-1.5">
-
+            <div className="bg-black/60 backdrop-blur-md rounded-md px-2.5 py-1.5 flex items-center gap-1.5 border border-white/10">
               <img
                 src={cfg.logo}
                 alt={cfg.label}
@@ -467,19 +407,18 @@ export default function StreamerCard({ streamer }) {
                   e.currentTarget.style.display = 'none'
                 }}
               />
-
+              <span className="text-[9px] font-mono font-bold text-white tracking-wider">
+                {cfg.label}
+              </span>
             </div>
           </div>
         )}
 
-        {/* ═════════════════════════════════════════════════════════════════
-            YOUTUBE VIEWER COUNT
-            ═════════════════════════════════════════════════════════════════ */}
-
+        {/* YOUTUBE VIEWER COUNT */}
         {isLive &&
         platform !== 'kick' &&
         streamer.viewerCount != null && (
-          <div className="absolute bottom-3 left-3 z-10 pointer-events-none bg-black/70 backdrop-blur-sm text-white text-xs font-mono px-2 py-1 rounded">
+          <div className="absolute bottom-3 left-3 z-10 pointer-events-none bg-black/70 backdrop-blur-md border border-white/10 text-white text-[10px] font-mono px-2.5 py-1.5 rounded-md">
             {formatViewerCount(streamer.viewerCount)}
             {' watching'}
             {liveFor
@@ -488,31 +427,28 @@ export default function StreamerCard({ streamer }) {
           </div>
         )}
 
+        {/* Bottom cinematic gradient */}
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#0b0c10] to-transparent pointer-events-none z-[2]" />
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          STREAM META
-          ═══════════════════════════════════════════════════════════════════ */}
-
+      {/* STREAM META */}
       <Link
         to={profileUrl}
         aria-label={`View ${streamer.channelName}'s profile`}
         className="block group/meta"
       >
-        <div className="px-3 pt-3">
-
+        <div className="px-4 pt-4">
           {isLive &&
           streamer.title &&
           streamer.title !== 'Live Stream' ? (
             <p
-              className="text-sm font-body text-white/90 line-clamp-2 group-hover/meta:text-white transition-colors"
+              className="text-[13px] leading-5 font-body font-medium text-white/90 line-clamp-2 group-hover/meta:text-white transition-colors"
               title={streamer.title}
             >
               {streamer.title}
             </p>
           ) : (
-            <p className="text-sm font-body text-valo-muted group-hover/meta:text-white transition-colors">
-
+            <p className="text-[13px] leading-5 font-body text-neutral-400 group-hover/meta:text-white transition-colors">
               {platform === 'youtube'
                 ? (
                     isLive
@@ -524,60 +460,49 @@ export default function StreamerCard({ streamer }) {
                       ? `${streamer.channelName} is currently live`
                       : `Visit ${streamer.channelName}'s channel`
                   )}
-
             </p>
           )}
 
           {(streamer.language ||
             (isLive && streamer.category)) && (
-            <div className="flex flex-wrap items-center gap-1.5 mt-2">
-
+            <div className="flex flex-wrap items-center gap-1.5 mt-3">
               {streamer.language && (
-                <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-white/5 text-neutral-300 border border-white/10">
+                <span className="text-[9px] font-mono uppercase tracking-[0.12em] px-2 py-1 rounded-md bg-white/[0.04] text-neutral-400 border border-white/[0.07]">
                   {streamer.language}
                 </span>
               )}
 
               {isLive && streamer.category && (
-                <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded bg-valo-red/10 text-valo-red border border-valo-red/20 truncate max-w-[160px]">
+                <span className="text-[9px] font-mono uppercase tracking-[0.12em] px-2 py-1 rounded-md bg-valo-red/[0.08] text-valo-red border border-valo-red/15 truncate max-w-[160px]">
                   {streamer.category}
                 </span>
               )}
-
             </div>
           )}
-
         </div>
       </Link>
 
-      {/* ═══════════════════════════════════════════════════════════════════
-          FOOTER
-          ═══════════════════════════════════════════════════════════════════ */}
-
-      <div className="p-3 pt-2 space-y-3">
-
+      {/* FOOTER */}
+      <div className="p-4 pt-3 space-y-3">
         {/* Streamer identity */}
-
         <div className="flex items-center justify-between gap-2">
-
           <Link
             to={profileUrl}
             title={`View ${streamer.channelName}'s profile`}
-            className="group/profile flex items-center gap-2 min-w-0 rounded-md px-1.5 py-1 -ml-1.5 hover:bg-white/5 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-valo-red"
+            className="group/profile flex items-center gap-2 min-w-0 rounded-lg px-1.5 py-1 -ml-1.5 hover:bg-white/[0.03] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-valo-red"
           >
-
             {streamer.avatar ? (
               <img
                 src={streamer.avatar}
                 alt={streamer.channelName}
-                className="w-6 h-6 rounded-full object-cover shrink-0"
+                className="w-7 h-7 rounded-full object-cover shrink-0 ring-1 ring-white/10"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
                 }}
               />
             ) : (
               <div
-                className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center text-[9px] font-bold font-display"
+                className="w-7 h-7 rounded-full shrink-0 flex items-center justify-center text-[9px] font-bold font-display ring-1 ring-white/10"
                 style={{
                   background:
                     `${cfg.accentColor}20`,
@@ -590,8 +515,7 @@ export default function StreamerCard({ streamer }) {
             )}
 
             <div className="flex items-center gap-1 min-w-0">
-
-              <span className="text-xs text-valo-muted font-body truncate group-hover/profile:text-white group-hover/profile:underline underline-offset-2">
+              <span className="text-xs text-neutral-400 font-body truncate group-hover/profile:text-white transition-colors">
                 {streamer.channelName}
               </span>
 
@@ -605,14 +529,12 @@ export default function StreamerCard({ streamer }) {
                   <path d="M22.25 12c0-.86-.69-1.55-1.55-1.55h-.59a1.55 1.55 0 0 1-1.46-1.04l-.2-.57a1.55 1.55 0 0 0-1.96-.96l-.56.2a1.55 1.55 0 0 1-1.82-.64l-.33-.5a1.55 1.55 0 0 0-2.58 0l-.33.5a1.55 1.55 0 0 1-1.82.64l-.56-.2a1.55 1.55 0 0 0-1.96.96l-.2.57a1.55 1.55 0 0 1-1.46 1.04h-.59A1.55 1.55 0 0 0 1.75 12c0 .86.69 1.55 1.55 1.55h.59c.66 0 1.25.42 1.46 1.04l.2.57c.28.81 1.16 1.24 1.96.96l.56-.2c.65-.23 1.37.02 1.82.64l.33.5a1.55 1.55 0 0 0 2.58 0l.33-.5a1.55 1.55 0 0 1 1.82-.64l.56.2c.81.28 1.68-.15 1.96-.96l.2-.57a1.55 1.55 0 0 1 1.46-1.04h.59c.86 0 1.55-.69 1.55-1.55z" />
                 </svg>
               )}
-
             </div>
           </Link>
 
           {/* Platform */}
-
           <span
-            className={`shrink-0 inline-flex items-center gap-1.5 text-xs font-display font-semibold px-2 py-0.5 rounded ${cfg.bgClass}`}
+            className={`shrink-0 inline-flex items-center gap-1.5 text-[10px] font-display font-bold uppercase tracking-wide px-2 py-1 rounded-md ${cfg.bgClass}`}
           >
             <img
               src={cfg.logo}
@@ -625,17 +547,11 @@ export default function StreamerCard({ streamer }) {
 
             {cfg.label}
           </span>
-
         </div>
 
-        {/* ═════════════════════════════════════════════════════════════════
-            ACTIONS
-            ═════════════════════════════════════════════════════════════════ */}
-
+        {/* ACTIONS */}
         <div className="flex gap-2 items-center w-full">
-
           {/* External platform */}
-
           <a
             href={externalUrl}
             target="_blank"
@@ -648,16 +564,14 @@ export default function StreamerCard({ streamer }) {
           </a>
 
           {/* Internal VALO Community profile */}
-
           <Link
             to={profileUrl}
-            className="flex-1 text-center text-xs font-display font-semibold py-2 rounded border border-valo-border text-valo-muted hover:border-valo-red/60 hover:text-white hover:bg-valo-red/5 transition-all duration-150"
+            className="flex-1 min-w-0 text-center text-[11px] font-display font-bold uppercase tracking-wide py-2.5 rounded-lg border border-white/[0.08] text-neutral-400 hover:border-valo-red/40 hover:text-white hover:bg-valo-red/[0.04] transition-all duration-200"
           >
             Profile →
           </Link>
 
           {/* Notification */}
-
           <NotifyButton
             streamerId={
               streamer.id ||
@@ -665,11 +579,8 @@ export default function StreamerCard({ streamer }) {
               streamer.channelId
             }
           />
-
         </div>
-
       </div>
-
     </article>
   )
 }
