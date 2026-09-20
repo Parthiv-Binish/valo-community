@@ -856,7 +856,7 @@ export default function AllStreamersPage() {
                 length: 8,
               }).map((_, index) => (
 
-                <StreamerCardSkeleton
+                <StreamCardSkeleton
                   key={index}
                 />
 
