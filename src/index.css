@@ -3,44 +3,124 @@
 @tailwind utilities;
 
 @layer base {
-  * { box-sizing: border-box; }
+  * {
+    box-sizing: border-box;
+  }
 
   html {
     scroll-behavior: smooth;
+    background: #050506;
   }
 
   body {
-    background-color: #0f0f0f;
-    color: #e0e0e0;
+    margin: 0;
+    background:
+      radial-gradient(circle at 50% -10%, rgba(255, 70, 85, 0.055), transparent 32rem),
+      #050506;
+    color: #e7e7e7;
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow-x: hidden;
   }
 
-  /* Visible keyboard focus everywhere (mouse users don't see it). */
+  ::selection {
+    background: rgba(255, 70, 85, 0.28);
+    color: #fff;
+  }
+
   :focus-visible {
     outline: 2px solid #ff4655;
-    outline-offset: 2px;
+    outline-offset: 3px;
+    border-radius: 4px;
   }
 
-  /* Respect the OS "reduce motion" setting. */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input::selection {
+    background: rgba(255, 70, 85, 0.35);
+  }
+
   @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-    *, *::before, *::after {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: #0f0f0f; }
-  ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
-  ::-webkit-scrollbar-thumb:hover { background: #ff4655; }
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #070708;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #29292c;
+    border-radius: 999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #ff4655;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #29292c #070708;
+  }
 }
 
 @layer components {
+  /* ─────────────────────────────────────────────────────────────────────
+     SURFACES
+     ───────────────────────────────────────────────────────────────────── */
+
+  .valo-surface {
+    @apply border border-white/[0.07] bg-white/[0.025] backdrop-blur-xl;
+  }
+
+  .valo-surface-hover {
+    @apply transition-all duration-200;
+  }
+
+  .valo-surface-hover:hover {
+    border-color: rgba(255, 255, 255, 0.11);
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .valo-panel {
+    @apply rounded-2xl border border-white/[0.07] bg-[#09090a]/80 backdrop-blur-2xl;
+    box-shadow: 0 20px 70px rgba(0, 0, 0, 0.22);
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────
+     EXISTING CARD / BUTTON HELPERS
+     ───────────────────────────────────────────────────────────────────── */
+
   .shimmer {
-    background: linear-gradient(90deg, #181818 25%, #252525 50%, #181818 75%);
+    background:
+      linear-gradient(
+        90deg,
+        #111113 20%,
+        #1d1d20 50%,
+        #111113 80%
+      );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -48,42 +128,94 @@
   .card-hover {
     @apply transition-all duration-200;
   }
+
   .card-hover:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(255,70,85,0.15);
+    transform: translateY(-3px);
+    box-shadow:
+      0 12px 38px rgba(0, 0, 0, 0.35),
+      0 0 28px rgba(255, 70, 85, 0.09);
   }
 
   .valo-btn {
-    @apply bg-valo-red text-white font-display font-semibold tracking-wide 
-           px-5 py-2 rounded transition-all duration-200 hover:brightness-110
-           active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2
+      bg-valo-red text-white font-display font-semibold tracking-wide
+      px-5 py-2.5 rounded-xl transition-all duration-200
+      hover:brightness-110 active:scale-95
+      disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .valo-btn-ghost {
-    @apply border border-valo-border text-valo-text font-display font-semibold tracking-wide
-           px-5 py-2 rounded transition-all duration-200 hover:border-valo-red hover:text-valo-red
-           active:scale-95;
+    @apply inline-flex items-center justify-center gap-2
+      border border-white/[0.09] bg-white/[0.02]
+      text-valo-text font-display font-semibold tracking-wide
+      px-5 py-2.5 rounded-xl transition-all duration-200
+      hover:border-valo-red/50 hover:bg-valo-red/[0.06] hover:text-white
+      active:scale-95;
   }
 
   .input-field {
-    @apply bg-valo-card border border-valo-border rounded px-4 py-2.5 text-valo-text
-           placeholder-valo-muted outline-none w-full text-sm
-           focus:border-valo-red transition-colors duration-200;
+    @apply bg-black/30 border border-white/[0.08] rounded-xl
+      px-4 py-2.5 text-valo-text placeholder-valo-muted
+      outline-none w-full text-sm transition-all duration-200
+      focus:border-valo-red/50 focus:bg-black/45;
   }
 
+  /* ─────────────────────────────────────────────────────────────────────
+     LIVE / PLATFORM
+     ───────────────────────────────────────────────────────────────────── */
+
   .live-badge {
-    @apply inline-flex items-center gap-1 bg-red-600 text-white text-xs font-bold 
-           font-display tracking-wider px-2 py-0.5 rounded uppercase;
+    @apply inline-flex items-center gap-1.5
+      bg-valo-red text-white text-[10px] font-bold
+      font-display tracking-[0.12em] px-2 py-1 rounded-md uppercase;
+    box-shadow: 0 0 18px rgba(255, 70, 85, 0.18);
   }
 
   .platform-badge-yt {
-    @apply inline-flex items-center gap-1.5 bg-[#ff0000]/10 text-[#ff4444] 
-           text-xs font-semibold px-2 py-1 rounded;
+    @apply inline-flex items-center gap-1.5
+      bg-[#ff0000]/10 text-[#ff5555]
+      text-xs font-semibold px-2 py-1 rounded-lg;
   }
 
   .platform-badge-kick {
-    @apply inline-flex items-center gap-1.5 bg-[#53fc18]/10 text-[#53fc18] 
-           text-xs font-semibold px-2 py-1 rounded;
+    @apply inline-flex items-center gap-1.5
+      bg-[#53fc18]/10 text-[#53fc18]
+      text-xs font-semibold px-2 py-1 rounded-lg;
+  }
+
+  /* ─────────────────────────────────────────────────────────────────────
+     TACTICAL / HUD
+     ───────────────────────────────────────────────────────────────────── */
+
+  .hud-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .hud-line {
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 70, 85, 0.55),
+      transparent
+    );
+  }
+
+  .scanline {
+    background: linear-gradient(
+      180deg,
+      transparent,
+      rgba(255, 70, 85, 0.12),
+      transparent
+    );
+  }
+
+  .valo-glow {
+    box-shadow:
+      0 0 0 1px rgba(255, 70, 85, 0.18),
+      0 0 32px rgba(255, 70, 85, 0.08);
   }
 }
 
@@ -96,6 +228,34 @@
   }
 
   .border-glow {
-    box-shadow: 0 0 0 1px rgba(255,70,85,0.4), 0 0 20px rgba(255,70,85,0.1);
+    box-shadow:
+      0 0 0 1px rgba(255, 70, 85, 0.4),
+      0 0 24px rgba(255, 70, 85, 0.1);
+  }
+
+  .text-glow {
+    text-shadow: 0 0 24px rgba(255, 70, 85, 0.24);
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
   }
 }
