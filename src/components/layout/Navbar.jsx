@@ -34,184 +34,250 @@ export default function Navbar() {
 
   return (
     <>
-      <header className="fixed inset-x-0 top-0 z-50 h-14 sm:h-16 border-b border-white/[0.07] bg-[#060606]/92 backdrop-blur-2xl">
+      <header className="fixed inset-x-0 top-0 z-50 h-14 border-b border-white/[0.07] bg-[#060606]/92 backdrop-blur-2xl sm:h-16">
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/55 to-transparent" />
 
-        <div className="mx-auto flex h-full w-full max-w-[1800px] items-center gap-3 px-3 sm:px-5 lg:px-7">
-          {/* Brand */}
-          <Link
-            to="/"
-            className="group flex shrink-0 items-center gap-2.5"
-            aria-label="VALO Community Home"
-          >
-            <div className="relative">
-              <div className="absolute -inset-2 rounded-xl bg-[#ff4655]/10 blur-lg opacity-70 transition-opacity group-hover:opacity-100" />
-              <img
-                src="https://iili.io/C93RwPf.png"
-                alt="VALO Community"
-                className="relative h-8 w-auto rounded-md object-contain sm:h-9"
-              />
-            </div>
+        <div className="relative mx-auto flex h-full w-full max-w-[1800px] items-center px-3 sm:px-5 lg:px-7">
+          {/* =========================================================
+              MOBILE HEADER
+              Balanced 3-zone layout:
+              LEFT  = menu
+              CENTER = logo
+              RIGHT = account
+             ========================================================= */}
+          <div className="flex w-full items-center justify-between md:hidden">
+            {/* Left: menu */}
+            <button
+              onClick={() => setIsOpen((value) => !value)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.025] text-neutral-300 transition-all hover:border-[#ff4655]/30 hover:bg-[#ff4655]/5 hover:text-white active:scale-95"
+              aria-label="Toggle navigation menu"
+              aria-expanded={isOpen}
+            >
+              {isOpen ? <CloseIcon /> : <MenuIcon />}
+            </button>
 
-            <div className="hidden xl:block">
-              <div className="font-display text-[11px] font-black uppercase tracking-[0.18em] leading-none text-white">
-                LET'S BUILD VALO
+            {/* Center: genuinely viewport-centered logo */}
+            <Link
+              to="/"
+              className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center"
+              aria-label="VALO Community Home"
+            >
+              <div className="relative">
+                <div className="absolute -inset-2 rounded-xl bg-[#ff4655]/10 blur-lg opacity-70" />
+                <img
+                  src="https://iili.io/C93RwPf.png"
+                  alt="VALO Community"
+                  className="relative h-8 w-auto rounded-md object-contain"
+                />
               </div>
-              <div className="mt-1 font-display text-[9px] font-black uppercase tracking-[0.2em] leading-none text-[#ff4655]">
-                Community
-              </div>
-            </div>
-          </Link>
+            </Link>
 
-          <div className="hidden h-6 w-px bg-white/[0.08] md:block" />
-
-          {/* Main navigation replaces the sidebar */}
-          <nav className="hidden min-w-0 flex-1 items-center gap-1 md:flex">
-            {primaryLinks.map((link) => (
-              <NavLink
-                key={link.path}
-                to={link.path}
-                end={link.end}
-                className={({ isActive }) =>
-                  `relative flex h-9 items-center rounded-lg px-3.5 font-display text-[9px] font-black uppercase tracking-[0.12em] transition-all lg:px-4 ${
-                    isActive
-                      ? 'bg-[#ff4655]/10 text-[#ff4655]'
-                      : 'text-neutral-500 hover:bg-white/[0.04] hover:text-white'
-                  }`
-                }
-              >
-                {({ isActive }) => (
-                  <>
-                    {link.name}
-                    {isActive && (
-                      <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-[#ff4655] shadow-[0_0_10px_rgba(255,70,85,0.8)]" />
+            {/* Right: compact account control */}
+            <div className="ml-auto flex items-center">
+              {!user ? (
+                <button
+                  onClick={loginWithGoogle}
+                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#ff4655]/30 bg-[#ff4655]/[0.05] text-[#ff4655] transition-all hover:border-[#ff4655]/70 hover:bg-[#ff4655]/10 active:scale-95"
+                  aria-label="Connect ID"
+                  title="Connect ID"
+                >
+                  <GoogleIcon />
+                </button>
+              ) : (
+                <div className="relative flex h-9 w-9 items-center justify-center">
+                  <button
+                    onClick={logout}
+                    className="group relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035] transition-all hover:border-[#ff4655]/40 hover:bg-[#ff4655]/10 active:scale-95"
+                    aria-label="Disconnect account"
+                    title={`${displayName || 'Account'} — Disconnect`}
+                  >
+                    <span className="absolute -right-0.5 -top-0.5 z-10 h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                    {avatarImage ? (
+                      <img
+                        src={avatarImage}
+                        alt=""
+                        className="h-6 w-6 rounded-md object-cover"
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] font-mono text-[10px] font-black text-white">
+                        {displayName?.charAt(0) || 'U'}
+                      </span>
                     )}
-                  </>
-                )}
-              </NavLink>
-            ))}
-
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setMoreOpen((value) => !value)}
-                className={`flex h-9 items-center gap-1.5 rounded-lg px-3.5 font-display text-[9px] font-black uppercase tracking-[0.12em] transition-all lg:px-4 ${
-                  isSecondaryActive || moreOpen
-                    ? 'bg-white/[0.05] text-white'
-                    : 'text-neutral-500 hover:bg-white/[0.04] hover:text-white'
-                }`}
-                aria-expanded={moreOpen}
-              >
-                More
-                <ChevronIcon open={moreOpen} />
-              </button>
-
-              {moreOpen && (
-                <div className="absolute left-0 top-[calc(100%+9px)] w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#090909]/96 p-1.5 shadow-2xl backdrop-blur-2xl">
-                  {secondaryLinks.map((link) => (
-                    <NavLink
-                      key={link.path}
-                      to={link.path}
-                      className={({ isActive }) =>
-                        `flex items-center rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[0.1em] transition-colors ${
-                          isActive
-                            ? 'bg-[#ff4655]/10 text-[#ff4655]'
-                            : 'text-neutral-400 hover:bg-white/[0.05] hover:text-white'
-                        }`
-                      }
-                    >
-                      {link.name}
-                    </NavLink>
-                  ))}
+                  </button>
                 </div>
               )}
             </div>
-          </nav>
-
-          {/* Compact online indicator */}
-          <div className="ml-auto hidden items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.025] px-3 py-1.5 lg:flex">
-            <span className="relative flex h-1.5 w-1.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ff4655] opacity-50" />
-              <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#ff4655]" />
-            </span>
-            <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-neutral-500">
-              Network Live
-            </span>
           </div>
 
-          {/* Account */}
-          <Link
-            to="/admin/login"
-            className="hidden h-9 w-9 items-center justify-center rounded-lg border border-transparent text-neutral-600 transition-all hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-neutral-200 sm:flex"
-            title="Admin Dashboard"
-            aria-label="Admin Dashboard"
-          >
-            <ShieldIcon />
-          </Link>
-
-          <div className="hidden h-5 w-px bg-white/[0.08] sm:block" />
-
-          {!user ? (
-            <button
-              onClick={loginWithGoogle}
-              className="group relative flex h-9 shrink-0 items-center gap-2 overflow-hidden rounded-lg border border-[#ff4655]/35 bg-[#ff4655]/[0.04] px-3 text-[9px] font-black uppercase tracking-[0.13em] text-white transition-all hover:border-[#ff4655]/80 hover:bg-[#ff4655]/10 active:scale-[0.97]"
+          {/* =========================================================
+              DESKTOP HEADER
+             ========================================================= */}
+          <div className="hidden w-full items-center gap-3 md:flex">
+            {/* Brand */}
+            <Link
+              to="/"
+              className="group flex shrink-0 items-center gap-2.5"
+              aria-label="VALO Community Home"
             >
-              <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[#ff4655]/15 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
-              <svg className="relative z-10 h-3.5 w-3.5 fill-current text-[#ff4655]" viewBox="0 0 24 24">
-                <path d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.427-3.3c-2.2-2.05-5.033-3.302-8.474-3.302-6.623 0-12 5.377-12 12s5.377 12 12 12c6.923 0 11.52-4.864 11.52-11.727 0-.788-.083-1.398-.183-1.926H12.24z" />
-              </svg>
-              <span className="relative z-10">
-                Connect <span className="text-[#ff4655]">ID</span>
-              </span>
-            </button>
-          ) : (
-            <div className="group relative flex h-9 shrink-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-1.5 sm:px-2">
-              <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-              </span>
-
-              {avatarImage ? (
+              <div className="relative">
+                <div className="absolute -inset-2 rounded-xl bg-[#ff4655]/10 blur-lg opacity-70 transition-opacity group-hover:opacity-100" />
                 <img
-                  src={avatarImage}
-                  alt=""
-                  className="h-6 w-6 rounded-md border border-white/10 object-cover transition-colors group-hover:border-[#ff4655]/50"
-                  referrerPolicy="no-referrer"
+                  src="https://iili.io/C93RwPf.png"
+                  alt="VALO Community"
+                  className="relative h-8 w-auto rounded-md object-contain sm:h-9"
                 />
-              ) : (
-                <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] font-mono text-[10px] font-black text-white">
-                  {displayName?.charAt(0)}
-                </div>
-              )}
-
-              <div className="hidden max-w-[85px] flex-col justify-center sm:flex">
-                <span className="truncate font-display text-[9px] font-bold uppercase tracking-[0.1em] leading-tight text-neutral-200">
-                  {displayName?.split(' ')[0]}
-                </span>
-                <span className="mt-0.5 font-mono text-[7px] uppercase tracking-widest text-emerald-400">
-                  Connected
-                </span>
               </div>
 
-              <button
-                onClick={logout}
-                className="rounded-md border border-white/[0.06] bg-black/30 px-1.5 py-1 font-mono text-[8px] font-bold text-neutral-500 transition-all hover:border-[#ff4655]/30 hover:bg-[#ff4655]/10 hover:text-[#ff4655]"
-                title="Terminate Session"
-              >
-                ESC
-              </button>
-            </div>
-          )}
+              <div className="hidden xl:block">
+                <div className="font-display text-[11px] font-black uppercase tracking-[0.18em] leading-none text-white">
+                  LET'S BUILD VALO
+                </div>
+                <div className="mt-1 font-display text-[9px] font-black uppercase tracking-[0.2em] leading-none text-[#ff4655]">
+                  Community
+                </div>
+              </div>
+            </Link>
 
-          {/* Mobile menu */}
-          <button
-            onClick={() => setIsOpen((value) => !value)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.06] bg-white/[0.025] text-neutral-400 transition-all hover:border-[#ff4655]/30 hover:bg-[#ff4655]/5 hover:text-white md:hidden"
-            aria-label="Toggle navigation menu"
-            aria-expanded={isOpen}
-          >
-            {isOpen ? <CloseIcon /> : <MenuIcon />}
-          </button>
+            <div className="hidden h-6 w-px bg-white/[0.08] md:block" />
+
+            {/* Main navigation */}
+            <nav className="hidden min-w-0 flex-1 items-center gap-1 md:flex">
+              {primaryLinks.map((link) => (
+                <NavLink
+                  key={link.path}
+                  to={link.path}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    `relative flex h-9 items-center rounded-lg px-3.5 font-display text-[9px] font-black uppercase tracking-[0.12em] transition-all lg:px-4 ${
+                      isActive
+                        ? 'bg-[#ff4655]/10 text-[#ff4655]'
+                        : 'text-neutral-500 hover:bg-white/[0.04] hover:text-white'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {link.name}
+                      {isActive && (
+                        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-[#ff4655] shadow-[0_0_10px_rgba(255,70,85,0.8)]" />
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              ))}
+
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setMoreOpen((value) => !value)}
+                  className={`flex h-9 items-center gap-1.5 rounded-lg px-3.5 font-display text-[9px] font-black uppercase tracking-[0.12em] transition-all lg:px-4 ${
+                    isSecondaryActive || moreOpen
+                      ? 'bg-white/[0.05] text-white'
+                      : 'text-neutral-500 hover:bg-white/[0.04] hover:text-white'
+                  }`}
+                  aria-expanded={moreOpen}
+                >
+                  More
+                  <ChevronIcon open={moreOpen} />
+                </button>
+
+                {moreOpen && (
+                  <div className="absolute left-0 top-[calc(100%+9px)] w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#090909]/96 p-1.5 shadow-2xl backdrop-blur-2xl">
+                    {secondaryLinks.map((link) => (
+                      <NavLink
+                        key={link.path}
+                        to={link.path}
+                        className={({ isActive }) =>
+                          `flex items-center rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[0.1em] transition-colors ${
+                            isActive
+                              ? 'bg-[#ff4655]/10 text-[#ff4655]'
+                              : 'text-neutral-400 hover:bg-white/[0.05] hover:text-white'
+                          }`
+                        }
+                      >
+                        {link.name}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </nav>
+
+            {/* Network status */}
+            <div className="ml-auto hidden items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.025] px-3 py-1.5 lg:flex">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ff4655] opacity-50" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#ff4655]" />
+              </span>
+              <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-neutral-500">
+                Network Live
+              </span>
+            </div>
+
+            {/* Admin */}
+            <Link
+              to="/admin/login"
+              className="hidden h-9 w-9 items-center justify-center rounded-lg border border-transparent text-neutral-600 transition-all hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-neutral-200 sm:flex"
+              title="Admin Dashboard"
+              aria-label="Admin Dashboard"
+            >
+              <ShieldIcon />
+            </Link>
+
+            <div className="hidden h-5 w-px bg-white/[0.08] sm:block" />
+
+            {/* Account */}
+            {!user ? (
+              <button
+                onClick={loginWithGoogle}
+                className="group relative flex h-9 shrink-0 items-center gap-2 overflow-hidden rounded-lg border border-[#ff4655]/35 bg-[#ff4655]/[0.04] px-3 text-[9px] font-black uppercase tracking-[0.13em] text-white transition-all hover:border-[#ff4655]/80 hover:bg-[#ff4655]/10 active:scale-[0.97]"
+              >
+                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[#ff4655]/15 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
+                <GoogleIcon />
+                <span className="relative z-10">
+                  Connect <span className="text-[#ff4655]">ID</span>
+                </span>
+              </button>
+            ) : (
+              <div className="group relative flex h-9 shrink-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-1.5 sm:px-2">
+                <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                </span>
+
+                {avatarImage ? (
+                  <img
+                    src={avatarImage}
+                    alt=""
+                    className="h-6 w-6 rounded-md border border-white/10 object-cover transition-colors group-hover:border-[#ff4655]/50"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] font-mono text-[10px] font-black text-white">
+                    {displayName?.charAt(0) || 'U'}
+                  </div>
+                )}
+
+                <div className="hidden max-w-[85px] flex-col justify-center sm:flex">
+                  <span className="truncate font-display text-[9px] font-bold uppercase tracking-[0.1em] leading-tight text-neutral-200">
+                    {displayName?.split(' ')[0] || 'USER'}
+                  </span>
+                  <span className="mt-0.5 font-mono text-[7px] uppercase tracking-widest text-emerald-400">
+                    Connected
+                  </span>
+                </div>
+
+                <button
+                  onClick={logout}
+                  className="rounded-md border border-white/[0.06] bg-black/30 px-1.5 py-1 font-mono text-[8px] font-bold text-neutral-500 transition-all hover:border-[#ff4655]/30 hover:bg-[#ff4655]/10 hover:text-[#ff4655]"
+                  title="Terminate Session"
+                >
+                  ESC
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -240,7 +306,10 @@ export default function Navbar() {
 
         <div className="grid grid-cols-2 gap-2">
           {[...primaryLinks, ...secondaryLinks].map((link) => {
-            const isActive = location.pathname === link.path
+            const isActive =
+              link.end
+                ? location.pathname === link.path
+                : location.pathname === link.path
 
             return (
               <Link
@@ -272,9 +341,30 @@ export default function Navbar() {
   )
 }
 
+function GoogleIcon() {
+  return (
+    <svg
+      className="h-3.5 w-3.5"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.427-3.3c-2.2-2.05-5.033-3.302-8.474-3.302-6.623 0-12 5.377-12 12s5.377 12 12 12c6.923 0 11.52-4.864 11.52-11.727 0-.788-.083-1.398-.183-1.926H12.24z" />
+    </svg>
+  )
+}
+
 function MenuIcon() {
   return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
       <line x1="4" y1="12" x2="20" y2="12" />
       <line x1="4" y1="6" x2="20" y2="6" />
       <line x1="4" y1="18" x2="20" y2="18" />
@@ -284,7 +374,15 @@ function MenuIcon() {
 
 function CloseIcon() {
   return (
-    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg
+      width="19"
+      height="19"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
       <line x1="18" y1="6" x2="6" y2="18" />
       <line x1="6" y1="6" x2="18" y2="18" />
     </svg>
@@ -310,7 +408,16 @@ function ChevronIcon({ open }) {
 
 function ShieldIcon() {
   return (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6-8 10-8 10z" />
     </svg>
   )
