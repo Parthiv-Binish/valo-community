@@ -13,7 +13,8 @@ export default function BottomBar() {
 
   const primaryTabs = [
     { to: '/', label: 'Home', end: true, icon: <HomeIcon /> },
-    { to: '/subscriptions', label: 'Followed', end: true, icon: <SubscriptionsIcon /> }
+    { to: '/subscriptions', label: 'Followed', end: true, icon: <SubscriptionsIcon /> },
+    { to: '/predictions', label: 'Forecast', end: true, icon: <RadarIcon /> }
   ]
 
   const hiddenTabs = [
