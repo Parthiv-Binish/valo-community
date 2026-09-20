@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase' // Path structured for your v0 project setup
 import { useAuth } from '../../context/AuthContext'
 
+const PENDING_FOLLOW_KEY = 'valo_pending_follow'
+
 export default function NotifyButton({ streamerId }) {
-  const { user } = useAuth()
+  const { user, loginWithGoogle } = useAuth()
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -25,6 +27,18 @@ export default function NotifyButton({ streamerId }) {
           setIsSubscribed(true)
         } else {
           setIsSubscribed(false)
+
+          // The user tapped "Notify me" while signed out, was sent through
+          // Google sign-in, and is now back: finish the follow for them.
+          let pending = null
+          try { pending = sessionStorage.getItem(PENDING_FOLLOW_KEY) } catch { /* storage unavailable */ }
+          if (!error && pending && pending === String(streamerId)) {
+            try { sessionStorage.removeItem(PENDING_FOLLOW_KEY) } catch { /* ignore */ }
+            const { error: insertError } = await supabase
+              .from('stream_subscriptions')
+              .insert({ user_id: user.id, streamer_id: streamerId })
+            if (!insertError) setIsSubscribed(true)
+          }
         }
       } catch (err) {
         console.error('Subscription verification failure:', err)
@@ -48,7 +62,10 @@ export default function NotifyButton({ streamerId }) {
     e.stopPropagation() // Double containment safety layer to lock execution bubbles
     
     if (!user) {
-      setErrorMessage('SIGN IN REQUIRED')
+      // Remember what they wanted, then start sign-in instead of just erroring.
+      try { sessionStorage.setItem(PENDING_FOLLOW_KEY, String(streamerId)) } catch { /* ignore */ }
+      setErrorMessage('SIGNING IN...')
+      if (typeof loginWithGoogle === 'function') loginWithGoogle()
       return
     }
 
