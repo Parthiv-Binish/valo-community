@@ -9,14 +9,12 @@
 
   html {
     scroll-behavior: smooth;
-    background: #050506;
+    background: #0f0f0f;
   }
 
   body {
     margin: 0;
-    background:
-      radial-gradient(circle at 50% -10%, rgba(255, 70, 85, 0.055), transparent 32rem),
-      #050506;
+    background-color: #0f0f0f;
     color: #e7e7e7;
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -29,6 +27,7 @@
     color: #fff;
   }
 
+  /* Visible keyboard focus */
   :focus-visible {
     outline: 2px solid #ff4655;
     outline-offset: 3px;
@@ -47,6 +46,7 @@
     background: rgba(255, 70, 85, 0.35);
   }
 
+  /* Respect reduced-motion preference */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -62,17 +62,18 @@
     }
   }
 
+  /* Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
 
   ::-webkit-scrollbar-track {
-    background: #070708;
+    background: #0f0f0f;
   }
 
   ::-webkit-scrollbar-thumb {
-    background: #29292c;
+    background: #2a2a2a;
     border-radius: 999px;
   }
 
@@ -82,17 +83,19 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #29292c #070708;
+    scrollbar-color: #2a2a2a #0f0f0f;
   }
 }
 
 @layer components {
-  /* ─────────────────────────────────────────────────────────────────────
+  /* ============================================================
      SURFACES
-     ───────────────────────────────────────────────────────────────────── */
+     ============================================================ */
 
   .valo-surface {
-    @apply border border-white/[0.07] bg-white/[0.025] backdrop-blur-xl;
+    @apply border border-white/[0.07]
+      bg-white/[0.025]
+      backdrop-blur-xl;
   }
 
   .valo-surface-hover {
@@ -105,25 +108,33 @@
   }
 
   .valo-panel {
-    @apply rounded-2xl border border-white/[0.07] bg-[#09090a]/80 backdrop-blur-2xl;
+    @apply rounded-2xl
+      border border-white/[0.07]
+      bg-[#111111]/90
+      backdrop-blur-2xl;
+    
     box-shadow: 0 20px 70px rgba(0, 0, 0, 0.22);
   }
 
-  /* ─────────────────────────────────────────────────────────────────────
-     EXISTING CARD / BUTTON HELPERS
-     ───────────────────────────────────────────────────────────────────── */
+  /* ============================================================
+     SKELETON / LOADING
+     ============================================================ */
 
   .shimmer {
-    background:
-      linear-gradient(
-        90deg,
-        #111113 20%,
-        #1d1d20 50%,
-        #111113 80%
-      );
+    background: linear-gradient(
+      90deg,
+      #181818 25%,
+      #252525 50%,
+      #181818 75%
+    );
+
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
+
+  /* ============================================================
+     CARDS
+     ============================================================ */
 
   .card-hover {
     @apply transition-all duration-200;
@@ -131,66 +142,150 @@
 
   .card-hover:hover {
     transform: translateY(-3px);
+
     box-shadow:
       0 12px 38px rgba(0, 0, 0, 0.35),
       0 0 28px rgba(255, 70, 85, 0.09);
   }
 
+  /* ============================================================
+     BUTTONS
+     ============================================================ */
+
   .valo-btn {
-    @apply inline-flex items-center justify-center gap-2
-      bg-valo-red text-white font-display font-semibold tracking-wide
-      px-5 py-2.5 rounded-xl transition-all duration-200
-      hover:brightness-110 active:scale-95
-      disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex
+      items-center
+      justify-center
+      gap-2
+      bg-valo-red
+      text-white
+      font-display
+      font-semibold
+      tracking-wide
+      px-5
+      py-2.5
+      rounded-xl
+      transition-all
+      duration-200
+      hover:brightness-110
+      active:scale-95
+      disabled:opacity-50
+      disabled:cursor-not-allowed;
   }
 
   .valo-btn-ghost {
-    @apply inline-flex items-center justify-center gap-2
-      border border-white/[0.09] bg-white/[0.02]
-      text-valo-text font-display font-semibold tracking-wide
-      px-5 py-2.5 rounded-xl transition-all duration-200
-      hover:border-valo-red/50 hover:bg-valo-red/[0.06] hover:text-white
+    @apply inline-flex
+      items-center
+      justify-center
+      gap-2
+      border
+      border-white/[0.09]
+      bg-white/[0.02]
+      text-valo-text
+      font-display
+      font-semibold
+      tracking-wide
+      px-5
+      py-2.5
+      rounded-xl
+      transition-all
+      duration-200
+      hover:border-valo-red/50
+      hover:bg-valo-red/[0.06]
+      hover:text-white
       active:scale-95;
   }
 
+  /* ============================================================
+     INPUTS
+     ============================================================ */
+
   .input-field {
-    @apply bg-black/30 border border-white/[0.08] rounded-xl
-      px-4 py-2.5 text-valo-text placeholder-valo-muted
-      outline-none w-full text-sm transition-all duration-200
-      focus:border-valo-red/50 focus:bg-black/45;
+    @apply w-full
+      bg-[#111111]
+      border
+      border-white/[0.08]
+      rounded-xl
+      px-4
+      py-2.5
+      text-valo-text
+      placeholder-valo-muted
+      outline-none
+      text-sm
+      transition-all
+      duration-200
+      focus:border-valo-red/50
+      focus:bg-[#141414];
   }
 
-  /* ─────────────────────────────────────────────────────────────────────
-     LIVE / PLATFORM
-     ───────────────────────────────────────────────────────────────────── */
+  /* ============================================================
+     LIVE BADGE
+     ============================================================ */
 
   .live-badge {
-    @apply inline-flex items-center gap-1.5
-      bg-valo-red text-white text-[10px] font-bold
-      font-display tracking-[0.12em] px-2 py-1 rounded-md uppercase;
+    @apply inline-flex
+      items-center
+      gap-1.5
+      bg-red-600
+      text-white
+      text-[10px]
+      font-bold
+      font-display
+      tracking-[0.12em]
+      px-2
+      py-1
+      rounded-md
+      uppercase;
+    
     box-shadow: 0 0 18px rgba(255, 70, 85, 0.18);
   }
 
+  /* ============================================================
+     PLATFORM BADGES
+     ============================================================ */
+
   .platform-badge-yt {
-    @apply inline-flex items-center gap-1.5
-      bg-[#ff0000]/10 text-[#ff5555]
-      text-xs font-semibold px-2 py-1 rounded-lg;
+    @apply inline-flex
+      items-center
+      gap-1.5
+      bg-[#ff0000]/10
+      text-[#ff4444]
+      text-xs
+      font-semibold
+      px-2
+      py-1
+      rounded-lg;
   }
 
   .platform-badge-kick {
-    @apply inline-flex items-center gap-1.5
-      bg-[#53fc18]/10 text-[#53fc18]
-      text-xs font-semibold px-2 py-1 rounded-lg;
+    @apply inline-flex
+      items-center
+      gap-1.5
+      bg-[#53fc18]/10
+      text-[#53fc18]
+      text-xs
+      font-semibold
+      px-2
+      py-1
+      rounded-lg;
   }
 
-  /* ─────────────────────────────────────────────────────────────────────
+  /* ============================================================
      TACTICAL / HUD
-     ───────────────────────────────────────────────────────────────────── */
+     ============================================================ */
 
   .hud-grid {
     background-image:
-      linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px);
+      linear-gradient(
+        rgba(255, 255, 255, 0.018) 1px,
+        transparent 1px
+      ),
+      linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.018) 1px,
+        transparent 1px
+      );
+
     background-size: 48px 48px;
   }
 
@@ -220,12 +315,30 @@
 }
 
 @layer utilities {
+  /* ============================================================
+     TEXT
+     ============================================================ */
+
   .text-gradient {
-    background: linear-gradient(135deg, #ff4655 0%, #ff8a9a 100%);
+    background: linear-gradient(
+      135deg,
+      #ff4655 0%,
+      #ff8a9a 100%
+    );
+
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  .text-glow {
+    text-shadow:
+      0 0 24px rgba(255, 70, 85, 0.24);
+  }
+
+  /* ============================================================
+     BORDERS / GLOW
+     ============================================================ */
 
   .border-glow {
     box-shadow:
@@ -233,9 +346,9 @@
       0 0 24px rgba(255, 70, 85, 0.1);
   }
 
-  .text-glow {
-    text-shadow: 0 0 24px rgba(255, 70, 85, 0.24);
-  }
+  /* ============================================================
+     SCROLLBAR HELPERS
+     ============================================================ */
 
   .scrollbar-none {
     scrollbar-width: none;
@@ -244,6 +357,10 @@
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
+
+  /* ============================================================
+     MOBILE SAFE AREA
+     ============================================================ */
 
   .safe-bottom {
     padding-bottom: env(safe-area-inset-bottom);
