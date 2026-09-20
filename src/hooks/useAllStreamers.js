@@ -1,8 +1,24 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase.js'
 import { getKickLiveStream, getKickChannelInfo } from '../services/kickService'
+import { fetchLanguageMap } from '../services/languageService'
 
-const REFRESH_INTERVAL = 60_000 
+const REFRESH_INTERVAL = 60_000
+const REALTIME_DEBOUNCE_MS = 2500
+const BACKEND_PING_INTERVAL = 5 * 60_000
+
+// Keeps the Render web service from sleeping. Throttled at module level so that
+// polling, Realtime events and page navigation don't each fire their own ping.
+const BACKEND_PING_URL =
+  import.meta.env.VITE_BACKEND_URL_PRIMARY ||
+  'https://valo-community-backend.onrender.com/'
+let lastBackendPing = 0
+function pingBackend() {
+  const now = Date.now()
+  if (now - lastBackendPing < BACKEND_PING_INTERVAL) return
+  lastBackendPing = now
+  fetch(BACKEND_PING_URL).catch(() => {})
+}
 
 export function useAllStreamers() {
   const [streamers, setStreamers] = useState([])
@@ -10,12 +26,23 @@ export function useAllStreamers() {
   const [error, setError] = useState(null)
   const [lastRefreshed, setLastRefreshed] = useState(null)
 
+  const mountedRef = useRef(true)
+  const inFlightRef = useRef(false)
+  const queuedRef = useRef(false)
+  const lastFetchAtRef = useRef(0)
+
   const fetchAll = useCallback(async () => {
+    // Never run two sweeps at once; remember that another was requested.
+    if (inFlightRef.current) {
+      queuedRef.current = true
+      return
+    }
+    inFlightRef.current = true
+
     try {
       setError(null)
 
-      // Anti-sleep ping to keep Render Web Service awake
-      fetch('https://valo-community-backend.onrender.com/').catch(() => {});
+      pingBackend()
 
       const { data: rows, error: dbError } = await supabase
         .from('streamers')
@@ -39,15 +66,21 @@ export function useAllStreamers() {
       if (dbError) throw dbError
 
       if (!rows || rows.length === 0) {
-        setStreamers([])
-        setIsLoading(false)
-        setLastRefreshed(new Date())
+        if (mountedRef.current) {
+          setStreamers([])
+          setIsLoading(false)
+          setLastRefreshed(new Date())
+        }
         return
       }
 
+      // Optional language tags (null when the column doesn't exist yet).
+      const languageMap = await fetchLanguageMap()
+
       const enriched = await Promise.all(
         rows.map(async (s) => {
-          const info = Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data || {}
+          // A freshly added streamer has no scraped row yet: [] or null. Both must be safe.
+          const info = (Array.isArray(s.streamer_data) ? s.streamer_data[0] : s.streamer_data) || {}
           const channelId = s.platform === 'youtube' ? s.youtube_channel_id : s.kick_username
 
           const fallbackChannelUrl = s.platform === 'youtube'
@@ -62,11 +95,12 @@ export function useAllStreamers() {
             title: null,
             thumbnail: null,
             viewerCount: null,
-            streamUrl: fallbackChannelUrl, 
-            channelUrl: fallbackChannelUrl, 
+            streamUrl: fallbackChannelUrl,
+            channelUrl: fallbackChannelUrl,
             channelName: info.channel_name || channelId,
             avatar: info.avatar || null,
-            verified: false
+            verified: false,
+            language: languageMap ? languageMap.get(s.id) || null : null
           }
 
           // =================================================
@@ -125,14 +159,29 @@ export function useAllStreamers() {
         return (a.channelName || '').localeCompare(b.channelName || '')
       })
 
-      setStreamers(sorted)
-      setLastRefreshed(new Date())
+      if (mountedRef.current) {
+        setStreamers(sorted)
+        setLastRefreshed(new Date())
+      }
+      lastFetchAtRef.current = Date.now()
     } catch (err) {
       console.error(err)
-      setError(err.message || 'Failed to load streamers')
+      if (mountedRef.current) setError(err.message || 'Failed to load streamers')
     } finally {
-      setIsLoading(false)
+      inFlightRef.current = false
+      if (mountedRef.current) setIsLoading(false)
+
+      // A refresh was requested while we were busy: run exactly one more.
+      if (queuedRef.current && mountedRef.current) {
+        queuedRef.current = false
+        fetchAll()
+      }
     }
+  }, [])
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
   }, [])
 
   // Initial Fetch
@@ -140,32 +189,60 @@ export function useAllStreamers() {
     fetchAll()
   }, [fetchAll])
 
-  // Periodic Backup Polling
+  // Periodic Backup Polling – skipped while the tab is hidden.
   useEffect(() => {
-    const id = setInterval(fetchAll, REFRESH_INTERVAL)
-    return () => clearInterval(id)
+    const id = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchAll()
+    }, REFRESH_INTERVAL)
+
+    // Catch up when the user comes back to a tab that was in the background.
+    const onVisible = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        Date.now() - lastFetchAtRef.current > REFRESH_INTERVAL / 2
+      ) {
+        fetchAll()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
   }, [fetchAll])
 
   // =================================================
   // REALTIME SUBSCRIPTION LAYER
   // =================================================
+  // Every streamer_data write used to trigger an immediate full refetch in every
+  // open tab. Events are now coalesced: a burst of writes causes one refetch.
   useEffect(() => {
-    // Listen to changes on both tables to catch adds or live changes instantly
+    let timer = null
+    const scheduleRefetch = () => {
+      if (timer) return
+      timer = setTimeout(() => {
+        timer = null
+        if (document.visibilityState === 'visible') fetchAll()
+      }, REALTIME_DEBOUNCE_MS)
+    }
+
     const channel = supabase
-      .channel('schema-db-changes')
+      .channel(`schema-db-changes-${Math.random().toString(36).slice(2, 8)}`)
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'streamers' },
-        () => { fetchAll() }
+        scheduleRefetch
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'streamer_data' },
-        () => { fetchAll() }
+        scheduleRefetch
       )
       .subscribe()
 
     return () => {
+      if (timer) clearTimeout(timer)
       supabase.removeChannel(channel)
     }
   }, [fetchAll])
