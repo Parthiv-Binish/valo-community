@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { supabase } from '../lib/supabase' 
+import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
 import StreamerCard from '../components/stream/StreamCard'
@@ -12,10 +12,8 @@ export default function MySubscriptionsPage() {
   const [subsLoading, setSubsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
 
-  // 1. Leverage the exact same hook used on AllStreamersPage for unified data structures
   const { streamers: allStreamers, isLoading: hooksLoading, error, refresh } = useAllStreamers()
 
-  // 2. Fetch the user's raw subscription strings from the database
   useEffect(() => {
     async function fetchUserSubs() {
       if (!user) {
@@ -30,8 +28,7 @@ export default function MySubscriptionsPage() {
           .eq('user_id', user.id)
 
         if (subError) throw subError
-        
-        // Map out the flat strings array (handles or IDs)
+
         setSubscriptionHandles(data?.map(sub => sub.streamer_id) || [])
       } catch (err) {
         console.error('Error fetching subscription records:', err)
@@ -43,12 +40,10 @@ export default function MySubscriptionsPage() {
     fetchUserSubs()
   }, [user])
 
-  // 3. Match and filter the data using useMemo, matching the AllStreamersPage filter pattern
   const subscribedStreamers = useMemo(() => {
     if (!subscriptionHandles.length || !allStreamers.length) return []
 
     return allStreamers.filter((streamer) => {
-      // Check every potential key variable that could map to your subscription tracking string
       return (
         subscriptionHandles.includes(streamer.id) ||
         subscriptionHandles.includes(streamer.dbId) ||
@@ -59,7 +54,6 @@ export default function MySubscriptionsPage() {
     })
   }, [allStreamers, subscriptionHandles])
 
-  // 4. Client-side live tab filtering
   const displayedStreamers = useMemo(() => {
     return subscribedStreamers.filter(streamer => {
       if (activeTab === 'live') return streamer.isLive
@@ -68,20 +62,30 @@ export default function MySubscriptionsPage() {
   }, [subscribedStreamers, activeTab])
 
   const combinedLoading = hooksLoading || subsLoading
+  const liveCount = subscribedStreamers.filter(streamer => streamer.isLive).length
 
   if (!user) {
     return (
       <MainLayout>
-        <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
-          <div className="w-14 h-14 rounded-2xl bg-neutral-900/40 border border-neutral-800 flex items-center justify-center text-[#ff4655] mb-4 text-xl">
-            🔒
+        <div className="min-h-[70vh] flex items-center justify-center px-4 py-10">
+          <div className="relative w-full max-w-md overflow-hidden rounded-3xl border border-white/[0.07] bg-[#0a0a0b] p-8 text-center shadow-2xl shadow-black/30 sm:p-10">
+            <div className="pointer-events-none absolute -top-24 left-1/2 h-48 w-48 -translate-x-1/2 rounded-full bg-[#ff4655]/10 blur-3xl" />
+            <div className="relative">
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-[#ff4655]/20 bg-[#ff4655]/[0.08] text-2xl shadow-[0_0_35px_rgba(255,70,85,0.08)]">
+                🔒
+              </div>
+              <div className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-[#ff4655]">
+                Private Feed
+              </div>
+              <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white">
+                Access Restricted
+              </h1>
+              <p className="mx-auto mt-3 max-w-sm font-mono text-xs leading-6 text-neutral-500">
+                Sign in with Google to access your subscribed creators and live notification feed.
+              </p>
+              <div className="mx-auto mt-7 h-px w-20 bg-gradient-to-r from-transparent via-[#ff4655]/60 to-transparent" />
+            </div>
           </div>
-          <h1 className="font-display font-black text-xl text-white uppercase tracking-wider mb-2">
-            Access Restricted
-          </h1>
-          <p className="text-xs text-neutral-400 max-w-xs leading-relaxed font-mono uppercase tracking-tight">
-            Please sign in with Google to view and manage your custom notification feed.
-          </p>
         </div>
       </MainLayout>
     )
@@ -89,91 +93,153 @@ export default function MySubscriptionsPage() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
-        
-        {/* Header Display Sub-Panel */}
-        <div className="border-b border-neutral-900 pb-5 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-          <div>
-            <div className="font-mono text-[10px] font-bold text-[#ff4655] tracking-widest uppercase mb-1">
-              Live Stream Feed
+      <div className="mx-auto max-w-[1600px] space-y-6 pb-6">
+
+        {/* Page header */}
+        <section className="relative overflow-hidden rounded-3xl border border-white/[0.07] bg-[#09090a]">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_10%_0%,rgba(255,70,85,0.10),transparent_34%),radial-gradient(circle_at_90%_100%,rgba(255,70,85,0.045),transparent_32%)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/60 to-transparent" />
+
+          <div className="relative flex flex-col gap-6 p-5 sm:p-7 lg:flex-row lg:items-end lg:justify-between lg:p-8">
+            <div>
+              <div className="mb-3 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-[#ff4655]">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#ff4655] shadow-[0_0_10px_rgba(255,70,85,0.7)]" />
+                Personal Command Feed
+              </div>
+
+              <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white sm:text-3xl lg:text-4xl">
+                My Subscriptions
+              </h1>
+
+              <p className="mt-2 max-w-xl font-mono text-[11px] leading-5 text-neutral-500 sm:text-xs">
+                Track the creators you follow. See who is live and jump directly into their streams.
+              </p>
             </div>
-            <h1 className="font-display font-black text-2xl text-white uppercase tracking-wide">
-              My Subscriptions
-            </h1>
+
+            {!combinedLoading && (
+              <div className="grid grid-cols-2 gap-2 sm:flex">
+                <div className="min-w-[125px] rounded-2xl border border-white/[0.07] bg-black/30 px-4 py-3">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-600">
+                    Following
+                  </div>
+                  <div className="mt-1 font-display text-lg font-black text-white">
+                    {subscribedStreamers.length}
+                  </div>
+                </div>
+
+                <div className="min-w-[125px] rounded-2xl border border-[#ff4655]/15 bg-[#ff4655]/[0.045] px-4 py-3">
+                  <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-[#ff4655]/70">
+                    Live Now
+                  </div>
+                  <div className="mt-1 flex items-center gap-2 font-display text-lg font-black text-white">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#ff4655] shadow-[0_0_9px_rgba(255,70,85,0.8)]" />
+                    {liveCount}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-          
-          {!combinedLoading && (
-            <div className="font-mono text-[11px] text-neutral-400 bg-neutral-900/50 border border-neutral-800 px-3 py-1.5 rounded uppercase tracking-wider select-none">
-              Tracking: <span className="text-[#ff4655] font-black">{subscribedStreamers.length} Channels</span>
+        </section>
+
+        {/* Tabs */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full gap-2 overflow-x-auto pb-1 scrollbar-none sm:w-auto">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`group flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-4 font-mono text-[10px] font-bold uppercase tracking-[0.12em] transition-all ${
+                activeTab === 'all'
+                  ? 'border-white/10 bg-white text-black shadow-lg shadow-white/[0.04]'
+                  : 'border-white/[0.07] bg-[#0b0b0c] text-neutral-500 hover:border-white/[0.12] hover:bg-[#111112] hover:text-white'
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${activeTab === 'all' ? 'bg-black' : 'bg-neutral-600 group-hover:bg-white'}`} />
+              All Creators
+            </button>
+
+            <button
+              onClick={() => setActiveTab('live')}
+              className={`group flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-4 font-mono text-[10px] font-bold uppercase tracking-[0.12em] transition-all ${
+                activeTab === 'live'
+                  ? 'border-[#ff4655]/40 bg-[#ff4655] text-white shadow-[0_0_25px_rgba(255,70,85,0.14)]'
+                  : 'border-white/[0.07] bg-[#0b0b0c] text-neutral-500 hover:border-[#ff4655]/20 hover:bg-[#111112] hover:text-white'
+              }`}
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${activeTab === 'live' ? 'bg-white animate-pulse' : 'bg-[#ff4655]'}`} />
+              Live Now
+              {!combinedLoading && (
+                <span className={`rounded-md px-1.5 py-0.5 text-[9px] ${activeTab === 'live' ? 'bg-black/15 text-white' : 'bg-[#ff4655]/10 text-[#ff4655]'}`}>
+                  {liveCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {!combinedLoading && subscribedStreamers.length > 0 && (
+            <div className="hidden font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-700 sm:block">
+              {displayedStreamers.length} visible / {subscribedStreamers.length} tracked
             </div>
           )}
         </div>
 
-        {/* Tab Selection Filter Controls */}
-        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none py-1">
-          <button 
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all select-none whitespace-nowrap ${
-              activeTab === 'all' 
-                ? 'bg-white text-black font-semibold' 
-                : 'bg-neutral-900 text-neutral-400 border border-neutral-800/60 hover:text-white hover:bg-neutral-800/80'
-            }`}
-          >
-            All Creators
-          </button>
-          <button 
-            onClick={() => setActiveTab('live')}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium tracking-wide transition-all select-none whitespace-nowrap flex items-center gap-1.5 ${
-              activeTab === 'live' 
-                ? 'bg-[#ff4655] text-white font-semibold' 
-                : 'bg-neutral-900 text-neutral-400 border border-neutral-800/60 hover:text-white hover:bg-neutral-800/80'
-            }`}
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${activeTab === 'live' ? 'bg-white animate-pulse' : 'bg-[#ff4655]'}`} />
-            Live Now
-          </button>
-        </div>
-
-        {/* Error Alert Display Box */}
+        {/* Error */}
         {error && (
-          <div className="bg-red-900/20 border border-red-700/30 rounded-lg p-4 text-sm text-red-300 font-body">
-            ⚠️ {error}
+          <div className="relative overflow-hidden rounded-2xl border border-red-500/15 bg-red-950/20 px-4 py-3.5 text-xs text-red-300">
+            <div className="absolute inset-y-0 left-0 w-0.5 bg-red-500/60" />
+            <div className="pl-2 font-mono">
+              <span className="mr-2 text-red-400">⚠</span>
+              {error}
+            </div>
           </div>
         )}
 
-        {/* Grid Viewport */}
+        {/* Stream grid */}
         {combinedLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <StreamerCardSkeleton key={i} />
             ))}
           </div>
         ) : displayedStreamers.length === 0 ? (
-          <div className="bg-neutral-950/20 border border-neutral-900 rounded-2xl p-12 text-center max-w-sm mx-auto flex flex-col items-center justify-center mt-8">
-            <div className="w-12 h-12 bg-neutral-900/60 border border-neutral-800 rounded-xl flex items-center justify-center text-neutral-500 font-mono text-lg mb-4 select-none">
-              📡
+          <div className="relative mx-auto mt-8 w-full max-w-xl overflow-hidden rounded-3xl border border-white/[0.07] bg-[#09090a] px-6 py-14 text-center sm:px-10">
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,70,85,0.08),transparent_45%)]" />
+
+            <div className="relative">
+              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/[0.07] bg-[#111112] text-xl text-neutral-600 shadow-xl shadow-black/20">
+                📡
+              </div>
+
+              <div className="mb-2 font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-[#ff4655]/80">
+                Feed Empty
+              </div>
+
+              <h3 className="font-display text-lg font-black uppercase tracking-wide text-white">
+                {activeTab === 'live' ? 'No Subscribed Creators Live' : 'No Channels Found'}
+              </h3>
+
+              <p className="mx-auto mt-2 max-w-sm font-mono text-[11px] leading-5 text-neutral-500">
+                {activeTab === 'live'
+                  ? 'None of the creators you follow are broadcasting right now. Check back later.'
+                  : 'Your subscription feed is empty. Discover creators and build your personal live feed.'}
+              </p>
+
+              <a
+                href="/"
+                className="mt-7 inline-flex min-h-10 items-center justify-center rounded-xl border border-[#ff4655]/20 bg-[#ff4655]/[0.08] px-5 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff4655] transition-all hover:border-[#ff4655]/40 hover:bg-[#ff4655]/[0.14] hover:text-white active:scale-95"
+              >
+                Browse Creators
+              </a>
             </div>
-            <h3 className="font-display font-bold text-white text-sm uppercase tracking-wide mb-1.5">
-              No Channels Found
-            </h3>
-            <p className="text-xs text-neutral-400 max-w-xs leading-relaxed font-mono uppercase tracking-tight mb-5">
-              There are no creators matching this category selection right now.
-            </p>
-            <a
-              href="/"
-              className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 hover:border-neutral-700 text-white font-mono text-[10px] font-bold tracking-widest uppercase rounded transition-all duration-150 active:scale-95"
-            >
-              Browse Creators
-            </a>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {displayedStreamers.map((streamer, i) => (
-              <StreamerCard key={`${streamer.platform}-${streamer.dbId || streamer.id}-${i}`} streamer={streamer} />
+              <StreamerCard
+                key={`${streamer.platform}-${streamer.dbId || streamer.id}-${i}`}
+                streamer={streamer}
+              />
             ))}
           </div>
         )}
-
       </div>
     </MainLayout>
   )
