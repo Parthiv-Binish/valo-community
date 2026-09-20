@@ -17,7 +17,8 @@ function pingBackend() {
   const now = Date.now()
   if (now - lastBackendPing < BACKEND_PING_INTERVAL) return
   lastBackendPing = now
-  fetch(BACKEND_PING_URL).catch(() => {})
+  // no-cors: we only need the request to reach the server (to wake it), not to read the reply.
+  fetch(BACKEND_PING_URL, { mode: 'no-cors' }).catch(() => {})
 }
 
 export function useAllStreamers() {
