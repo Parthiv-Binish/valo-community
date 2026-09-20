@@ -41,6 +41,9 @@ export default function AllStreamersPage() {
   const [banners, setBanners] =
     useState([])
 
+  const [recentHistory, setRecentHistory] =
+    useState([])
+
 
   /* ═════════════════════════════════════════════════════════════════════
      FETCH TOP ADVERTISEMENTS
@@ -83,6 +86,36 @@ export default function AllStreamersPage() {
 
 
     fetchTopBanners()
+  }, [])
+
+
+  /* ═════════════════════════════════════════════════════════════════════
+     FETCH RECENT STREAM HISTORY
+     Uses existing history data only; no mock/derived records are created.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  useEffect(() => {
+    async function fetchRecentHistory() {
+      try {
+        const { data, error: historyError } = await supabase
+          .from('stream_history_logs')
+          .select('streamer_id, title, went_live_at, went_offline_at')
+          .not('went_offline_at', 'is', null)
+          .order('went_offline_at', { ascending: false })
+          .limit(24)
+
+        if (historyError) {
+          console.error('Failed fetching recent stream history:', historyError)
+          return
+        }
+
+        setRecentHistory(data || [])
+      } catch (err) {
+        console.error('Failed fetching recent stream history:', err)
+      }
+    }
+
+    fetchRecentHistory()
   }, [])
 
 
@@ -233,6 +266,47 @@ export default function AllStreamersPage() {
       ),
     [filtered]
   )
+
+
+  /* ═════════════════════════════════════════════════════════════════════
+     DISCOVERY GROUPS
+     ═══════════════════════════════════════════════════════════════════ */
+
+  const trendingStreams = useMemo(() => {
+    return [...liveStreams]
+      .filter((streamer) => streamer.viewerCount != null)
+      .sort((a, b) => Number(b.viewerCount || 0) - Number(a.viewerCount || 0))
+      .slice(0, 8)
+  }, [liveStreams])
+
+  const recentlyLiveStreams = useMemo(() => {
+    if (!recentHistory.length) return []
+
+    const streamerMap = new Map(
+      filtered.map((streamer) => [
+        String(streamer.id || streamer.streamer_id),
+        streamer,
+      ])
+    )
+
+    const seen = new Set()
+    const result = []
+
+    for (const history of recentHistory) {
+      const streamer = streamerMap.get(String(history.streamer_id))
+      if (!streamer) continue
+
+      const key = String(streamer.id || streamer.streamer_id)
+      if (seen.has(key)) continue
+
+      seen.add(key)
+      result.push(streamer)
+
+      if (result.length >= 8) break
+    }
+
+    return result
+  }, [recentHistory, filtered])
 
 
   return (
@@ -514,7 +588,7 @@ export default function AllStreamersPage() {
           )}
 
           {/* ===============================================================
-              STREAM CONTENT
+              STREAM CONTENT / DISCOVERY
              =============================================================== */}
           <div className="space-y-14">
             {isLoading ? (
@@ -535,6 +609,51 @@ export default function AllStreamersPage() {
               <EmptyState search={search} platform={platformFilter} />
             ) : (
               <>
+                {trendingStreams.length > 0 && (
+                  <DiscoverySection
+                    eyebrow="Community momentum"
+                    title="Trending Now"
+                    accent
+                    count={trendingStreams.length}
+                  >
+                    {trendingStreams.map((streamer, index) => {
+                      const elementKey =
+                        streamer.id ||
+                        streamer.streamer_id ||
+                        `trending-${index}`
+
+                      return (
+                        <StreamerCard
+                          key={`trending-${elementKey}`}
+                          streamer={streamer}
+                        />
+                      )
+                    })}
+                  </DiscoverySection>
+                )}
+
+                {recentlyLiveStreams.length > 0 && (
+                  <DiscoverySection
+                    eyebrow="Recent activity"
+                    title="Recently Live"
+                    count={recentlyLiveStreams.length}
+                  >
+                    {recentlyLiveStreams.map((streamer, index) => {
+                      const elementKey =
+                        streamer.id ||
+                        streamer.streamer_id ||
+                        `recent-${index}`
+
+                      return (
+                        <StreamerCard
+                          key={`recent-${elementKey}`}
+                          streamer={streamer}
+                        />
+                      )
+                    })}
+                  </DiscoverySection>
+                )}
+
                 {liveStreams.length > 0 && (
                   <section id="live-streams" className="space-y-6">
                     <div className="flex items-end justify-between gap-4">
@@ -631,6 +750,45 @@ export default function AllStreamersPage() {
   )
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DISCOVERY SECTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+function DiscoverySection({
+  eyebrow,
+  title,
+  count,
+  accent = false,
+  children,
+}) {
+  return (
+    <section className="space-y-5">
+      <div className="flex items-end justify-between gap-4">
+        <div className="min-w-0">
+          <div className={`mb-2 flex items-center gap-2 font-mono text-[9px] font-bold uppercase tracking-[0.25em] ${accent ? 'text-valo-red' : 'text-neutral-600'}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${accent ? 'bg-valo-red shadow-[0_0_12px_rgba(255,68,68,0.7)]' : 'bg-neutral-600'}`} />
+            {eyebrow}
+          </div>
+          <h2 className={`font-display text-2xl font-black uppercase tracking-tight sm:text-3xl ${accent ? 'text-white' : 'text-neutral-300'}`}>
+            {title}
+          </h2>
+        </div>
+
+        {count > 0 && (
+          <span className={`hidden shrink-0 rounded-full border px-3 py-1.5 font-mono text-[9px] font-bold uppercase tracking-[0.15em] sm:inline-flex ${accent ? 'border-valo-red/15 bg-valo-red/[0.05] text-valo-red' : 'border-white/[0.07] bg-white/[0.02] text-neutral-600'}`}>
+            {count} {count === 1 ? 'stream' : 'streams'}
+          </span>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 gap-x-4 gap-y-7 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 lg:gap-y-9">
+        {children}
+      </div>
+    </section>
+  )
+}
 
 
 /* ═══════════════════════════════════════════════════════════════════════════
