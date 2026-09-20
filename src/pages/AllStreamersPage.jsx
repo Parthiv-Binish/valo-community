@@ -273,10 +273,40 @@ export default function AllStreamersPage() {
      ═══════════════════════════════════════════════════════════════════ */
 
   const trendingStreams = useMemo(() => {
-    return [...liveStreams]
+    const candidates = [...liveStreams]
       .filter((streamer) => streamer.viewerCount != null)
-      .sort((a, b) => Number(b.viewerCount || 0) - Number(a.viewerCount || 0))
-      .slice(0, 8)
+      .sort(
+        (a, b) =>
+          Number(b.viewerCount || 0) -
+          Number(a.viewerCount || 0)
+      )
+
+    if (!candidates.length) return []
+
+    const totalViewers = candidates.reduce(
+      (sum, streamer) =>
+        sum + Number(streamer.viewerCount || 0),
+      0
+    )
+
+    if (totalViewers <= 0) return []
+
+    // Trending is a meaningful subset of Live Now:
+    // include streamers holding at least 10% of the current live audience,
+    // capped at four cards so the section stays focused.
+    const significant = candidates.filter(
+      (streamer) =>
+        Number(streamer.viewerCount || 0) / totalViewers >= 0.10
+    )
+
+    // Always surface the largest live channel when viewer data exists.
+    // This prevents a tiny community from having an empty Trending section.
+    const result =
+      significant.length > 0
+        ? significant
+        : candidates.slice(0, 1)
+
+    return result.slice(0, 4)
   }, [liveStreams])
 
   const recentlyLiveStreams = useMemo(() => {
@@ -386,13 +416,21 @@ export default function AllStreamersPage() {
               </div>
 
               <div className="relative hidden min-h-[390px] overflow-hidden lg:block">
-                <div className="absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-neutral-950/90 to-transparent" />
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_35%,rgba(255,68,68,0.08)_100%)]" />
-                <div className="absolute right-12 top-1/2 -translate-y-1/2">
-                  <div className="relative flex h-64 w-64 items-center justify-center rounded-full border border-valo-red/10">
+                <img
+                  src="https://iili.io/Bp6m8Xa.png"
+                  alt=""
+                  aria-hidden="true"
+                  className="absolute inset-0 h-full w-full object-cover object-center opacity-35 saturate-75"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-black/20 via-neutral-950/45 to-neutral-950" />
+                <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_30%,rgba(255,68,68,0.10)_100%)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_72%_48%,rgba(255,68,68,0.20),transparent_32%)]" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.025)_1px,transparent_1px)] bg-[size:42px_42px] [mask-image:linear-gradient(to_bottom,black,transparent_90%)]" />
+                <div className="absolute right-10 top-1/2 -translate-y-1/2">
+                  <div className="relative flex h-64 w-64 items-center justify-center rounded-full border border-valo-red/15 bg-black/10 backdrop-blur-[2px]">
                     <div className="absolute h-48 w-48 rounded-full border border-valo-red/15" />
                     <div className="absolute h-32 w-32 rounded-full border border-valo-red/20" />
-                    <div className="h-16 w-16 rounded-full bg-valo-red/10 shadow-[0_0_80px_rgba(255,68,68,0.2)]" />
+                    <div className="h-16 w-16 rounded-full bg-valo-red/10 shadow-[0_0_80px_rgba(255,68,68,0.28)]" />
                     <div className="absolute h-px w-72 rotate-45 bg-gradient-to-r from-transparent via-valo-red/50 to-transparent" />
                     <div className="absolute h-px w-72 -rotate-45 bg-gradient-to-r from-transparent via-valo-red/20 to-transparent" />
                   </div>
@@ -611,10 +649,9 @@ export default function AllStreamersPage() {
               <>
                 {trendingStreams.length > 0 && (
                   <DiscoverySection
-                    eyebrow="Community momentum"
+                    eyebrow="Highest live audience share"
                     title="Trending Now"
                     accent
-                    count={trendingStreams.length}
                   >
                     {trendingStreams.map((streamer, index) => {
                       const elementKey =
