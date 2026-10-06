@@ -1,0 +1,5 @@
+import {useState} from 'react'
+import {Link,useNavigate} from 'react-router-dom'
+import {useAuth} from '../context/AuthContext'
+import MainLayout from '../layouts/MainLayout'
+export default function SettingsPage(){const{logout}=useAuth();const nav=useNavigate();const[busy,setBusy]=useState(false);async function signout(){setBusy(true);await logout();nav('/')}return <MainLayout><div className="max-w-2xl mx-auto px-4 py-10 space-y-5"><h1 className="text-3xl font-display font-black text-white uppercase">Settings</h1><div className="grid gap-3"><Link to="/profile" className="p-4 rounded-xl border border-white/10 text-white bg-white/[.02]">Profile & account</Link><Link to="/notifications" className="p-4 rounded-xl border border-white/10 text-white bg-white/[.02]">Notifications</Link><Link to="/account/delete" className="p-4 rounded-xl border border-red-500/20 text-red-400 bg-red-500/[.03]">Delete account</Link></div><button disabled={busy} onClick={signout} className="px-5 py-3 rounded-xl border border-white/10 text-white">{busy?'Signing out...':'Log out'}</button></div></MainLayout>}
