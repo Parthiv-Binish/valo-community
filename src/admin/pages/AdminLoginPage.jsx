@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { adminSignIn } from '../services/authService'
+import { adminSignIn } from '../../services/authService'
 import { useAuth } from '../hooks/useAuth'
 import { Navigate } from 'react-router-dom'
 
