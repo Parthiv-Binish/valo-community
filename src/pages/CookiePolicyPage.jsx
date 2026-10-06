@@ -1,2 +1,7 @@
-import MainLayout from '../layouts/MainLayout'
-export default function CookiePolicyPage(){return <MainLayout><div className="max-w-4xl mx-auto px-4 py-10 text-neutral-400 space-y-6"><h1 className="text-3xl font-display font-black text-white uppercase">Cookies & Local Storage</h1><p>VALO Community uses browser storage for authentication/session handling and limited local preferences such as the introductory experience. We do not use advertising cookies as part of the current application.</p><p>Browser storage can be cleared through your browser settings. Clearing authentication storage will sign you out locally.</p></div></MainLayout>}
+import InfoPage from '../components/common/InfoPage'
+const sections=[
+ {title:'Browser storage',body:'VALO Community uses browser storage for authentication/session handling and limited local preferences such as the introductory experience.'},
+ {title:'Advertising',body:'The current application does not use advertising cookies as part of the community experience.'},
+ {title:'Clearing storage',body:'You can clear browser storage through your browser settings. Clearing authentication storage will sign you out locally.'},
+]
+export default function CookiePolicyPage(){return <InfoPage eyebrow="LEGAL / STORAGE" title="Cookies & local storage" intro="A short explanation of the browser storage used by the current application." sections={sections}/>}
