@@ -17,7 +17,7 @@ export default function CreatePostPage(){
   e.preventDefault();setError('')
   if(!content.trim()&&!media)return
   setBusy(true)
-  const{data,error:insertError}=await supabase.from('posts').insert({author_id:user.id,content:content.trim()||' ',media_url:media?.url||null,media_type:media?.type||null}).select('id').single()
+  const{data,error:insertError}=await supabase.from('posts').insert({author_id:user.id,content:content.trim()||'Shared media',media_url:media?.url||null,media_type:media?.type||null}).select('id').single()
   if(insertError){setError(insertError.message);setBusy(false);return}
   setBusy(false);nav('/posts/'+data.id)
  }
