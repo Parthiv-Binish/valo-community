@@ -17,6 +17,7 @@ import ComingSoonPage from './pages/ComingSoonPage'
 // small share of visitors, so they load on demand instead of in the main bundle.
 const AboutPage = lazy(() => import('./pages/AboutPage'))
 const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage.jsx'))
+const CookiePolicyPage = lazy(() => import('./pages/CookiePolicyPage.jsx'))
 const StreamerProfilePage = lazy(() => import('./pages/StreamerProfilePage'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const AdminStreamersPage = lazy(() => import('./pages/AdminStreamersPage'))
@@ -230,6 +231,7 @@ function AppRouterContainer() {
               <Route path='/predictions' element={pageGates.predictions || isAdminUser ? <SubscribedForecastPage /> : <ComingSoonPage />} />
               
               <Route path='/privacy' element={<PrivacyPolicyPage />} />
+              <Route path='/cookies' element={<CookiePolicyPage />} />
               <Route path='/terms' element={<TermsPage />} />
               <Route path='/community-guidelines' element={<CommunityGuidelinesPage />} />
               <Route path='/content-policy' element={<ContentPolicyPage />} />
