@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import MainLayout from '../layouts/MainLayout'\nimport Icon from '../components/common/Icon'
+import MainLayout from '../layouts/MainLayout'
+import Icon from '../components/common/Icon'
 
 function Avatar({profile}){const name=profile?.display_name||'Player';return profile?.avatar_url?<img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-full object-cover ring-4 ring-[#0d0d12] sm:h-28 sm:w-28"/>:<div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#ff4655] to-[#00e5ff] text-2xl font-black text-white ring-4 ring-[#0d0d12] sm:h-28 sm:w-28">{name.slice(0,2).toUpperCase()}</div>}
 
