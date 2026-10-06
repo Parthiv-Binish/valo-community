@@ -108,11 +108,11 @@ export default function MySubscriptionsPage() {
               </div>
 
               <h1 className="font-display text-2xl font-black uppercase tracking-tight text-white sm:text-3xl lg:text-4xl">
-                My Subscriptions
+                Streamer Subscriptions
               </h1>
 
               <p className="mt-2 max-w-xl font-mono text-[11px] leading-5 text-neutral-500 sm:text-xs">
-                Track the creators you follow. See who is live and jump directly into their streams.
+                Track streamers you subscribe to. See who is live and jump directly into their streams.
               </p>
             </div>
 
@@ -120,7 +120,7 @@ export default function MySubscriptionsPage() {
               <div className="grid grid-cols-2 gap-2 sm:flex">
                 <div className="min-w-[125px] rounded-2xl border border-white/[0.07] bg-black/30 px-4 py-3">
                   <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-neutral-600">
-                    Following
+                    Subscribed Streamers
                   </div>
                   <div className="mt-1 font-display text-lg font-black text-white">
                     {subscribedStreamers.length}
@@ -153,7 +153,7 @@ export default function MySubscriptionsPage() {
               }`}
             >
               <span className={`h-1.5 w-1.5 rounded-full ${activeTab === 'all' ? 'bg-black' : 'bg-neutral-600 group-hover:bg-white'}`} />
-              All Creators
+              All Streamers
             </button>
 
             <button
@@ -213,20 +213,20 @@ export default function MySubscriptionsPage() {
               </div>
 
               <h3 className="font-display text-lg font-black uppercase tracking-wide text-white">
-                {activeTab === 'live' ? 'No Subscribed Creators Live' : 'No Channels Found'}
+                {activeTab === 'live' ? 'No Subscribed Streamers Live' : 'No Channels Found'}
               </h3>
 
               <p className="mx-auto mt-2 max-w-sm font-mono text-[11px] leading-5 text-neutral-500">
                 {activeTab === 'live'
-                  ? 'None of the creators you follow are broadcasting right now. Check back later.'
-                  : 'Your subscription feed is empty. Discover creators and build your personal live feed.'}
+                  ? 'None of your subscribed streamers are broadcasting right now. Check back later.'
+                  : 'Your streamer subscriptions are empty. Discover live streamers and build your personal live feed.'}
               </p>
 
               <a
                 href="/"
                 className="mt-7 inline-flex min-h-10 items-center justify-center rounded-xl border border-[#ff4655]/20 bg-[#ff4655]/[0.08] px-5 font-mono text-[10px] font-bold uppercase tracking-[0.16em] text-[#ff4655] transition-all hover:border-[#ff4655]/40 hover:bg-[#ff4655]/[0.14] hover:text-white active:scale-95"
               >
-                Browse Creators
+                Browse Live Streamers
               </a>
             </div>
           </div>
