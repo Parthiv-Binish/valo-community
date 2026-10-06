@@ -1,2 +1,10 @@
-import MainLayout from '../layouts/MainLayout'
-export default function CommunityGuidelinesPage(){return <MainLayout><div className="max-w-4xl mx-auto px-4 py-10 text-neutral-400 space-y-8"><h1 className="text-3xl font-display font-black text-white uppercase">Community Guidelines</h1>{['Be respectful','No harassment, hate or threats','No spam, scams or impersonation','Only share content you have the right to share','Keep posts relevant to VALORANT and the community','Report content that breaks these rules'].map((x,i)=><section key={x} className="border border-white/10 rounded-2xl p-5 bg-white/[.02]"><h2 className="text-white font-bold">{i+1}. {x}</h2><p className="text-sm mt-2">Help keep VALO Community useful, welcoming and safe for players and creators.</p></section>)}</div></MainLayout>}
+import InfoPage from '../components/common/InfoPage'
+const sections=[
+ {title:'Be respectful',body:'Treat players, creators and moderators with basic respect. Disagreement is fine; harassment is not.'},
+ {title:'No harassment, hate or threats',body:'Do not target people with abusive, hateful, threatening or discriminatory content.'},
+ {title:'No spam, scams or impersonation',body:'Do not flood the community, deceive users, promote scams or impersonate another person or organization.'},
+ {title:'Share content you can share',body:'Only upload media and material you have the right to publish. Respect creators and copyright holders.'},
+ {title:'Keep it relevant',body:'Posts should be useful or entertaining for the VALORANT community: clips, strategies, tournaments, creators, news and discussion.'},
+ {title:'Report problems',body:'If something breaks these rules, report it instead of escalating the situation. Moderators can review the referenced content.'},
+]
+export default function CommunityGuidelinesPage(){return <InfoPage eyebrow="COMMUNITY / SAFETY" title="Community guidelines" intro="The rules are simple: build the community, don't make it worse." sections={sections} action={{to:'/report',label:'Report content'}}/>}
