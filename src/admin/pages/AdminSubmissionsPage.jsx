@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import AdminLayout from '../admin/layouts/AdminLayout'
+import AdminLayout from '../layouts/AdminLayout'
 import { getAllSubmissions, updateSubmissionStatus } from '../../services/streamerService'
 import ToastContainer, { useToast } from '../../components/common/Toast'
 
