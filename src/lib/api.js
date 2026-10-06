@@ -70,5 +70,6 @@ export async function apiRequest(path, options = {}) {
 }
 
 export const apiGet = (path, options = {}) => apiRequest(path, { ...options, method: 'GET' })
+export const apiPost = (path, body, options = {}) => apiRequest(path, { ...options, method: 'POST', body: JSON.stringify(body) })
 export const apiPatch = (path, body, options = {}) => apiRequest(path, { ...options, method: 'PATCH', body: JSON.stringify(body) })
 export const apiDelete = (path, options = {}) => apiRequest(path, { ...options, method: 'DELETE' })
