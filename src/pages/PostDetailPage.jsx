@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
 import Icon from '../components/common/Icon'
+import PostMedia from '../components/common/PostMedia'
 
 function Avatar({profile,size='sm'}){
  const name=profile?.display_name||'Player';const cls=size==='lg'?'h-11 w-11':'h-8 w-8'
@@ -60,7 +61,7 @@ export default function PostDetailPage(){
  if(loading)return <MainLayout><div className="mx-auto max-w-2xl py-20 text-center text-sm text-neutral-600">Loading post…</div></MainLayout>
  if(error&&!post)return <MainLayout><div className="mx-auto max-w-xl py-20 text-center"><Icon name="flag" size={28} className="mx-auto text-[#ff4655]"/><p className="mt-3 text-sm text-neutral-500">{error}</p><Link to="/posts" className="mt-4 inline-block text-sm text-[#ff4655]">Back to community</Link></div></MainLayout>
 
- const author=profiles[post.author_id];const authorName=author?.display_name||'Player';const isVideo=post.media_type==='video'||/\.(mp4|webm|mov)(\?|$)/i.test(post.media_url||'')
+ const author=profiles[post.author_id];const authorName=author?.display_name||'Player'
  return <MainLayout><div className="mx-auto max-w-2xl">
   <div className="mb-4 flex items-center justify-between"><button onClick={()=>nav(-1)} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-white"><Icon name="arrow" size={15} className="rotate-180"/> Back</button><div className="flex items-center gap-1">{user&&user.id!==post.author_id&&<><Link to={`/report?type=post&id=${id}`} title="Report post" aria-label="Report post" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-white/[.04] hover:text-[#ff4655]"><Icon name="flag" size={16}/></Link><button onClick={blockAuthor} title="Block author" aria-label="Block author" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-white/[.04] hover:text-[#ff4655]"><Icon name="ban" size={16}/></button></>}</div></div>
   <article className="overflow-hidden rounded-[24px] border border-white/[.08] bg-[#0d0d12]">
@@ -68,7 +69,7 @@ export default function PostDetailPage(){
     <div className="flex items-center gap-3"><Link to={`/profile/${post.author_id}`}><Avatar profile={author} size="lg"/></Link><div className="min-w-0 flex-1"><Link to={`/profile/${post.author_id}`} className="text-sm font-bold text-white hover:text-[#ff4655]">{authorName}</Link><div className="text-[11px] text-neutral-600">{new Date(post.created_at).toLocaleString()}</div></div>{user?.id===post.author_id&&<div className="flex gap-1"><button onClick={()=>setEditing(v=>!v)} title="Edit post" aria-label="Edit post" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-white/[.04] hover:text-white"><Icon name="edit" size={16}/></button><button onClick={deletePost} title="Delete post" aria-label="Delete post" className="flex h-9 w-9 items-center justify-center rounded-lg text-[#ff6674] hover:bg-[#ff4655]/5"><Icon name="trash" size={16}/></button></div>}</div>
     {editing?<div className="mt-5"><textarea value={editContent} onChange={e=>setEditContent(e.target.value)} maxLength={5000} rows={7} className="w-full rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-7 text-white outline-none"/><button onClick={saveEdit} disabled={busy||!editContent.trim()} className="mt-3 rounded-xl bg-[#ff4655] px-4 py-2.5 text-xs font-black uppercase">{busy?'Saving…':'Save changes'}</button></div>:<p className="mt-5 whitespace-pre-wrap break-words text-[15px] leading-7 text-neutral-200">{post.content}</p>}
    </div>
-   {post.media_url&&<div className="border-y border-white/[.06] bg-black">{isVideo?<video src={post.media_url} controls playsInline className="max-h-[680px] w-full object-contain"/>:<img src={post.media_url} alt="" className="max-h-[680px] w-full object-contain"/>}</div>}
+   <PostMedia url={post.media_url} mediaType={post.media_type}/>
    <div className="flex items-center gap-1 border-t border-white/[.06] p-3 sm:p-4"><button onClick={toggleLike} disabled={!user||busy} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${liked?'bg-[#ff4655]/10 text-[#ff6674]':'text-neutral-400 hover:bg-white/[.04] hover:text-white'}`}><Icon name="heart" size={16}/>{liked?'Liked':'Like'} <span>{post.like_count||0}</span></button><button onClick={toggleSave} disabled={!user} className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold ${saved?'bg-white/10 text-white':'text-neutral-400 hover:bg-white/[.04] hover:text-white'}`}><Icon name="bookmark" size={16}/>{saved?'Saved':'Save'}</button><button onClick={share} className="ml-auto flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-neutral-400 hover:bg-white/[.04] hover:text-white"><Icon name="share" size={16}/>Share</button></div>
   </article>
 
