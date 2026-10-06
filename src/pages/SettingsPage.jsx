@@ -22,6 +22,16 @@ export default function SettingsPage(){
    {items.map(x=><Link key={x.to} to={x.to} className="flex items-center gap-4 border-b border-white/[.05] px-5 py-4 transition hover:bg-white/[.025]"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff4655]/10 text-[#ff6674]"><Icon name={x.icon} size={17}/></span><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-white">{x.label}</span><span className="mt-1 block text-xs leading-5 text-neutral-600">{x.desc}</span></span><span className="text-neutral-600">›</span></Link>)}
   </section>
   <section className="mt-4 overflow-hidden rounded-[24px] border border-white/[.08] bg-[#0d0d12]">
+   <div className="border-b border-white/[.06] px-5 py-4"><p className="text-xs font-black uppercase tracking-wider text-white">Privacy & legal</p></div>
+   <div className="grid gap-2 p-4 sm:grid-cols-2">
+    <Link to="/privacy" className="rounded-xl border border-white/[.06] px-4 py-3 text-xs font-bold text-neutral-300 hover:bg-white/[.03]">Privacy Policy</Link>
+    <Link to="/terms" className="rounded-xl border border-white/[.06] px-4 py-3 text-xs font-bold text-neutral-300 hover:bg-white/[.03]">Terms & Conditions</Link>
+    <Link to="/community-guidelines" className="rounded-xl border border-white/[.06] px-4 py-3 text-xs font-bold text-neutral-300 hover:bg-white/[.03]">Community Guidelines</Link>
+    <Link to="/content-policy" className="rounded-xl border border-white/[.06] px-4 py-3 text-xs font-bold text-neutral-300 hover:bg-white/[.03]">Content Policy</Link>
+    <Link to="/contact" className="rounded-xl border border-white/[.06] px-4 py-3 text-xs font-bold text-neutral-300 hover:bg-white/[.03]">Privacy / Grievance Contact</Link>
+  </div>
+  </section>
+  <section className="mt-4 overflow-hidden rounded-[24px] border border-white/[.08] bg-[#0d0d12]">
    <div className="border-b border-white/[.06] px-5 py-4"><p className="text-xs font-black uppercase tracking-wider text-white">Session</p></div>
    <div className="flex items-center justify-between gap-4 px-5 py-4"><div><p className="text-sm font-bold text-white">Signed in</p><p className="mt-1 max-w-[260px] truncate text-xs text-neutral-600">{user.email}</p></div><button disabled={busy} onClick={signout} className="rounded-xl border border-white/10 px-4 py-2.5 text-xs font-black uppercase text-neutral-300 hover:border-[#ff4655]/30 hover:text-[#ff4655]">{busy?'Signing out...':'Log out'}</button></div>
   </section>
