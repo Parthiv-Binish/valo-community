@@ -12,9 +12,9 @@ const primaryLinks = [
 ]
 
 const secondaryLinks = [
-  { name: 'Saved', path: '/bookmarks' },
-  { name: 'My Streams', path: '/subscriptions' },
-  { name: 'Forecast', path: '/predictions' },
+  { name: 'Saved', path: '/bookmarks', authOnly: true },
+  { name: 'My Streams', path: '/subscriptions', authOnly: true },
+  { name: 'Forecast', path: '/predictions', authOnly: true },
   { name: 'Submit Streamer', path: '/submit' },
   { name: 'About', path: '/about' },
   { name: 'Help', path: '/help' },
@@ -67,7 +67,7 @@ export default function Navbar() {
           <div className="h-6 w-px bg-white/[.08]"/>
           <nav className="flex min-w-0 flex-1 items-center gap-1">
             {primaryLinks.map(link=><NavLink key={link.path} to={link.path} end={link.end} className={({isActive})=>`relative rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>{link.name}</NavLink>)}
-            <div className="relative"><button onClick={()=>setMoreOpen(v=>!v)} className={`flex items-center gap-1 rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${secondaryActive||moreOpen?'bg-white/[.05] text-white':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>More <Icon name="chevron" size={13} className={moreOpen?'rotate-180':''}/></button>{moreOpen&&<div className="absolute left-0 top-[calc(100%+8px)] w-52 rounded-xl border border-white/[.08] bg-[#090909]/98 p-1.5 shadow-2xl backdrop-blur-2xl">{secondaryLinks.map(x=><NavLink key={x.path} to={x.path} className={({isActive})=>`block rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[.1em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-400 hover:bg-white/[.05] hover:text-white'}`}>{x.name}</NavLink>)}</div>}</div>
+            <div className="relative"><button onClick={()=>setMoreOpen(v=>!v)} className={`flex items-center gap-1 rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${secondaryActive||moreOpen?'bg-white/[.05] text-white':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>More <Icon name="chevron" size={13} className={moreOpen?'rotate-180':''}/></button>{moreOpen&&<div className="absolute left-0 top-[calc(100%+8px)] w-52 rounded-xl border border-white/[.08] bg-[#090909]/98 p-1.5 shadow-2xl backdrop-blur-2xl">{secondaryLinks.filter(x=>(!x.adminOnly||isAdmin)&&(!x.authOnly||user)).map(x=><NavLink key={x.path} to={x.path} className={({isActive})=>`block rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[.1em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-400 hover:bg-white/[.05] hover:text-white'}`}>{x.name}</NavLink>)}</div>}</div>
           </nav>
           {isAdmin&&<Link to="/admin" className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Admin dashboard" aria-label="Admin dashboard"><Icon name="dashboard" size={17}/></Link>}
           <Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Notifications"><Icon name="bell" size={17}/>{unread>0&&<span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>
