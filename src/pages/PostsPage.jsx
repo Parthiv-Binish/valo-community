@@ -4,14 +4,11 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
 import Icon from '../components/common/Icon'
+import PostMedia from '../components/common/PostMedia'
 
 function Avatar({profile}){const n=profile?.display_name||'Player';return profile?.avatar_url?<img src={profile.avatar_url} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover"/>:<div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff4655] to-[#00e5ff] text-[10px] font-black text-white">{n.slice(0,2).toUpperCase()}</div>}
 
-function Media({post}){
- if(!post.media_url)return null
- const video=post.media_type==='video'||/\.(mp4|webm|mov)(\?|$)/i.test(post.media_url)
- return <div className="border-y border-white/[.06] bg-black">{video?<video src={post.media_url} controls playsInline preload="metadata" className="max-h-[620px] w-full object-contain"/>:<img src={post.media_url} alt="" loading="lazy" className="max-h-[620px] w-full object-contain"/>}</div>
-}
+function Media({post}){ return <PostMedia url={post.media_url} mediaType={post.media_type}/> }
 
 function PostCard({post,profile,user,onRefresh}){
  const[liked,setLiked]=useState(false);const[saved,setSaved]=useState(false);const[menu,setMenu]=useState(false)
