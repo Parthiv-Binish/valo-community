@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import MainLayout from '../../src/layouts/MainLayout'
+import MainLayout from '../../layouts/MainLayout'
 import Icon from './Icon'
 
 export default function InfoPage({ eyebrow='VALO COMMUNITY', title, intro, sections=[], action, children }) {
