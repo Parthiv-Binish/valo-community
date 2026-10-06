@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { supabase } from '../../lib/supabase'
+import { supabase } from '../../lib/supabase'\nimport Icon from '../common/Icon'
 
 const primaryLinks = [
   { name: 'Live', path: '/', end: true },
@@ -48,10 +48,10 @@ export default function Navbar() {
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/55 to-transparent"/>
       <div className="mx-auto flex h-full w-full max-w-[1800px] items-center px-3 sm:px-5 lg:px-7">
         <div className="flex w-full items-center justify-between md:hidden">
-          <button onClick={()=>setIsOpen(v=>!v)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] bg-white/[.025] text-neutral-300" aria-label="Open navigation">{isOpen?'×':'☰'}</button>
+          <button onClick={()=>setIsOpen(v=>!v)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] bg-white/[.025] text-neutral-300" aria-label="Open navigation"><Icon name={isOpen?'close':'menu'} size={17}/></button>
           <Link to="/" className="absolute left-1/2 -translate-x-1/2"><img src="https://iili.io/C93RwPf.png" alt="VALO Community" className="h-8 w-auto rounded-md"/></Link>
           <div className="flex items-center gap-1">
-            {user&&<Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] bg-white/[.025] text-neutral-300" aria-label="Notifications">♧{unread>0&&<span className="absolute right-0 top-0 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>}
+            {user&&<Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] bg-white/[.025] text-neutral-300" aria-label="Notifications"><Icon name="bell" size={17}/>{unread>0&&<span className="absolute right-0 top-0 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>}
             <Link to={user?'/profile':'/'} className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-white/[.07] bg-white/[.025]">
               {user&&avatar?<img src={avatar} alt="" className="h-full w-full object-cover"/>:<span className="text-[10px] font-black text-[#ff4655]">{user?fallback:'?'}</span>}
             </Link>
@@ -63,9 +63,9 @@ export default function Navbar() {
           <div className="h-6 w-px bg-white/[.08]"/>
           <nav className="flex min-w-0 flex-1 items-center gap-1">
             {primaryLinks.map(link=><NavLink key={link.path} to={link.path} end={link.end} className={({isActive})=>`relative rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>{link.name}</NavLink>)}
-            <div className="relative"><button onClick={()=>setMoreOpen(v=>!v)} className={`flex items-center gap-1 rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${secondaryActive||moreOpen?'bg-white/[.05] text-white':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>More <span className={moreOpen?'rotate-180':''}>⌄</span></button>{moreOpen&&<div className="absolute left-0 top-[calc(100%+8px)] w-52 rounded-xl border border-white/[.08] bg-[#090909]/98 p-1.5 shadow-2xl backdrop-blur-2xl">{secondaryLinks.map(x=><NavLink key={x.path} to={x.path} className={({isActive})=>`block rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[.1em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-400 hover:bg-white/[.05] hover:text-white'}`}>{x.name}</NavLink>)}</div>}</div>
+            <div className="relative"><button onClick={()=>setMoreOpen(v=>!v)} className={`flex items-center gap-1 rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${secondaryActive||moreOpen?'bg-white/[.05] text-white':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>More <Icon name="chevron" size={13} className={moreOpen?'rotate-180':''}/></button>{moreOpen&&<div className="absolute left-0 top-[calc(100%+8px)] w-52 rounded-xl border border-white/[.08] bg-[#090909]/98 p-1.5 shadow-2xl backdrop-blur-2xl">{secondaryLinks.map(x=><NavLink key={x.path} to={x.path} className={({isActive})=>`block rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[.1em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-400 hover:bg-white/[.05] hover:text-white'}`}>{x.name}</NavLink>)}</div>}</div>
           </nav>
-          <Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Notifications">♧{unread>0&&<span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>
+          <Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Notifications"><Icon name="bell" size={17}/>{unread>0&&<span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>
           <Link to={user?'/profile':'/'} className="flex h-9 items-center gap-2 rounded-lg border border-white/[.08] bg-white/[.035] px-2 hover:border-[#ff4655]/30">
             {user?(avatar?<img src={avatar} alt="" className="h-6 w-6 rounded-md object-cover"/>:<span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] text-[10px] font-black text-white">{fallback}</span>):<span className="text-xs text-neutral-500">?</span>}
             <span className="hidden max-w-24 truncate font-mono text-[8px] font-bold uppercase text-neutral-300 lg:block">{user?(user.user_metadata?.full_name||user.email?.split('@')[0]||'Profile'):'Sign in'}</span>
