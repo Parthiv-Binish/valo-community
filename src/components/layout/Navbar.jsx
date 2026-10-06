@@ -25,9 +25,11 @@ export default function Navbar() {
   const [isOpen,setIsOpen]=useState(false)
   const [moreOpen,setMoreOpen]=useState(false)
   const [unread,setUnread]=useState(0)
+  const [isAdmin,setIsAdmin]=useState(false)
   const location=useLocation()
 
   useEffect(()=>{setIsOpen(false);setMoreOpen(false)},[location.pathname,location.search])
+  useEffect(()=>{let active=true;async function check(){if(!user){setIsAdmin(false);return}const{data}=await supabase.from('user_profiles').select('role').eq('id',user.id).maybeSingle();if(active)setIsAdmin(data?.role==='admin')}check();return()=>{active=false}},[user?.id])
   useEffect(()=>{
     let active=true
     async function loadUnread(){
@@ -42,7 +44,6 @@ export default function Navbar() {
 
   const avatar=user?.user_metadata?.avatar_url
   const fallback=(user?.user_metadata?.full_name||user?.email||'U').slice(0,2).toUpperCase()
-  const isAdmin=user?.user_metadata?.role==='admin'
   const secondaryActive=secondaryLinks.some(x=>location.pathname===x.path || location.pathname.startsWith(x.path+'/'))
 
   return <>
