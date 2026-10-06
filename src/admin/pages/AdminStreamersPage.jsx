@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase.js' // Adjust this path to your Supabase client instance
-import AdminLayout from '../admin/layouts/AdminLayout'
-import ToastContainer, { useToast } from '../components/common/Toast'
-import { LANGUAGES, fetchLanguageMap, invalidateLanguageCache } from '../services/languageService'
+import { supabase } from '../../lib/supabase.js' // Adjust this path to your Supabase client instance
+import AdminLayout from '../layouts/AdminLayout'
+import ToastContainer, { useToast } from '../../components/common/Toast'
+import { LANGUAGES, fetchLanguageMap, invalidateLanguageCache } from '../../services/languageService'
 
 // =========================================================
 // ADD MODAL SUB-COMPONENT
