@@ -35,6 +35,7 @@ const ContentPolicyPage = lazy(() => import('./pages/ContentPolicyPage.jsx'))
 const HelpPage = lazy(() => import('./pages/HelpPage.jsx'))
 const ContactPage = lazy(() => import('./pages/ContactPage.jsx'))
 const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'))
+const UserProfilePage = lazy(() => import('./pages/UserProfilePage.jsx'))
 const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'))
 const DeleteAccountPage = lazy(() => import('./pages/DeleteAccountPage.jsx'))
 const NotificationsPage = lazy(() => import('./pages/NotificationsPage.jsx'))
@@ -238,6 +239,7 @@ function AppRouterContainer() {
               <Route path='/help' element={<HelpPage />} />
               <Route path='/contact' element={<ContactPage />} />
               <Route path='/profile' element={<ProfilePage />} />
+              <Route path='/profile/:id' element={<UserProfilePage />} />
               <Route path='/settings' element={<SettingsPage />} />
               <Route path='/account/delete' element={<DeleteAccountPage />} />
               <Route path='/notifications' element={<NotificationsPage />} />
