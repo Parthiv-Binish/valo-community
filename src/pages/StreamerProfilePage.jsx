@@ -72,8 +72,8 @@ export default function StreamerProfilePage() {
       desc.setAttribute(
         'content',
         streamer.isLive
-          ? `${streamer.channelName} is live now on ${platformLabel(streamer.platform)}. Follow to get notified when they go live.`
-          : `Follow ${streamer.channelName} on ${SITE} and get notified when they go live.`
+          ? `${streamer.channelName} is live now on ${platformLabel(streamer.platform)}. Subscribe to get notified when they go live.`
+          : `Subscribe to ${streamer.channelName} and get notified when they go live.`
       )
     }
   }, [streamer])
