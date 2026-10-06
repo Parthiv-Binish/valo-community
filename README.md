@@ -1,193 +1,525 @@
 # Let's Build VALO Community
 
-A VALORANT live streamer community platform that tracks YouTube and Kick live streams in real-time.
+**Let's Build VALO Community** is a VALORANT-focused community platform for discovering live streamers, following people, subscribing to streamers for live alerts, and participating in community posts.
 
-![Tech Stack](https://img.shields.io/badge/React-18-blue) ![Vite](https://img.shields.io/badge/Vite-5-purple) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-teal) ![Supabase](https://img.shields.io/badge/Supabase-backend-green)
+The platform currently supports **YouTube and Kick** live-stream discovery and uses **React + Vite** on the frontend with **Supabase** for authentication, data, realtime features, and supporting backend workflows.
 
----
-
-## Features
-
-- **Live stream grid** — only shows currently-live streamers, auto-refreshes every 60s
-- **YouTube + Kick integration** — real-time API calls, no cached data
-- **Search & filter** — by streamer name, title, or platform
-- **Submit streamer** — public form with pending/approved/rejected workflow
-- **Admin panel** — add/edit/delete/enable streamers, manage submissions
-- **No login for public users** — only admin requires authentication (Supabase Auth)
+**Production:** https://letsbuildvalocommunity.vercel.app/
 
 ---
 
-## Tech Stack
+## ✨ Current Features
 
-| Layer       | Tech                        |
-|-------------|-----------------------------|
-| Frontend    | React 18 + Vite             |
-| Styling     | TailwindCSS 3               |
-| Backend/DB  | Supabase (Postgres + Auth)  |
-| YouTube API | YouTube Data API v3         |
-| Kick API    | kick.com/api/v2/channels    |
+### 🔴 Live Stream Discovery
+
+- Live-first homepage focused on currently active streamers.
+- YouTube and Kick support.
+- Live/offline state tracking.
+- Stream title, thumbnail, platform and viewer information where available.
+- Search streamers by name/title.
+- Platform filtering.
+- Automatic live-data refresh.
+- Streamer profile pages with live status and stream information.
+- Direct **Watch Stream** / platform links.
+- Stream history and streaming statistics on supported profiles.
+- Live-stream history and analytics data stored in Supabase.
+
+### 🔔 Streamer Subscriptions
+
+Streamer subscriptions are specifically for **live-stream notifications**.
+
+- Subscribe to individual streamers.
+- Unsubscribe at any time.
+- Dedicated **Streamer Subscriptions** page.
+- See subscribed streamers and which subscribed streamers are currently live.
+- Live notification workflow.
+- Email notifications for supported live events.
+- Push-notification infrastructure for supported devices.
+
+> **Important:** Streamer Subscriptions are different from Following. Subscriptions are for streamers/live alerts; Following is the social relationship between users.
+
+### 👥 Following
+
+Following is the platform's **social graph**.
+
+- Follow other community users/creators.
+- View people you follow.
+- Dedicated Following page.
+- Following data is stored separately from streamer subscriptions.
+
+Database relationship:
+
+`user_follows` → people/users you follow  
+`stream_subscriptions` → streamers you subscribe to
+
+### 💬 Community
+
+- Community posts.
+- Create posts.
+- View post details.
+- Likes and comments.
+- User profiles.
+- Public user profile pages.
+- Reporting tools.
+- Community moderation workflows.
+
+### 🔖 Personal Features
+
+Authenticated users can access:
+
+- Saved/bookmarked content.
+- Notifications.
+- Following.
+- Streamer subscriptions.
+- Profile and account settings.
+- Account deletion request/workflow.
+- Forecast/prediction features where enabled.
+
+### 📊 Rankings & Streamer Insights
+
+- Streamer rankings.
+- Viewer-based discovery.
+- Streamer profiles.
+- Historical streaming information.
+- Stream-duration/statistics support.
+- Historical stream insights and prediction data where available.
+
+### 📣 Platform Communication
+
+The platform supports:
+
+- Announcements.
+- Promotional/platform banners.
+- In-app notifications.
+- Email notifications.
+- Live-stream notification processing.
+- Admin-controlled platform settings.
+
+### 🛡️ Safety, Legal & Privacy
+
+Dedicated pages and workflows for:
+
+- Privacy Policy.
+- Terms & Conditions.
+- Cookie Policy.
+- Community Guidelines.
+- Content Policy.
+- Contact / grievance support.
+- Content reporting.
+- Account deletion.
+- Moderation and report handling.
 
 ---
 
-## Quick Start
+## 🧑‍💻 Admin Console
 
-### 1. Clone and install
+The admin system is separated from the public application under `src/admin/`.
 
-```bash
-git clone <your-repo>
-cd lets-build-valo-community
-npm install
-```
+Available administration areas include:
 
-### 2. Configure environment
+- **Streamers** — manage registered streamers.
+- **Submissions** — review submitted streamer links.
+- **Announcements** — manage announcements.
+- **Banners** — manage platform banners.
+- **Users** — user administration and user creation.
+- **Reports** — review and manage community reports.
+- **Posts** — community-post moderation.
+- **Analytics** — platform statistics and operational metrics.
+- **Settings** — platform configuration and feature/page gates.
+- **API Status** — service/API monitoring.
+- **Audit logging** for important administrative actions.
+- Role-protected admin access through Supabase authentication.
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env`:
-
-```env
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_YOUTUBE_API_KEY=your-youtube-api-key
-```
-
-### 3. Set up Supabase
-
-1. Create a project at [supabase.com](https://supabase.com)
-2. Open the **SQL Editor** and run the full contents of `supabase-schema.sql`
-3. In **Authentication → Users**, create your admin user
-4. Copy the **Project URL** and **anon key** into `.env`
-
-### 4. Get a YouTube API key
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com)
-2. Create a project → Enable **YouTube Data API v3**
-3. Create an API key (restrict to YouTube Data API)
-4. Paste into `VITE_YOUTUBE_API_KEY`
-
-### 5. Run locally
-
-```bash
-npm run dev
-```
-
-Visit `http://localhost:5173`
+Admin routes are protected by both authentication and the user's admin role.
 
 ---
 
-## Project Structure
+## 🏗️ Architecture
+
+```
+                           ┌──────────────────────┐
+                           │       Vercel         │
+                           │   React + Vite App   │
+                           └──────────┬───────────┘
+                                      │
+                       ┌──────────────┼──────────────┐
+                       │              │              │
+                       ▼              ▼              ▼
+                 ┌──────────┐   ┌──────────┐   ┌──────────┐
+                 │ YouTube  │   │   Kick   │   │ Supabase │
+                 │  Data    │   │  Proxy   │   │ Auth/DB  │
+                 └──────────┘   └──────────┘   └────┬─────┘
+                                                    │
+                                                    ▼
+                                             ┌─────────────┐
+                                             │ Realtime /  │
+                                             │ DB Triggers │
+                                             └──────┬──────┘
+                                                    │
+                           ┌────────────────────────┼────────────────────┐
+                           ▼                        ▼                    ▼
+                     Notifications             History              Analytics
+                           │
+                           ▼
+                    Email / Push flows
+```
+
+### Backend / Worker Flow
+
+Live-stream data is processed through the backend/worker infrastructure where required. Kick requests use the configured proxy, while YouTube live verification is handled through the application's backend integration.
+
+The backend also handles:
+
+- Streamer live-state updates.
+- Stream history processing.
+- Notification queue processing.
+- Worker-authenticated Supabase writes.
+- Email notification orchestration.
+- Supporting API endpoints.
+
+---
+
+## 🧰 Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18 |
+| Build | Vite |
+| Routing | React Router |
+| Styling | Tailwind CSS |
+| Animation | Framer Motion |
+| Database | Supabase PostgreSQL |
+| Authentication | Supabase Auth |
+| Realtime | Supabase Realtime |
+| Live Platform | YouTube + Kick |
+| Backend | FastAPI / Python |
+| Backend Hosting | Render |
+| Frontend Hosting | Vercel |
+| Email | Gmail + Supabase Edge Functions |
+| Database Automation | PostgreSQL functions/triggers |
+| Source Control | GitHub |
+
+---
+
+## 📁 Project Structure
 
 ```
 src/
+├── admin/
+│   ├── layouts/
+│   │   └── AdminLayout.jsx
+│   └── pages/
+│       ├── AdminAnalyticsPage.jsx
+│       ├── AdminAnnouncements.jsx
+│       ├── AdminApiStatusPage.jsx
+│       ├── AdminBannersPage.jsx
+│       ├── AdminLoginPage.jsx
+│       ├── AdminPostsPage.jsx
+│       ├── AdminReportsPage.jsx
+│       ├── AdminSettingsPage.jsx
+│       ├── AdminStreamersPage.jsx
+│       ├── AdminSubmissionsPage.jsx
+│       └── AdminUsersPage.jsx
+│
 ├── components/
-│   ├── common/          # ProtectedRoute, Toast, LoadingScreen
-│   ├── layout/          # Navbar, Sidebar
-│   └── stream/          # StreamCard, StreamGrid, FilterBar, Skeleton
+│   ├── auth/
+│   ├── common/
+│   ├── layout/
+│   ├── posts/
+│   ├── stream/
+│   └── ui/
+│
+├── context/
+│   └── AuthContext.jsx
+│
 ├── hooks/
-│   ├── useAuth.js       # Supabase auth state
-│   ├── useLiveStreams.js # Aggregates YouTube + Kick live data
-│   └── useStreamers.js  # Admin CRUD operations
+│   ├── useAllStreamers.js
+│   ├── useAuth.js
+│   ├── useStreamHistory.js
+│   ├── useStreamerInsights.js
+│   └── useStreamerStats.js
+│
 ├── layouts/
-│   ├── MainLayout.jsx   # Public layout (navbar + sidebar)
-│   └── AdminLayout.jsx  # Admin layout
+│   └── MainLayout.jsx
+│
 ├── lib/
-│   └── supabase.js      # Supabase client
+│   ├── api.js
+│   └── supabase.js
+│
 ├── pages/
-│   ├── HomePage.jsx
+│   ├── AllStreamersPage.jsx
+│   ├── FollowingPage.jsx
+│   ├── MySubscriptionsPage.jsx
+│   ├── NotificationsPage.jsx
+│   ├── PostsPage.jsx
+│   ├── PostDetailPage.jsx
+│   ├── StreamerProfilePage.jsx
 │   ├── SubmitPage.jsx
-│   ├── AdminLoginPage.jsx
-│   ├── AdminStreamersPage.jsx
-│   └── AdminSubmissionsPage.jsx
+│   ├── SettingsPage.jsx
+│   ├── ProfilePage.jsx
+│   ├── UserProfilePage.jsx
+│   └── legal/support pages
+│
 ├── services/
-│   ├── youtubeService.js   # YouTube Data API v3
-│   ├── kickService.js      # Kick API
-│   ├── streamerService.js  # Supabase queries
-│   └── authService.js      # Supabase auth
+│   ├── kickService.js
+│   ├── youtubeService.js
+│   ├── streamerService.js
+│   ├── languageService.js
+│   └── authService.js
+│
 └── utils/
-    └── format.js           # Formatters (viewer count, truncate, etc.)
+    ├── format.js
+    ├── profile.js
+    └── timezone.js
 ```
+
+The `trash/` directory is used for intentionally removed legacy files that may be useful for reference during cleanup.
 
 ---
 
-## How Live Fetching Works
+## 🔄 Live Stream Flow
 
 ### YouTube
 
 ```
-Admin adds Channel ID → Stored in Supabase
-↓
-useLiveStreams hook loads Channel IDs from Supabase
-↓
-youtubeService.getYouTubeLiveStream(channelId) called
-↓
-GET https://www.googleapis.com/youtube/v3/search
-  ?part=snippet
-  &channelId=CHANNEL_ID
-  &eventType=live
-  &type=video
-  &key=API_KEY
-↓
-data.items.length > 0 → LIVE → render StreamCard
-data.items.length === 0 → OFFLINE → hidden from grid
+Streamer registered
+       ↓
+YouTube channel information
+       ↓
+Backend live verification
+       ↓
+Current live video detected?
+       ↓
+   ┌───┴────┐
+  YES      NO
+   ↓        ↓
+Live data  Offline
+   ↓
+Supabase streamer_data
+   ↓
+React live discovery
 ```
 
 ### Kick
 
 ```
-Admin adds username → Stored in Supabase
-↓
-useLiveStreams hook loads usernames from Supabase
-↓
-kickService.getKickLiveStream(username) called
-↓
-GET https://kick.com/api/v2/channels/USERNAME
-↓
-data.livestream !== null → LIVE → render StreamCard
-data.livestream === null → OFFLINE → hidden from grid
+Streamer registered
+       ↓
+Kick username
+       ↓
+Kick proxy/backend request
+       ↓
+Current livestream detected?
+       ↓
+   ┌───┴────┐
+  YES      NO
+   ↓        ↓
+Live data  Offline
+   ↓
+Supabase streamer_data
+   ↓
+React live discovery
 ```
 
-### Auto-refresh
-
-The `useLiveStreams` hook sets a `setInterval` for 60 seconds. No websockets, no cron jobs — pure `fetch` calls from the browser.
+Only verified current live streams should appear in the live discovery experience; scheduled/future streams are not treated as currently live.
 
 ---
 
-## Database Schema
+## 🔔 Notification Flow
 
-Only static identifiers are stored — **no thumbnails, titles, or viewer counts**.
-
-```sql
--- streamers: YouTube channel IDs and Kick usernames
-streamers (id, platform, youtube_channel_id, kick_username, enabled, created_at)
-
--- submissions: public user link submissions
-submissions (id, platform, url, status, created_at)
+```
+Streamer becomes LIVE
+        ↓
+Live-state / database processing
+        ↓
+Notification queue
+        ↓
+ ┌──────┴────────┐
+ ▼               ▼
+Email           Push
+ ▼               ▼
+Gmail /        Device
+Edge Function  notification
 ```
 
----
-
-## Admin Panel
-
-Access at `/admin/login`. Requires Supabase Auth credentials.
-
-- **Streamers tab** — Add, edit, delete, enable/disable streamers
-- **Submissions tab** — Review pending links, approve or reject
+The email workflow uses a branded VALO COMMUNITY live notification template containing the streamer, stream information, viewer information where available, thumbnail where available, and a direct watch link.
 
 ---
 
-## Kick API Note
+## 🗄️ Core Data Model
 
-Kick does not have an official public API. The `kick.com/api/v2/channels` endpoint works client-side but may require a CORS proxy in production. In development, configure Vite's proxy in `vite.config.js`. For production, set up a lightweight serverless function or proxy.
+The application uses Supabase PostgreSQL. Major areas include:
+
+```
+streamers
+streamer_data
+stream_subscriptions
+user_follows
+user_profiles
+
+posts
+comments
+post_likes
+bookmarks
+
+notifications
+user_devices
+push_notification_queue
+email_queue
+
+stream_history_logs
+platform_banners
+app_settings
+
+submissions
+reports
+admin_audit_logs
+```
+
+Exact schema can evolve with migrations.
+
+### Relationship distinction
+
+```
+USER
+ ├── follows ───────────────► USER
+ │       user_follows
+ │
+ └── subscribes ────────────► STREAMER
+         stream_subscriptions
+```
+
+These relationships must remain separate throughout the application.
 
 ---
 
-## Deploy
+## 🔐 Security
+
+- Supabase authentication for authenticated users/admins.
+- Admin routes protected by role checks.
+- Database Row Level Security where configured.
+- Worker-authenticated backend writes.
+- Sensitive service credentials remain server-side.
+- Public frontend uses the Supabase client with its public configuration only.
+- Administrative actions are audit logged.
+- User-generated content is subject to reporting/moderation workflows.
+
+**Never commit service-role keys, API secrets, worker keys, Gmail app passwords, or other private credentials to Git.**
+
+---
+
+## ⚙️ Local Development
+
+### Requirements
+
+- Node.js 20+
+- npm
+- Supabase project
+- Required public frontend environment variables.
+- Backend environment variables when running the backend locally.
+
+### Install
+
+```bash
+npm install
+```
+
+### Environment
+
+Create a local `.env` file using the project's current environment-variable requirements.
+
+Do not copy production secrets into source control.
+
+### Start frontend
+
+```bash
+npm run dev
+```
+
+### Production build
 
 ```bash
 npm run build
-# Upload dist/ to any static host: Vercel, Netlify, Cloudflare Pages, etc.
 ```
 
-Set environment variables in your hosting platform's dashboard.
+### Preview production build
+
+```bash
+npm run preview
+```
+
+---
+
+## 🚀 Deployment
+
+### Frontend
+
+The frontend is deployed through **Vercel** from the GitHub repository.
+
+Production domain:
+
+`https://letsbuildvalocommunity.vercel.app/`
+
+### Backend
+
+The FastAPI backend is deployed through **Render**.
+
+The frontend and backend communicate through configured environment variables/API endpoints. Backend-only secrets must never be exposed to the frontend.
+
+---
+
+## 🧪 Build Validation
+
+GitHub Actions runs a production frontend build on pushes and pull requests targeting `main`.
+
+The build pipeline:
+
+```
+Checkout
+   ↓
+Node.js 20
+   ↓
+npm ci
+   ↓
+npm run build
+```
+
+---
+
+## 🛠️ Development Guidelines
+
+When modifying the application:
+
+1. Keep **Following** and **Streamer Subscriptions** separate.
+2. Prefer existing hooks/services over duplicating API logic.
+3. Keep platform-specific logic inside the appropriate service.
+4. Keep secrets out of frontend code.
+5. Verify route imports before removing or moving files.
+6. Remove unused legacy code only after checking references.
+7. Run `npm run build` after significant frontend changes.
+8. Keep admin functionality inside `src/admin/` where practical.
+9. Use database migrations for schema changes.
+10. Do not overwrite valid live-stream data when an upstream platform request fails.
+
+---
+
+## 📄 Legal & Support
+
+The application includes dedicated pages for privacy, terms, cookies, community guidelines, content policy, reporting, account deletion, and contact/grievance support.
+
+For platform support, use the in-app contact/reporting workflows.
+
+---
+
+## 📌 Project Status
+
+VALO Community is an actively developed project focused on:
+
+- Live VALORANT streamer discovery.
+- YouTube + Kick integration.
+- Streamer subscriptions and live notifications.
+- User following and community profiles.
+- Community posts and moderation.
+- Stream history and analytics.
+- Administrative management tools.
+
