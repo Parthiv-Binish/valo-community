@@ -6,6 +6,7 @@ export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [saveSuccess, setSaveSuccess] = useState(false)
+  const [error, setError] = useState('')
 
   // Direct configuration hooks mapped directly to seeder metrics
   const [maintenanceMode, setMaintenanceMode] = useState(false)
@@ -67,7 +68,7 @@ export default function AdminSettingsPage() {
       setTimeout(() => setSaveSuccess(false), 3000)
     } catch (err) {
       console.error(err)
-      alert('Error updating system configurations.')
+      setError(err.message || 'Unable to update system configurations.')
     } finally {
       setIsSaving(false)
     }
