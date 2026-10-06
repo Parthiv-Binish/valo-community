@@ -24,6 +24,20 @@ const AdminSubmissionsPage = lazy(() => import('./pages/AdminSubmissionsPage'))
 const AdminAnnouncements = lazy(() => import('./pages/AdminAnnouncements'))
 const AdminBannersPage = lazy(() => import('./pages/AdminBannersPage.jsx'))
 const AdminSettingsPage = lazy(() => import('./pages/AdminSettingsPage.jsx'))
+const AdminUsersPage = lazy(() => import('./pages/AdminUsersPage.jsx'))
+const AdminReportsPage = lazy(() => import('./pages/AdminReportsPage.jsx'))
+const TermsPage = lazy(() => import('./pages/TermsPage.jsx'))
+const CommunityGuidelinesPage = lazy(() => import('./pages/CommunityGuidelinesPage.jsx'))
+const ContentPolicyPage = lazy(() => import('./pages/ContentPolicyPage.jsx'))
+const HelpPage = lazy(() => import('./pages/HelpPage.jsx'))
+const ContactPage = lazy(() => import('./pages/ContactPage.jsx'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage.jsx'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage.jsx'))
+const DeleteAccountPage = lazy(() => import('./pages/DeleteAccountPage.jsx'))
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage.jsx'))
+const PostsPage = lazy(() => import('./pages/PostsPage.jsx'))
+const CreatePostPage = lazy(() => import('./pages/CreatePostPage.jsx'))
+const PostDetailPage = lazy(() => import('./pages/PostDetailPage.jsx'))
 
 // The cinematic intro is kept for first-time / returning-after-a-day visitors,
 // but skipped for people who were here within the last 24h.
@@ -180,7 +194,9 @@ function AppRouterContainer() {
           <Route path="/admin/submissions" element={<AdminGuard><AdminSubmissionsPage /></AdminGuard>} />
           <Route path="/admin/announcements" element={<AdminGuard><AdminAnnouncements /></AdminGuard>} />
           <Route path="/admin/banners" element={<AdminGuard><AdminBannersPage /></AdminGuard>} />  
-          <Route path="/admin/settings" element={<AdminGuard><AdminSettingsPage /></AdminGuard>} />  
+          <Route path="/admin/settings" element={<AdminGuard><AdminSettingsPage /></AdminGuard>} />
+          <Route path="/admin/users" element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
+          <Route path="/admin/reports" element={<AdminGuard><AdminReportsPage /></AdminGuard>} />  
 
           {/* 🚨 DYNAMIC INTERCEPT ROUTER ENGINE */}
           {isMaintenanceActive && !isAdminUser ? (
@@ -206,6 +222,18 @@ function AppRouterContainer() {
               <Route path='/predictions' element={pageGates.predictions || isAdminUser ? <SubscribedForecastPage /> : <ComingSoonPage />} />
               
               <Route path='/privacy' element={<PrivacyPolicyPage />} />
+              <Route path='/terms' element={<TermsPage />} />
+              <Route path='/community-guidelines' element={<CommunityGuidelinesPage />} />
+              <Route path='/content-policy' element={<ContentPolicyPage />} />
+              <Route path='/help' element={<HelpPage />} />
+              <Route path='/contact' element={<ContactPage />} />
+              <Route path='/profile' element={<ProfilePage />} />
+              <Route path='/settings' element={<SettingsPage />} />
+              <Route path='/account/delete' element={<DeleteAccountPage />} />
+              <Route path='/notifications' element={<NotificationsPage />} />
+              <Route path='/posts' element={<PostsPage />} />
+              <Route path='/posts/create' element={<CreatePostPage />} />
+              <Route path='/posts/:id' element={<PostDetailPage />} />
               <Route path="*" element={<NotFound />} />
             </>
           )}
