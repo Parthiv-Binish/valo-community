@@ -50,7 +50,7 @@ export default function PostDetailPage(){
     <div className="min-w-0 flex-1 rounded-2xl bg-white/[.025] px-3 py-2.5">
      <div className="flex flex-wrap items-center gap-2"><Link to={`/profile/${c.author_id}`} className="text-xs font-bold text-white hover:text-[#ff4655]">{name}</Link><span className="text-[10px] text-neutral-600">{new Date(c.created_at).toLocaleDateString()}</span></div>
      <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6 text-neutral-300">{c.content}</p>
-     <div className="mt-2 flex items-center gap-3 text-[10px] font-bold text-neutral-600"><button onClick={()=>setReplyTo(c)} className="hover:text-white">Reply</button>{user?.id===c.author_id&&<><button onClick={()=>editComment(c)} className="hover:text-white">Edit</button><button onClick={()=>deleteComment(c)} className="text-[#ff6674] hover:text-[#ff4655]">Delete</button></>}</div>
+     <div className="mt-2 flex items-center gap-3 text-[10px] font-bold text-neutral-600"><button onClick={()=>setReplyTo(c)} className="hover:text-white">Reply</button>{user&&user.id!==c.author_id&&<Link to={`/report?type=comment&id=${c.id}`} className="hover:text-[#ff6674]">Report</Link>}{user?.id===c.author_id&&<><button onClick={()=>editComment(c)} className="hover:text-white">Edit</button><button onClick={()=>deleteComment(c)} className="text-[#ff6674] hover:text-[#ff4655]">Delete</button></>}</div>
     </div>
    </div>
    {childReplies.length>0&&<div className="mt-2 space-y-2">{childReplies.map(r=><Comment key={r.id} c={r} depth={depth+1}/>)}</div>}
