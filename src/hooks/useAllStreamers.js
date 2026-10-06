@@ -1,21 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { supabase } from '../lib/supabase.js'
-import { API_BASE } from '../lib/api'
 import { getKickLiveStream, getKickChannelInfo } from '../services/kickService'
 import { fetchLanguageMap } from '../services/languageService'
 
 const REFRESH_INTERVAL = 60_000
 const REALTIME_DEBOUNCE_MS = 2500
-const BACKEND_PING_INTERVAL = 5 * 60_000
-const BACKEND_PING_URL = API_BASE + '/'
-let lastBackendPing = 0
-
-function pingBackend() {
-  const now = Date.now()
-  if (now - lastBackendPing < BACKEND_PING_INTERVAL) return
-  lastBackendPing = now
-  fetch(BACKEND_PING_URL, { mode: 'no-cors' }).catch(() => {})
-}
 
 export function useAllStreamers() {
   const [streamers, setStreamers] = useState([])
@@ -36,7 +25,6 @@ export function useAllStreamers() {
     inFlightRef.current = true
     try {
       setError(null)
-      pingBackend()
       const { data: rows, error: dbError } = await supabase.from('streamers').select(`
         id, platform, youtube_channel_id, kick_username,
         streamer_data (channel_name, avatar, is_live, title, thumbnail, viewer_count, stream_url)
