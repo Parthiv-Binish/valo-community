@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminLayout from '../admin/layouts/AdminLayout'
-import Icon from '../components/common/Icon'
-import { apiGet, apiPatch, apiPost } from '../lib/api'
+import Icon from '../../components/common/Icon'
+import { apiGet, apiPatch, apiPost } from '../../lib/api'
 
 export default function AdminUsersPage(){
  const[data,setData]=useState([]);const[loading,setLoading]=useState(true);const[error,setError]=useState('');const[search,setSearch]=useState('');const[busy,setBusy]=useState('');const[createOpen,setCreateOpen]=useState(false);const[create,setCreate]=useState({email:'',display_name:'',role:'user'});const[creating,setCreating]=useState(false)
