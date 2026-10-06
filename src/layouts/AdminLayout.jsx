@@ -14,7 +14,9 @@ export default function AdminLayout({ children }) {
     { to: '/admin/submissions', label: 'Submissions' },
     { to: '/admin/announcements', label: 'Announcements' }, // 👈 Added Announcements view link
   { to: '/admin/banners', label: 'Banners' }, // 👈 Added Banners management link
-  { to: '/admin/settings', label: 'Settings' } // 👈 Added Settings link
+  { to: '/admin/settings', label: 'Settings' },
+    { to: '/admin/users', label: 'Users' },
+    { to: '/admin/reports', label: 'Reports' } // 👈 Added Settings link
   ]
 
   return (
