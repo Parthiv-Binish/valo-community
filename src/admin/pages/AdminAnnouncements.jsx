@@ -1,7 +1,7 @@
 // src/pages/admin/AdminAnnouncements.jsx
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase.js'
-import AdminLayout from '../admin/layouts/AdminLayout'
+import AdminLayout from '../layouts/AdminLayout'
 
 export default function AdminAnnouncements() {
   const [announcements, setAnnouncements] = useState([])
