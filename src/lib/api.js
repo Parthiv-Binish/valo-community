@@ -32,14 +32,22 @@ async function readResponse(response) {
 }
 
 export async function apiRequest(path, options = {}) {
-  const request = async (token) => fetch(API_BASE + path, {
-    ...options,
-    headers: buildHeaders(options, token),
-  })
+  const request = async (token) => {
+    try {
+      return await fetch(API_BASE + path, {
+        ...options,
+        headers: buildHeaders(options, token),
+      })
+    } catch {
+      const error = new Error('Community API is unreachable. Check the backend HTTPS certificate or API URL.')
+      error.status = 0
+      throw error
+    }
+  }
 
   let { data: { session } } = await supabase.auth.getSession()
 
-  if (!session) {
+  if (!session && options.auth !== false) {
     const refreshed = await supabase.auth.refreshSession()
     session = refreshed.data?.session || null
   }
