@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import AdminLayout from '../admin/layouts/AdminLayout'
-import { getAllSubmissions, updateSubmissionStatus } from '../services/streamerService'
-import ToastContainer, { useToast } from '../components/common/Toast'
+import { getAllSubmissions, updateSubmissionStatus } from '../../services/streamerService'
+import ToastContainer, { useToast } from '../../components/common/Toast'
 
 const STATUS_CONFIG = {
   pending: { label: 'Pending', class: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' },
