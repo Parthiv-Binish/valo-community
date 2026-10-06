@@ -1,6 +1,6 @@
 import {useEffect,useState} from 'react'
 import {supabase} from '../../lib/supabase'
-import AdminLayout from '../admin/layouts/AdminLayout'
+import AdminLayout from '../layouts/AdminLayout'
 import PostMedia from '../../components/common/PostMedia'
 import Icon from '../../components/common/Icon'
 
