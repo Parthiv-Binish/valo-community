@@ -42,6 +42,7 @@ export default function Navbar() {
 
   const avatar=user?.user_metadata?.avatar_url
   const fallback=(user?.user_metadata?.full_name||user?.email||'U').slice(0,2).toUpperCase()
+  const isAdmin=user?.user_metadata?.role==='admin'
   const secondaryActive=secondaryLinks.some(x=>location.pathname===x.path || location.pathname.startsWith(x.path+'/'))
 
   return <>
@@ -66,6 +67,7 @@ export default function Navbar() {
             {primaryLinks.map(link=><NavLink key={link.path} to={link.path} end={link.end} className={({isActive})=>`relative rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>{link.name}</NavLink>)}
             <div className="relative"><button onClick={()=>setMoreOpen(v=>!v)} className={`flex items-center gap-1 rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${secondaryActive||moreOpen?'bg-white/[.05] text-white':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>More <Icon name="chevron" size={13} className={moreOpen?'rotate-180':''}/></button>{moreOpen&&<div className="absolute left-0 top-[calc(100%+8px)] w-52 rounded-xl border border-white/[.08] bg-[#090909]/98 p-1.5 shadow-2xl backdrop-blur-2xl">{secondaryLinks.map(x=><NavLink key={x.path} to={x.path} className={({isActive})=>`block rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[.1em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-400 hover:bg-white/[.05] hover:text-white'}`}>{x.name}</NavLink>)}</div>}</div>
           </nav>
+          {isAdmin&&<Link to="/admin" className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Admin dashboard" aria-label="Admin dashboard"><Icon name="dashboard" size={17}/></Link>}
           <Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Notifications"><Icon name="bell" size={17}/>{unread>0&&<span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>
           <Link to={user?'/profile':'/'} className="flex h-9 items-center gap-2 rounded-lg border border-white/[.08] bg-white/[.035] px-2 hover:border-[#ff4655]/30">
             {user?(avatar?<img src={avatar} alt="" className="h-6 w-6 rounded-md object-cover"/>:<span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] text-[10px] font-black text-white">{fallback}</span>):<span className="text-xs text-neutral-500">?</span>}
@@ -79,7 +81,7 @@ export default function Navbar() {
     <div className={`fixed inset-x-0 top-14 z-40 border-b border-white/[.08] bg-[#080808]/98 px-3 pb-4 pt-3 shadow-2xl backdrop-blur-2xl sm:top-16 md:hidden ${isOpen?'translate-y-0 opacity-100':'pointer-events-none -translate-y-3 opacity-0'}`}>
       <div className="mb-3 px-1"><p className="font-mono text-[8px] font-bold uppercase tracking-[.22em] text-[#ff4655]">VALO COMMUNITY</p><p className="mt-1 text-xs font-black uppercase text-white">Where the community lives</p></div>
       <div className="grid grid-cols-2 gap-2">
-        {[...primaryLinks,...secondaryLinks].map(x=><Link key={x.path} to={x.path} className={`rounded-xl border px-3 py-3 font-display text-[9px] font-black uppercase tracking-[.12em] ${location.pathname===x.path?'border-[#ff4655]/35 bg-[#ff4655]/10 text-[#ff4655]':'border-white/[.06] bg-white/[.025] text-neutral-300'}`}>{x.name}</Link>)}
+        {[...primaryLinks,...secondaryLinks.filter(x=>!x.adminOnly||isAdmin)].map(x=><Link key={x.path} to={x.path} className={`rounded-xl border px-3 py-3 font-display text-[9px] font-black uppercase tracking-[.12em] ${location.pathname===x.path?'border-[#ff4655]/35 bg-[#ff4655]/10 text-[#ff4655]':'border-white/[.06] bg-white/[.025] text-neutral-300'}`}>{x.name}</Link>)}
       </div>
     </div>
   </>
