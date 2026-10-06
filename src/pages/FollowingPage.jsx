@@ -1,5 +1,12 @@
-import {useEffect,useState} from 'react'
-import {supabase} from '../lib/supabase'
-import {useAuth} from '../context/AuthContext'
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
-export default function FollowingPage(){const{user}=useAuth();const[data,setData]=useState([]);useEffect(()=>{if(user)supabase.from('user_follows').select('following_id').eq('follower_id',user.id).then(({data})=>setData(data||[]))},[user]);return <MainLayout><div className="max-w-2xl mx-auto px-4 py-10"><h1 className="text-3xl font-display font-black text-white uppercase mb-6">Following</h1>{data.map(x=><div key={x.following_id} className="p-4 mb-2 rounded-xl border border-white/10 text-neutral-300">{x.following_id}</div>)}{!data.length&&<p className="text-neutral-500">You're not following anyone yet.</p>}</div></MainLayout>}
+export default function FollowingPage(){
+ const{user}=useAuth();const[data,setData]=useState([]);const[loading,setLoading]=useState(true)
+ async function load(){if(!user)return;setLoading(true);const{data:rows}=await supabase.from('user_follows').select('following_id,created_at').eq('follower_id',user.id).order('created_at',{ascending:false});const ids=(rows||[]).map(x=>x.following_id);if(!ids.length){setData([]);setLoading(false);return}const{data:profiles}=await supabase.from('user_profiles').select('id,display_name,avatar_url,bio,email').in('id',ids);setData((rows||[]).map(x=>({...x,profile:(profiles||[]).find(p=>p.id===x.following_id)})));setLoading(false)}
+ useEffect(()=>{load()},[user?.id])
+ async function unfollow(id){await supabase.from('user_follows').delete().eq('follower_id',user.id).eq('following_id',id);load()}
+ return <MainLayout><div className="mx-auto max-w-3xl"><p className="font-mono text-[10px] tracking-[.25em] text-[#ff4655]">SOCIAL GRAPH</p><h1 className="mt-1 font-display text-3xl font-black uppercase text-white">Following</h1><p className="mt-2 text-sm text-neutral-500">Players and creators you chose to keep close.</p><div className="mt-6 space-y-2">{loading&&<p className="text-sm text-neutral-600">Loading...</p>}{!loading&&!data.length&&<div className="rounded-2xl border border-dashed border-white/10 p-12 text-center text-sm text-neutral-600">You aren't following anyone yet.</div>}{data.map(x=><div key={x.following_id} className="flex items-center gap-3 rounded-2xl border border-white/[.07] bg-[#0d0d12] p-4"><div className="h-11 w-11 rounded-full bg-gradient-to-br from-[#ff4655] to-[#00e5ff] p-[1px]"><div className="flex h-full w-full items-center justify-center rounded-full bg-[#101015] text-xs font-black text-white">{(x.profile?.display_name||x.profile?.email||'V').slice(0,2).toUpperCase()}</div></div><Link to="/profile" className="min-w-0 flex-1"><div className="font-bold text-white">{x.profile?.display_name||'VALO Player'}</div><div className="truncate text-xs text-neutral-600">{x.profile?.bio||x.profile?.email}</div></Link><button onClick={()=>unfollow(x.following_id)} className="rounded-xl border border-white/10 px-3 py-2 text-[10px] font-black uppercase text-neutral-400 hover:border-[#ff4655]/30 hover:text-[#ff4655]">Following</button></div>)}</div></div></MainLayout>
+}
