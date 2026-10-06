@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import MainLayout from '../layouts/MainLayout'
+import Icon from '../components/common/Icon'
 
 const items=[
- {to:'/profile',label:'Profile',desc:'Your public name, avatar, bio and community identity',icon:'◎'},
- {to:'/notifications',label:'Notifications',desc:'Review activity and manage what needs your attention',icon:'♧'},
- {to:'/following',label:'Following',desc:'Players and creators you follow',icon:'♧'},
- {to:'/bookmarks',label:'Saved posts',desc:'Posts you saved for later',icon:'□'},
+ {to:'/profile',label:'Profile',desc:'Your public name, avatar, bio and community identity',icon:'user'},
+ {to:'/notifications',label:'Notifications',desc:'Review activity and manage what needs your attention',icon:'bell'},
+ {to:'/following',label:'Following',desc:'Players and creators you follow',icon:'users'},
+ {to:'/bookmarks',label:'Saved posts',desc:'Posts you saved for later',icon:'bookmark'},
 ]
 
 export default function SettingsPage(){
@@ -18,7 +19,7 @@ export default function SettingsPage(){
   <div className="mb-6"><p className="font-mono text-[10px] tracking-[.25em] text-[#00e5ff]">ACCOUNT CENTER</p><h1 className="mt-1 font-display text-3xl font-black uppercase text-white">Settings</h1><p className="mt-2 text-sm text-neutral-500">Manage your identity, activity and account.</p></div>
   <section className="overflow-hidden rounded-[24px] border border-white/[.08] bg-[#0d0d12]">
    <div className="border-b border-white/[.06] px-5 py-4"><p className="text-xs font-black uppercase tracking-wider text-white">Community</p></div>
-   {items.map(x=><Link key={x.to} to={x.to} className="flex items-center gap-4 border-b border-white/[.05] px-5 py-4 transition hover:bg-white/[.025]"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/[.04] text-lg text-[#ff4655]">{x.icon}</span><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-white">{x.label}</span><span className="mt-1 block text-xs leading-5 text-neutral-600">{x.desc}</span></span><span className="text-neutral-600">›</span></Link>)}
+   {items.map(x=><Link key={x.to} to={x.to} className="flex items-center gap-4 border-b border-white/[.05] px-5 py-4 transition hover:bg-white/[.025]"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#ff4655]/10 text-[#ff6674]"><Icon name={x.icon} size={17}/></span><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-white">{x.label}</span><span className="mt-1 block text-xs leading-5 text-neutral-600">{x.desc}</span></span><span className="text-neutral-600">›</span></Link>)}
   </section>
   <section className="mt-4 overflow-hidden rounded-[24px] border border-white/[.08] bg-[#0d0d12]">
    <div className="border-b border-white/[.06] px-5 py-4"><p className="text-xs font-black uppercase tracking-wider text-white">Session</p></div>
