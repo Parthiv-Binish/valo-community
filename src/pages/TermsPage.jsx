@@ -1,7 +1,7 @@
 import InfoPage from '../components/common/InfoPage'
 const sections=[
  {title:'Acceptance and user agreement',body:"By accessing or using Let's Build VALO Community, you agree to these Terms & Conditions, our Privacy Policy, Community Guidelines and Content Policy. If you do not agree, do not use the service."},
- {title:'Eligibility and accounts',body:'Provide accurate information where required, keep your account secure, and do not use another person's account without authorization. We may restrict accounts that abuse the platform or violate these terms.'},
+ {title:'Eligibility and accounts',body:'Provide accurate information where required, keep your account secure, and do not use another person’s account without authorization. We may restrict accounts that abuse the platform or violate these terms.'},
  {title:'Community conduct',body:'You are responsible for content you publish. Do not post illegal, abusive, hateful, threatening, deceptive, sexually explicit or infringing material, expose private personal information, spam users, run scams or impersonate others.'},
  {title:'User content',body:'You retain ownership of content you submit. You grant VALO Community a limited, non-exclusive permission to host, store, reproduce and display that content as needed to operate, secure and promote the service. You are responsible for having the rights needed to publish it.'},
  {title:'Streamer subscriptions and following',body:'Streamer subscriptions are for live-stream notification and discovery features. Following is a separate social relationship between users. These features are not the same and may be managed independently.'},
