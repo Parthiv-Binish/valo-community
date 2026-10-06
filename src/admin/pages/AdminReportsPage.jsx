@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react'
 import AdminLayout from '../admin/layouts/AdminLayout'
-import Icon from '../components/common/Icon'
-import {apiGet,apiPatch} from '../lib/api'
+import Icon from '../../components/common/Icon'
+import {apiGet,apiPatch} from '../../lib/api'
 
 export default function AdminReportsPage(){
  const[data,setData]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[filter,setFilter]=useState('all'),[busy,setBusy]=useState('')
