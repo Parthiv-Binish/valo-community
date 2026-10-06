@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import AdminLayout from '../admin/layouts/AdminLayout'
+import AdminLayout from '../layouts/AdminLayout'
 
 export default function AdminSettingsPage() {
   const [isLoading, setIsLoading] = useState(true)
