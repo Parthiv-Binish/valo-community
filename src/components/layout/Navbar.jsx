@@ -12,7 +12,11 @@ const primaryLinks = [
 const secondaryLinks = [
   { name: 'Submit Streamer', path: '/submit' },
   { name: 'About', path: '/about' },
+  { name: 'Posts', path: '/posts' },
+  { name: 'Help', path: '/help' },
+  { name: 'Terms', path: '/terms' },
   { name: 'Privacy', path: '/privacy' },
+  { name: 'Guidelines', path: '/community-guidelines' },
 ]
 
 export default function Navbar() {
@@ -268,6 +272,8 @@ export default function Navbar() {
                   </span>
                 </div>
 
+                <Link to="/profile" className="hidden sm:block rounded-md border border-white/[0.06] px-2 py-1 font-mono text-[8px] text-neutral-500 hover:text-white">PROFILE</Link>
+                <Link to="/settings" className="hidden sm:block rounded-md border border-white/[0.06] px-2 py-1 font-mono text-[8px] text-neutral-500 hover:text-white">SETTINGS</Link>
                 <button
                   onClick={logout}
                   className="rounded-md border border-white/[0.06] bg-black/30 px-1.5 py-1 font-mono text-[8px] font-bold text-neutral-500 transition-all hover:border-[#ff4655]/30 hover:bg-[#ff4655]/10 hover:text-[#ff4655]"
