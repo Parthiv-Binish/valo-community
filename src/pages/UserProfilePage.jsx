@@ -9,7 +9,7 @@ import PostMedia from '../components/common/PostMedia'
 function Avatar({profile}){const name=profile?.display_name||'Player';return profile?.avatar_url?<img src={profile.avatar_url} alt="" className="h-24 w-24 rounded-full object-cover ring-4 ring-[#0d0d12] sm:h-28 sm:w-28"/>:<div className="flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-[#ff4655] to-[#00e5ff] text-2xl font-black text-white ring-4 ring-[#0d0d12] sm:h-28 sm:w-28">{name.slice(0,2).toUpperCase()}</div>}
 
 export default function UserProfilePage(){
- const{id}=useParams();const{user}=useAuth();const[profile,setProfile]=useState(null);const[posts,setPosts]=useState([]);const[stats,setStats]=useState({posts:0,followers:0,following:0});const[following,setFollowing]=useState(false);const[blocked,setBlocked]=useState(false);const[busy,setBusy]=useState(false);const[loading,setLoading]=useState(true)
+ const{id}=useParams();const{user}=useAuth();const[profile,setProfile]=useState(null);const[posts,setPosts]=useState([]);const[stats,setStats]=useState({posts:0,followers:0,following:0});const[following,setFollowing]=useState(false);const[blocked,setBlocked]=useState(false);const[busy,setBusy]=useState(false);const[loading,setLoading]=useState(true);const[actionError,setActionError]=useState('')
  async function load(){
   setLoading(true)
   const [{data:pr},{data:ps},{count:followers},{count:followingCount}]=await Promise.all([
@@ -24,8 +24,8 @@ export default function UserProfilePage(){
   setLoading(false)
  }
  useEffect(()=>{load()},[id,user?.id])
- async function toggleBlock(){if(!user||user.id===id||busy)return;if(!blocked&&!window.confirm('Block this user? Their posts will be hidden from your feed.'))return;setBusy(true);const r=blocked?await supabase.from('user_blocks').delete().eq('blocker_id',user.id).eq('blocked_id',id):await supabase.from('user_blocks').insert({blocker_id:user.id,blocked_id:id});setBusy(false);if(r.error)return alert(r.error.message);setBlocked(!blocked);if(!blocked)setFollowing(false)}
- async function toggleFollow(){if(!user||user.id===id||busy)return;setBusy(true);const r=following?await supabase.from('user_follows').delete().eq('follower_id',user.id).eq('following_id',id):await supabase.from('user_follows').insert({follower_id:user.id,following_id:id});setBusy(false);if(r.error)return alert(r.error.message);setFollowing(!following);setStats(s=>({...s,followers:Math.max(0,s.followers+(following?-1:1))}))}
+ async function toggleBlock(){if(!user||user.id===id||busy)return;if(!blocked&&!window.confirm('Block this user? Their posts will be hidden from your feed.'))return;setBusy(true);setActionError('');const r=blocked?await supabase.from('user_blocks').delete().eq('blocker_id',user.id).eq('blocked_id',id):await supabase.from('user_blocks').insert({blocker_id:user.id,blocked_id:id});setBusy(false);if(r.error){setActionError(r.error.message);return}setBlocked(!blocked);if(!blocked)setFollowing(false)}
+ async function toggleFollow(){if(!user||user.id===id||busy)return;setBusy(true);setActionError('');const r=following?await supabase.from('user_follows').delete().eq('follower_id',user.id).eq('following_id',id):await supabase.from('user_follows').insert({follower_id:user.id,following_id:id});setBusy(false);if(r.error){setActionError(r.error.message);return}setFollowing(!following);setStats(s=>({...s,followers:Math.max(0,s.followers+(following?-1:1))}))}
  if(loading)return <MainLayout><div className="mx-auto max-w-4xl py-20 text-center text-sm text-neutral-600">Loading profile...</div></MainLayout>
  if(!profile)return <MainLayout><div className="mx-auto max-w-xl py-20 text-center"><h1 className="font-display text-2xl font-black uppercase text-white">Player not found</h1><Link to="/posts" className="mt-3 inline-block text-sm text-[#ff4655]">Back to community</Link></div></MainLayout>
  const name=profile.display_name||'Player'
