@@ -94,7 +94,7 @@ export default function AdminBannersPage() {
       )
     } catch (err) {
       console.error('Failed toggling ad availability profile:', err)
-      alert('Error updating live node access permissions.')
+      setError(err.message || 'Unable to update banner state.')
     }
   }
 
@@ -110,7 +110,7 @@ export default function AdminBannersPage() {
       setBanners((prev) => prev.filter((b) => b.id !== id))
     } catch (err) {
       console.error('Deletion operation error:', err)
-      alert('Failed cleaning reference from tracking stack.')
+      setError(err.message || 'Unable to delete banner.')
     }
   }
 
