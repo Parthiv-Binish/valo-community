@@ -74,6 +74,22 @@ const ROUTE_META = {
   '/submit': { title: `Submit a Streamer | ${SITE}`, description: 'Know a VALORANT streamer we should feature? Send us their YouTube or Kick link.' },
   '/about': { title: `About | ${SITE}` },
   '/privacy': { title: `Privacy Policy | ${SITE}` },
+  '/cookies': { title: `Cookie Policy | ${SITE}` },
+  '/terms': { title: `Terms & Conditions | ${SITE}` },
+  '/community-guidelines': { title: `Community Guidelines | ${SITE}` },
+  '/content-policy': { title: `Content Policy | ${SITE}` },
+  '/help': { title: `Help Center | ${SITE}` },
+  '/contact': { title: `Contact | ${SITE}` },
+  '/posts': { title: `Community | ${SITE}` },
+  '/posts/create': { title: `Create Post | ${SITE}`, noindex: true },
+  '/notifications': { title: `Notifications | ${SITE}`, noindex: true },
+  '/profile': { title: `My Profile | ${SITE}`, noindex: true },
+  '/settings': { title: `Settings | ${SITE}`, noindex: true },
+  '/account/delete': { title: `Delete Account | ${SITE}`, noindex: true },
+  '/bookmarks': { title: `Saved Posts | ${SITE}`, noindex: true },
+  '/following': { title: `Following | ${SITE}`, noindex: true },
+  '/report': { title: `Report Content | ${SITE}`, noindex: true },
+  '/status': { title: `System Status | ${SITE}` },
 }
 
 // Per-route <title>, description and robots hints for the single-page app.
@@ -292,12 +308,19 @@ function AdminGuard({ children }) {
 
 function NotFound() {
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center text-center p-4">
-      <h1 className="font-display font-bold text-6xl text-[#ff4655] mb-4">404</h1>
-      <p className="text-neutral-400 font-body mb-8">This page does not exist.</p>
-      <a href="/" className="bg-[#ff4655] hover:bg-[#e03e4b] text-white px-8 py-3 font-display uppercase tracking-widest text-xs font-black rounded transition-all active:scale-95">
-        Back to Home
-      </a>
+    <div className="min-h-screen bg-[#050505] px-4 py-10 text-white">
+      <div className="mx-auto flex min-h-[75vh] max-w-xl items-center justify-center">
+        <div className="relative w-full overflow-hidden rounded-[28px] border border-white/[.08] bg-[#0b0b10] p-7 text-center shadow-2xl sm:p-10">
+          <div className="pointer-events-none absolute -top-24 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-[#ff4655]/10 blur-3xl"/>
+          <p className="relative font-mono text-[9px] font-bold uppercase tracking-[.28em] text-[#ff4655]">VALO COMMUNITY / SIGNAL LOST</p>
+          <h1 className="relative mt-3 font-display text-7xl font-black tracking-tight text-white sm:text-8xl">404</h1>
+          <p className="relative mt-3 text-sm leading-6 text-neutral-500">This page doesn't exist or the link is no longer available.</p>
+          <div className="relative mt-7 flex flex-col gap-2 sm:flex-row sm:justify-center">
+            <a href="/" className="rounded-xl bg-[#ff4655] px-5 py-3 text-xs font-black uppercase tracking-wider text-white hover:bg-[#ff5967]">Back to Live</a>
+            <a href="/posts" className="rounded-xl border border-white/10 px-5 py-3 text-xs font-black uppercase tracking-wider text-neutral-300 hover:bg-white/[.04]">Community</a>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
