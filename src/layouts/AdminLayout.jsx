@@ -5,6 +5,7 @@ import Icon from '../components/common/Icon'
 
 const navItems=[
  {to:'/admin',label:'Streamers',icon:'eye',end:true},
+ {to:'/admin/analytics',label:'Analytics',icon:'dashboard'},
  {to:'/admin/submissions',label:'Submissions',icon:'message'},
  {to:'/admin/posts',label:'Posts',icon:'edit'},
  {to:'/admin/reports',label:'Reports',icon:'flag'},
