@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../context/AuthContext'
 
-const PENDING_FOLLOW_KEY = 'valo_pending_follow'
+const PENDING_STREAMER_SUBSCRIPTION_KEY = 'valo_pending_follow'
 
 export default function NotifyButton({ streamerId }) {
   const { user, loginWithGoogle } = useAuth()
@@ -30,14 +30,14 @@ export default function NotifyButton({ streamerId }) {
 
           let pending = null
           try {
-            pending = sessionStorage.getItem(PENDING_FOLLOW_KEY)
+            pending = sessionStorage.getItem(PENDING_STREAMER_SUBSCRIPTION_KEY)
           } catch {
             /* storage unavailable */
           }
 
           if (!error && pending && pending === String(streamerId)) {
             try {
-              sessionStorage.removeItem(PENDING_FOLLOW_KEY)
+              sessionStorage.removeItem(PENDING_STREAMER_SUBSCRIPTION_KEY)
             } catch {
               /* ignore */
             }
@@ -75,7 +75,7 @@ export default function NotifyButton({ streamerId }) {
 
     if (!user) {
       try {
-        sessionStorage.setItem(PENDING_FOLLOW_KEY, String(streamerId))
+        sessionStorage.setItem(PENDING_STREAMER_SUBSCRIPTION_KEY, String(streamerId))
       } catch {
         /* ignore */
       }
