@@ -114,6 +114,8 @@ export default function AdminSettingsPage() {
           </div>
         )}
 
+        {error && <div className="rounded-xl border border-red-500/20 bg-red-500/[.05] px-4 py-3 text-xs text-red-300">{error}</div>}
+
         {isLoading ? (
           <div className="space-y-4 animate-pulse">
             {[1, 2, 3].map(n => <div key={n} className="h-20 w-full bg-neutral-950 border border-neutral-900 rounded-xl" />)}
