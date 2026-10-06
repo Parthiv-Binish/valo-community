@@ -1,2 +1,9 @@
-import MainLayout from '../layouts/MainLayout'
-export default function ContentPolicyPage(){return <MainLayout><div className="max-w-4xl mx-auto px-4 py-10 text-neutral-400 space-y-6"><h1 className="text-3xl font-display font-black text-white uppercase">Content Policy</h1><p>Posts, comments, profile information and uploaded media must comply with our Terms and Community Guidelines.</p><ul className="list-disc pl-6 space-y-2"><li>No malicious or deceptive content.</li><li>No sexual, hateful or threatening content.</li><li>No copyright infringement or unauthorized personal information.</li><li>Moderators may hide or remove violating content.</li></ul><p>Enforcement can include content removal, temporary restrictions or account termination for serious or repeated violations.</p></div></MainLayout>}
+import InfoPage from '../components/common/InfoPage'
+const sections=[
+ {title:'Allowed community content',body:'Share VALORANT clips, strategies, tournament moments, creator content and discussion that is useful or entertaining.'},
+ {title:'Prohibited content',body:'No malicious or deceptive content, sexual or explicit material, hateful content, threats, scams or harmful activity.'},
+ {title:'Privacy & personal information',body:'Do not publish private personal information, credentials or sensitive information about other people.'},
+ {title:'Copyright',body:'Only upload media you have permission to share. Repeated infringement may lead to content removal or account restrictions.'},
+ {title:'Enforcement',body:'Moderators may hide or remove violating content. Serious or repeated violations can lead to temporary restrictions or account termination.'},
+]
+export default function ContentPolicyPage(){return <InfoPage eyebrow="COMMUNITY / CONTENT" title="Content policy" intro="What can be posted, what cannot, and how moderation works." sections={sections} action={{to:'/community-guidelines',label:'Read community rules'}}/>}
