@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react'
 import AdminLayout from '../admin/layouts/AdminLayout'
-import Icon from '../components/common/Icon'
-import {apiGet} from '../lib/api'
+import Icon from '../../components/common/Icon'
+import {apiGet} from '../../lib/api'
 
 export default function AdminApiStatusPage(){
  const[d,setD]=useState(null)
