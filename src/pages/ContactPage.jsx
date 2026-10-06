@@ -1,0 +1,2 @@
+import MainLayout from '../layouts/MainLayout'
+export default function ContactPage(){return <MainLayout><div className="max-w-2xl mx-auto px-4 py-10 space-y-6"><h1 className="text-3xl font-display font-black text-white uppercase">Contact</h1><p className="text-neutral-400">For account, moderation, privacy or technical issues, contact the VALO Community team.</p><a className="inline-flex px-5 py-3 rounded-xl bg-[#ff4655] text-white font-bold" href="mailto:menatarmsclipz@gmail.com">Email Support</a></div></MainLayout>}
