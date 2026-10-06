@@ -41,11 +41,8 @@ export default function AllStreamersPage() {
   const [banners, setBanners] =
     useState([])
 
-  const [recentHistory, setRecentHistory] =
-    useState([])
 
-
-  /* ═════════════════════════════════════════════════════════════════════
+/* ═════════════════════════════════════════════════════════════════════
      FETCH TOP ADVERTISEMENTS
      ═══════════════════════════════════════════════════════════════════ */
 
@@ -380,7 +377,7 @@ export default function AllStreamersPage() {
           {/* ===============================================================
               HERO
              =============================================================== */}
-          <section className="relative min-h-[430px] overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#070708] shadow-[0_30px_110px_rgba(0,0,0,0.45)] sm:min-h-[500px]">
+          <section className="relative min-h-[320px] overflow-hidden rounded-[24px] border border-white/[0.08] bg-[#070708] shadow-[0_30px_110px_rgba(0,0,0,0.45)] sm:min-h-[380px]">
             {/* Full-bleed cinematic background */}
             <img
               src="https://cmsassets.rgpub.io/sanity/images/dsfx7636/news_live/7b60e8bb6c1828831931dad87633604c2264fa26-3440x1020.jpg"
@@ -403,7 +400,7 @@ export default function AllStreamersPage() {
 
             {/* Radar focal point */}
             <div className="absolute right-[8%] top-1/2 hidden -translate-y-1/2 md:block">
-              <div className="relative flex h-56 w-56 items-center justify-center rounded-full border border-valo-red/20 bg-black/10 shadow-[0_0_100px_rgba(255,68,68,0.12)] backdrop-blur-[1px] lg:h-72 lg:w-72">
+              <div className="relative flex h-48 w-48 items-center justify-center rounded-full border border-valo-red/20 bg-black/10 shadow-[0_0_100px_rgba(255,68,68,0.12)] backdrop-blur-[1px] lg:h-60 lg:w-60">
                 <div className="absolute h-[78%] w-[78%] rounded-full border border-valo-red/15" />
                 <div className="absolute h-[55%] w-[55%] rounded-full border border-valo-red/20" />
                 <div className="absolute h-[32%] w-[32%] rounded-full border border-valo-red/25" />
@@ -414,7 +411,7 @@ export default function AllStreamersPage() {
             </div>
 
             {/* Content */}
-            <div className="relative z-10 flex min-h-[430px] items-end px-6 py-9 sm:min-h-[500px] sm:px-10 sm:py-12 lg:px-14 lg:py-14">
+            <div className="relative z-10 flex min-h-[320px] items-end px-6 py-9 sm:min-h-[380px] sm:px-8 sm:py-8 lg:px-10 lg:py-10">
               <div className="w-full max-w-4xl">
                 <div className="mb-4 flex items-center gap-3 sm:mb-5">
                   <span className="h-2 w-2 animate-pulse rounded-full bg-valo-red shadow-[0_0_18px_rgba(255,68,68,0.8)]" />
@@ -423,7 +420,7 @@ export default function AllStreamersPage() {
                   </span>
                 </div>
 
-                <h1 className="max-w-4xl font-display text-4xl font-black uppercase leading-[0.92] tracking-[-0.045em] text-white sm:text-6xl lg:text-8xl">
+                <h1 className="max-w-4xl font-display text-3xl font-black uppercase leading-[0.94] tracking-[-0.045em] text-white sm:text-5xl lg:text-7xl">
                   The Valorant
                   <br />
                   Community{' '}
@@ -664,50 +661,6 @@ export default function AllStreamersPage() {
               <EmptyState search={search} platform={platformFilter} />
             ) : (
               <>
-                {trendingStreams.length > 0 && (
-                  <DiscoverySection
-                    eyebrow="Highest live audience share"
-                    title="Trending Now"
-                    accent
-                  >
-                    {trendingStreams.map((streamer, index) => {
-                      const elementKey =
-                        streamer.id ||
-                        streamer.streamer_id ||
-                        `trending-${index}`
-
-                      return (
-                        <StreamerCard
-                          key={`trending-${elementKey}`}
-                          streamer={streamer}
-                        />
-                      )
-                    })}
-                  </DiscoverySection>
-                )}
-
-                {recentlyLiveStreams.length > 0 && (
-                  <DiscoverySection
-                    eyebrow="Recent activity"
-                    title="Recently Live"
-                    count={recentlyLiveStreams.length}
-                  >
-                    {recentlyLiveStreams.map((streamer, index) => {
-                      const elementKey =
-                        streamer.id ||
-                        streamer.streamer_id ||
-                        `recent-${index}`
-
-                      return (
-                        <StreamerCard
-                          key={`recent-${elementKey}`}
-                          streamer={streamer}
-                        />
-                      )
-                    })}
-                  </DiscoverySection>
-                )}
-
                 {liveStreams.length > 0 && (
                   <section id="live-streams" className="space-y-6">
                     <div className="flex items-end justify-between gap-4">
