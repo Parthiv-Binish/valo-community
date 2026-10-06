@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { adminSignOut } from '../services/authService'
+import { adminSignOut } from '../../services/authService'
 import Icon from '../../components/common/Icon'
 
 const navItems=[
