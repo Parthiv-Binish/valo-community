@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react'
 import AdminLayout from '../layouts/AdminLayout'
-import Icon from '../components/common/Icon'
-import {apiGet} from '../lib/api'
+import Icon from '../../components/common/Icon'
+import {apiGet} from '../../lib/api'
 
 const cards=[['users','Users','users'],['posts','Posts','edit'],['likes','Likes','heart'],['comments','Comments','message'],['reports','Reports','flag'],['streamers','Streamers','eye'],['live_streamers','Live now','radio'],['subscriptions','Subscriptions','bell'],['notifications','Notifications','bell'],['email_queue','Emails queued','mail'],['banners','Banners','image'],['stream_history','Stream sessions','clock']]
 export default function AdminAnalyticsPage(){
