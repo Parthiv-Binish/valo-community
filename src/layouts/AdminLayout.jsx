@@ -16,7 +16,9 @@ export default function AdminLayout({ children }) {
   { to: '/admin/banners', label: 'Banners' }, // 👈 Added Banners management link
   { to: '/admin/settings', label: 'Settings' },
     { to: '/admin/users', label: 'Users' },
-    { to: '/admin/reports', label: 'Reports' } // 👈 Added Settings link
+    { to: '/admin/reports', label: 'Reports' },
+    { to: '/admin/posts', label: 'Posts' },
+    { to: '/admin/api-status', label: 'API Status' } // 👈 Added Settings link
   ]
 
   return (
