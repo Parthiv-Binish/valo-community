@@ -121,31 +121,19 @@ export function useAllStreamers() {
 
           // =================================================
           // KICK
-          // =================================================
-          if (s.platform === 'kick' && s.kick_username) {
-            try {
-              const live = await getKickLiveStream(s.kick_username)
-              if (live) {
-                return {
-                  ...base,
-                  ...live,
-                  isLive: true,
-                  streamUrl: `https://kick.com/${s.kick_username}`,
-                  channelUrl: `https://kick.com/${s.kick_username}`
-                }
-              }
-
-              const profileInfo = await getKickChannelInfo(s.kick_username)
-              return {
-                ...base,
-                channelName: profileInfo?.channelName || s.kick_username,
-                avatar: profileInfo?.avatar || base.avatar,
-                verified: profileInfo?.verified || false,
-                channelUrl: `https://kick.com/${s.kick_username}`
-              }
-            } catch (err) {
-              console.error(`Kick frontend client connection catch: ${s.kick_username}:`, err)
-              return base
+          // Live state is owned by the backend worker. Do not scrape Kick
+          // from each visitor's browser; that creates inconsistent state.
+          if (s.platform === 'kick') {
+            return {
+              ...base,
+              isLive: info.is_live === true,
+              title: info.is_live ? (info.title || null) : null,
+              thumbnail: info.is_live ? (info.thumbnail || null) : null,
+              viewerCount: info.is_live ? (info.viewer_count || 0) : 0,
+              streamUrl: info.is_live
+                ? (info.stream_url || fallbackChannelUrl)
+                : fallbackChannelUrl,
+              channelUrl: fallbackChannelUrl
             }
           }
 
