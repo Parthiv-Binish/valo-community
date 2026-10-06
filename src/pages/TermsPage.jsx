@@ -1,11 +1,15 @@
 import InfoPage from '../components/common/InfoPage'
 const sections=[
- {title:'Acceptance',body:"By using Let's Build VALO Community, you agree to these terms and our Privacy Policy."},
- {title:'Community',body:'You are responsible for content you publish. Do not post illegal, abusive, hateful, deceptive, or infringing material.'},
- {title:'Accounts',body:'Keep your account secure. We may restrict accounts that abuse the platform or violate these rules.'},
- {title:'User content',body:'You retain ownership of content you submit, while granting the platform permission to host and display it as needed to operate the service.'},
- {title:'Streaming data',body:'Streamer status and public metadata are sourced from supported platforms and may be delayed or unavailable.'},
- {title:'Availability',body:'The service is provided on an availability basis and features may change as the community evolves.'},
- {title:'Contact',body:'For legal or account questions, use the Contact page.'},
+ {title:'Acceptance and user agreement',body:"By accessing or using Let's Build VALO Community, you agree to these Terms & Conditions, our Privacy Policy, Community Guidelines and Content Policy. If you do not agree, do not use the service."},
+ {title:'Eligibility and accounts',body:'Provide accurate information where required, keep your account secure, and do not use another person's account without authorization. We may restrict accounts that abuse the platform or violate these terms.'},
+ {title:'Community conduct',body:'You are responsible for content you publish. Do not post illegal, abusive, hateful, threatening, deceptive, sexually explicit or infringing material, expose private personal information, spam users, run scams or impersonate others.'},
+ {title:'User content',body:'You retain ownership of content you submit. You grant VALO Community a limited, non-exclusive permission to host, store, reproduce and display that content as needed to operate, secure and promote the service. You are responsible for having the rights needed to publish it.'},
+ {title:'Streamer subscriptions and following',body:'Streamer subscriptions are for live-stream notification and discovery features. Following is a separate social relationship between users. These features are not the same and may be managed independently.'},
+ {title:'Streaming data and third-party services',body:'Streamer status and public metadata are sourced from supported platforms and may be delayed, unavailable or changed by those platforms. VALO Community is not the operator of YouTube, Kick or other third-party services.'},
+ {title:'Reports, moderation and enforcement',body:'Users can report posts, comments, users, streamers or submissions. Moderators may review, hide, remove or restrict content or accounts that violate these rules. Serious or repeated violations may result in suspension or termination.'},
+ {title:'Grievances and support',body:'For legal, privacy, moderation, account or other grievances, use the Contact page. Reports should normally be submitted through the in-app reporting flow so moderators receive the relevant reference.'},
+ {title:'Availability and changes',body:'The service is provided on an availability basis. Features, integrations and policies may change as the community evolves or as legal requirements change.'},
+ {title:'Governing law',body:'These terms are intended to operate under applicable laws of India. Any mandatory rights or remedies available to you under applicable law remain unaffected.'},
+ {title:'Contact',body:'For legal, account or community questions, use the Contact page.'},
 ]
-export default function TermsPage(){return <InfoPage eyebrow="LEGAL / TERMS" title="Terms & conditions" intro="Last updated October 6, 2026. These terms describe the basic rules for using VALO Community." sections={sections} action={{to:'/contact',label:'Contact team'}}/>}
+export default function TermsPage(){return <InfoPage eyebrow="LEGAL / TERMS" title="Terms & conditions" intro="Last updated October 7, 2026. These terms form the user agreement for VALO Community." sections={sections} action={{to:'/contact',label:'Contact team'}}/>}
