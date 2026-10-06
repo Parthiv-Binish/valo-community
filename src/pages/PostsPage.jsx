@@ -60,7 +60,7 @@ function PostCard({ post, user, onChanged }) {
           <Avatar id={post.author_id} />
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-bold text-white">VALO Player</span>
+              <Link to={`/profile/${post.author_id}`} className="font-bold text-white hover:text-[#ff4655]">VALO Player</Link>
               <span className="rounded-full border border-[#ff4655]/30 bg-[#ff4655]/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-[#ff6b77]">Member</span>
             </div>
             <p className="text-[11px] text-neutral-500">{new Date(post.created_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}</p>
