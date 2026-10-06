@@ -54,10 +54,6 @@ export function useLiveStreams() {
           }
         })
         .filter(Boolean)
-
-
-      const activeStreams = results.filter((stream) => stream !== null)
-
       // Sort streams by highest viewer counts down
       activeStreams.sort((a, b) => (b.viewerCount || 0) - (a.viewerCount || 0))
 
