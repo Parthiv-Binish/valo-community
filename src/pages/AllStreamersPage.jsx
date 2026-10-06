@@ -440,7 +440,7 @@ export default function AllStreamersPage() {
                     type="text"
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search streamers, titles, channels..."
+                    placeholder="Search streamers, titles, channels...  /"
                     autoComplete="off"
                     className="h-12 w-full rounded-xl border border-white/[0.08] bg-black/40 pl-11 pr-11 font-mono text-xs tracking-wide text-white outline-none transition-all placeholder:text-neutral-600 focus:border-valo-red/45 focus:bg-black/60 focus:shadow-[0_0_30px_rgba(255,68,68,0.07)]"
                   />
