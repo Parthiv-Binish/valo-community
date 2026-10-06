@@ -87,36 +87,6 @@ export default function AllStreamersPage() {
 
 
   /* ═════════════════════════════════════════════════════════════════════
-     FETCH RECENT STREAM HISTORY
-     Uses existing history data only; no mock/derived records are created.
-     ═══════════════════════════════════════════════════════════════════ */
-
-  useEffect(() => {
-    async function fetchRecentHistory() {
-      try {
-        const { data, error: historyError } = await supabase
-          .from('stream_history_logs')
-          .select('streamer_id, title, went_live_at, went_offline_at')
-          .not('went_offline_at', 'is', null)
-          .order('went_offline_at', { ascending: false })
-          .limit(24)
-
-        if (historyError) {
-          console.error('Failed fetching recent stream history:', historyError)
-          return
-        }
-
-        setRecentHistory(data || [])
-      } catch (err) {
-        console.error('Failed fetching recent stream history:', err)
-      }
-    }
-
-    fetchRecentHistory()
-  }, [])
-
-
-  /* ═════════════════════════════════════════════════════════════════════
      STREAMER DATA
      ═══════════════════════════════════════════════════════════════════ */
 
