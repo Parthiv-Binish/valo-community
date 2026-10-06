@@ -1,0 +1,3 @@
+import {useEffect,useState} from 'react'
+import AdminLayout from '../layouts/AdminLayout'
+export default function AdminApiStatusPage(){const[d,setD]=useState(null);useEffect(()=>{fetch((import.meta.env.VITE_API_URL||'https://valo-community-backend.onrender.com')+'/api/status').then(r=>r.json()).then(setD).catch(()=>setD({status:'offline'}))},[]);return <AdminLayout><div className="space-y-5"><h1 className="text-2xl font-display font-black text-white uppercase">API Status</h1><pre className="rounded-2xl border border-white/10 bg-black p-5 text-xs text-emerald-400 overflow-auto">{JSON.stringify(d,null,2)}</pre></div></AdminLayout>}
