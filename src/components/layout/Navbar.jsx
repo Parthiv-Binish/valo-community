@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { supabase } from '../../lib/supabase'\nimport Icon from '../common/Icon'
+import { supabase } from '../../lib/supabase'
+import Icon from '../common/Icon'
 
 const primaryLinks = [
   { name: 'Live', path: '/', end: true },
