@@ -178,7 +178,7 @@ export default function AllStreamersPage() {
     }
 
 
-    if (deferredSearch.trim()) {
+    if (search.trim()) {
       const query =
         search
           .toLowerCase()
