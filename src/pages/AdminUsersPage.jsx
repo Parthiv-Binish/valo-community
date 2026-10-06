@@ -1,25 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 import AdminLayout from '../layouts/AdminLayout'
 import Icon from '../components/common/Icon'
-import { supabase } from '../lib/supabase'
-
-const API=import.meta.env.VITE_API_URL||'https://valo-community-backend.onrender.com'
+import { apiGet, apiPatch } from '../lib/api'
 
 export default function AdminUsersPage(){
  const[data,setData]=useState([]);const[loading,setLoading]=useState(true);const[error,setError]=useState('');const[search,setSearch]=useState('');const[busy,setBusy]=useState('')
- async function request(path,options={}){
-  const{data:{session}}=await supabase.auth.getSession()
-  if(!session)throw new Error('Admin session expired.')
-  const r=await fetch(API+path,{...options,headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',...(options.headers||{})}})
-  const body=await r.json().catch(()=>({}))
-  if(!r.ok)throw new Error(body.detail||'Request failed')
-  return body
- }
- async function load(){setLoading(true);setError('');try{const b=await request('/api/admin/users?per_page=100');setData(b.users||[])}catch(e){setError(e.message)}finally{setLoading(false)}}
+ async function load(){setLoading(true);setError('');try{const b=await apiGet('/api/admin/users?per_page=100');setData(b.users||[])}catch(e){setError(e.message)}finally{setLoading(false)}}
  useEffect(()=>{load()},[])
  const filtered=useMemo(()=>data.filter(u=>{const p=u.profile||{};const q=search.toLowerCase().trim();return !q||[u.email,p.email,p.display_name,u.id].some(v=>String(v||'').toLowerCase().includes(q))}),[data,search])
- async function role(id,role){setBusy(id);try{await request('/api/admin/users/'+id+'/role',{method:'PATCH',body:JSON.stringify({role})});await load()}catch(e){setError(e.message)}finally{setBusy('')}}
- async function ban(id,banned){if(!window.confirm(banned?'Ban this account?':'Unban this account?'))return;setBusy(id);try{await request('/api/admin/users/'+id+'/ban',{method:'PATCH',body:JSON.stringify({banned})});await load()}catch(e){setError(e.message)}finally{setBusy('')}}
+ async function role(id,role){setBusy(id);setError('');try{await apiPatch('/api/admin/users/'+id+'/role',{role});await load()}catch(e){setError(e.message)}finally{setBusy('')}}
+ async function ban(id,banned){if(!window.confirm(banned?'Ban this account?':'Unban this account?'))return;setBusy(id);setError('');try{await apiPatch('/api/admin/users/'+id+'/ban',{banned});await load()}catch(e){setError(e.message)}finally{setBusy('')}}
  return <AdminLayout><div className="space-y-5">
   <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"><div><p className="font-mono text-[9px] uppercase tracking-[.2em] text-[#ff4655]">ADMIN / ACCESS</p><h1 className="mt-1 text-2xl font-display font-black uppercase text-white">User management</h1><p className="mt-1 text-xs text-neutral-500">{data.length} accounts loaded · roles, moderation and account status</p></div><div className="relative w-full sm:w-80"><Icon name="search" size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-600"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search name, email or ID" className="w-full rounded-xl border border-white/10 bg-white/[.03] py-2.5 pl-9 pr-3 text-sm text-white outline-none placeholder:text-neutral-600"/></div></div>
   {error&&<div className="rounded-xl border border-[#ff4655]/20 bg-[#ff4655]/5 p-3 text-xs text-[#ff6674]">{error}</div>}
