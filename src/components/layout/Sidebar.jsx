@@ -6,7 +6,7 @@ const navigationMatrix = [
     category: 'Discover',
     items: [
       { to: '/', label: 'All Streamers', end: true, icon: <HomeIcon /> },
-      { to: '/subscriptions', label: 'My Subscriptions', end: true, icon: <SubscriptionsIcon /> },
+      { to: '/subscriptions', label: 'Streamer Subscriptions', end: true, icon: <SubscriptionsIcon /> },
     ]
   },
   {
