@@ -31,7 +31,7 @@ export default function MainLayout({ children }) {
 
 
 function SiteFooter(){
- return <footer className="border-t border-white/[.06] bg-[#050505] px-4 py-8 sm:px-6 lg:px-8">
+ return <footer className="border-t border-white/[.06] bg-[#050505] px-4 py-8 pb-28 sm:px-6 sm:pb-8 lg:px-8">
   <div className="mx-auto max-w-[1800px]">
    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
     <div className="max-w-sm"><div className="font-display text-xs font-black uppercase tracking-[.18em] text-white">LET'S BUILD <span className="text-[#ff4655]">VALO</span></div><p className="mt-2 text-xs leading-5 text-neutral-600">A community platform for VALORANT players, creators and stream watchers.</p></div>
