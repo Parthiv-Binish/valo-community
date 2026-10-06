@@ -83,7 +83,7 @@ export default function Navbar() {
     <div className={`fixed inset-x-0 top-14 z-40 border-b border-white/[.08] bg-[#080808]/98 px-3 pb-4 pt-3 shadow-2xl backdrop-blur-2xl sm:top-16 md:hidden ${isOpen?'translate-y-0 opacity-100':'pointer-events-none -translate-y-3 opacity-0'}`}>
       <div className="mb-3 px-1"><p className="font-mono text-[8px] font-bold uppercase tracking-[.22em] text-[#ff4655]">VALO COMMUNITY</p><p className="mt-1 text-xs font-black uppercase text-white">Where the community lives</p></div>
       <div className="grid grid-cols-2 gap-2">
-        {[...primaryLinks,...secondaryLinks.filter(x=>(!x.adminOnly||isAdmin)&&(!x.authOnly||user))).map(x=><Link key={x.path} to={x.path} className={`rounded-xl border px-3 py-3 font-display text-[9px] font-black uppercase tracking-[.12em] ${location.pathname===x.path?'border-[#ff4655]/35 bg-[#ff4655]/10 text-[#ff4655]':'border-white/[.06] bg-white/[.025] text-neutral-300'}`}>{x.name}</Link>)}
+        {[...primaryLinks,...secondaryLinks.filter(x=>(!x.adminOnly||isAdmin)&&(!x.authOnly||user)).map(x=><Link key={x.path} to={x.path} className={`rounded-xl border px-3 py-3 font-display text-[9px] font-black uppercase tracking-[.12em] ${location.pathname===x.path?'border-[#ff4655]/35 bg-[#ff4655]/10 text-[#ff4655]':'border-white/[.06] bg-white/[.025] text-neutral-300'}`}>{x.name}</Link>)}
       </div>
     </div>
   </>
