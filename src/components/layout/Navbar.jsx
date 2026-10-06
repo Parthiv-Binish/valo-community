@@ -1,430 +1,85 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import { supabase } from '../../lib/supabase'
 
 const primaryLinks = [
-  { name: 'Home', path: '/', end: true },
-  { name: 'Followed', path: '/subscriptions', end: true },
-  { name: 'Forecast', path: '/predictions', end: true },
-  { name: 'Rankings', path: '/leaderboard', end: true },
+  { name: 'Live', path: '/', end: true },
+  { name: 'Community', path: '/posts' },
+  { name: 'Following', path: '/following' },
+  { name: 'Rankings', path: '/leaderboard' },
 ]
 
 const secondaryLinks = [
+  { name: 'Saved', path: '/bookmarks' },
+  { name: 'My Streams', path: '/subscriptions' },
+  { name: 'Forecast', path: '/predictions' },
   { name: 'Submit Streamer', path: '/submit' },
   { name: 'About', path: '/about' },
-  { name: 'Posts', path: '/posts' },
   { name: 'Help', path: '/help' },
-  { name: 'Terms', path: '/terms' },
-  { name: 'Privacy', path: '/privacy' },
-  { name: 'Guidelines', path: '/community-guidelines' },
 ]
 
 export default function Navbar() {
   const { user, loginWithGoogle, logout } = useAuth()
-  const [isOpen, setIsOpen] = useState(false)
-  const [moreOpen, setMoreOpen] = useState(false)
-  const location = useLocation()
+  const [isOpen,setIsOpen]=useState(false)
+  const [moreOpen,setMoreOpen]=useState(false)
+  const [unread,setUnread]=useState(0)
+  const location=useLocation()
 
-  useEffect(() => {
-    setIsOpen(false)
-    setMoreOpen(false)
-  }, [location])
+  useEffect(()=>{setIsOpen(false);setMoreOpen(false)},[location.pathname,location.search])
+  useEffect(()=>{
+    let active=true
+    async function loadUnread(){
+      if(!user){setUnread(0);return}
+      const {count}=await supabase.from('notifications').select('id',{count:'exact',head:true}).eq('user_id',user.id).eq('is_read',false)
+      if(active)setUnread(count||0)
+    }
+    loadUnread()
+    const channel=user?supabase.channel('navbar-notifications-'+user.id).on('postgres_changes',{event:'*',schema:'public',table:'notifications',filter:'user_id=eq.'+user.id},loadUnread).subscribe():null
+    return()=>{active=false;if(channel)supabase.removeChannel(channel)}
+  },[user?.id,location.pathname])
 
-  const avatarImage = user?.user_metadata?.avatar_url
-  const displayName = user?.user_metadata?.full_name
-  const isSecondaryActive = secondaryLinks.some(
-    (link) => location.pathname === link.path
-  )
+  const avatar=user?.user_metadata?.avatar_url
+  const fallback=(user?.user_metadata?.full_name||user?.email||'U').slice(0,2).toUpperCase()
+  const secondaryActive=secondaryLinks.some(x=>location.pathname===x.path || location.pathname.startsWith(x.path+'/'))
 
-  return (
-    <>
-      <header className="fixed inset-x-0 top-0 z-50 h-14 border-b border-white/[0.07] bg-[#060606]/92 backdrop-blur-2xl sm:h-16">
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/55 to-transparent" />
-
-        <div className="relative mx-auto flex h-full w-full max-w-[1800px] items-center px-3 sm:px-5 lg:px-7">
-          {/* =========================================================
-              MOBILE HEADER
-              Balanced 3-zone layout:
-              LEFT  = menu
-              CENTER = logo
-              RIGHT = account
-             ========================================================= */}
-          <div className="flex w-full items-center justify-between md:hidden">
-            {/* Left: menu */}
-            <button
-              onClick={() => setIsOpen((value) => !value)}
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-white/[0.07] bg-white/[0.025] text-neutral-300 transition-all hover:border-[#ff4655]/30 hover:bg-[#ff4655]/5 hover:text-white active:scale-95"
-              aria-label="Toggle navigation menu"
-              aria-expanded={isOpen}
-            >
-              {isOpen ? <CloseIcon /> : <MenuIcon />}
-            </button>
-
-            {/* Center: genuinely viewport-centered logo */}
-            <Link
-              to="/"
-              className="absolute left-1/2 flex -translate-x-1/2 items-center justify-center"
-              aria-label="VALO Community Home"
-            >
-              <div className="relative">
-                <div className="absolute -inset-2 rounded-xl bg-[#ff4655]/10 blur-lg opacity-70" />
-                <img
-                  src="https://iili.io/C93RwPf.png"
-                  alt="VALO Community"
-                  className="relative h-8 w-auto rounded-md object-contain"
-                />
-              </div>
+  return <>
+    <header className="fixed inset-x-0 top-0 z-50 h-14 border-b border-white/[.07] bg-[#060606]/92 backdrop-blur-2xl sm:h-16">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-[#ff4655]/55 to-transparent"/>
+      <div className="mx-auto flex h-full w-full max-w-[1800px] items-center px-3 sm:px-5 lg:px-7">
+        <div className="flex w-full items-center justify-between md:hidden">
+          <button onClick={()=>setIsOpen(v=>!v)} className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] bg-white/[.025] text-neutral-300" aria-label="Open navigation">{isOpen?'×':'☰'}</button>
+          <Link to="/" className="absolute left-1/2 -translate-x-1/2"><img src="https://iili.io/C93RwPf.png" alt="VALO Community" className="h-8 w-auto rounded-md"/></Link>
+          <div className="flex items-center gap-1">
+            {user&&<Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] bg-white/[.025] text-neutral-300" aria-label="Notifications">♧{unread>0&&<span className="absolute right-0 top-0 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>}
+            <Link to={user?'/profile':'/'} className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-white/[.07] bg-white/[.025]">
+              {user&&avatar?<img src={avatar} alt="" className="h-full w-full object-cover"/>:<span className="text-[10px] font-black text-[#ff4655]">{user?fallback:'?'}</span>}
             </Link>
-
-            {/* Right: compact account control */}
-            <div className="ml-auto flex items-center">
-              {!user ? (
-                <button
-                  onClick={loginWithGoogle}
-                  className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#ff4655]/30 bg-[#ff4655]/[0.05] text-[#ff4655] transition-all hover:border-[#ff4655]/70 hover:bg-[#ff4655]/10 active:scale-95"
-                  aria-label="Connect ID"
-                  title="Connect ID"
-                >
-                  <GoogleIcon />
-                </button>
-              ) : (
-                <div className="relative flex h-9 w-9 items-center justify-center">
-                  <button
-                    onClick={logout}
-                    className="group relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[0.08] bg-white/[0.035] transition-all hover:border-[#ff4655]/40 hover:bg-[#ff4655]/10 active:scale-95"
-                    aria-label="Disconnect account"
-                    title={`${displayName || 'Account'} — Disconnect`}
-                  >
-                    <span className="absolute -right-0.5 -top-0.5 z-10 h-2 w-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-                    {avatarImage ? (
-                      <img
-                        src={avatarImage}
-                        alt=""
-                        className="h-6 w-6 rounded-md object-cover"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] font-mono text-[10px] font-black text-white">
-                        {displayName?.charAt(0) || 'U'}
-                      </span>
-                    )}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* =========================================================
-              DESKTOP HEADER
-             ========================================================= */}
-          <div className="hidden w-full items-center gap-3 md:flex">
-            {/* Brand */}
-            <Link
-              to="/"
-              className="group flex shrink-0 items-center gap-2.5"
-              aria-label="VALO Community Home"
-            >
-              <div className="relative">
-                <div className="absolute -inset-2 rounded-xl bg-[#ff4655]/10 blur-lg opacity-70 transition-opacity group-hover:opacity-100" />
-                <img
-                  src="https://iili.io/C93RwPf.png"
-                  alt="VALO Community"
-                  className="relative h-8 w-auto rounded-md object-contain sm:h-9"
-                />
-              </div>
-
-              <div className="hidden xl:block">
-                <div className="font-display text-[11px] font-black uppercase tracking-[0.18em] leading-none text-white">
-                  LET'S BUILD VALO
-                </div>
-                <div className="mt-1 font-display text-[9px] font-black uppercase tracking-[0.2em] leading-none text-[#ff4655]">
-                  Community
-                </div>
-              </div>
-            </Link>
-
-            <div className="hidden h-6 w-px bg-white/[0.08] md:block" />
-
-            {/* Main navigation */}
-            <nav className="hidden min-w-0 flex-1 items-center gap-1 md:flex">
-              {primaryLinks.map((link) => (
-                <NavLink
-                  key={link.path}
-                  to={link.path}
-                  end={link.end}
-                  className={({ isActive }) =>
-                    `relative flex h-9 items-center rounded-lg px-3.5 font-display text-[9px] font-black uppercase tracking-[0.12em] transition-all lg:px-4 ${
-                      isActive
-                        ? 'bg-[#ff4655]/10 text-[#ff4655]'
-                        : 'text-neutral-500 hover:bg-white/[0.04] hover:text-white'
-                    }`
-                  }
-                >
-                  {({ isActive }) => (
-                    <>
-                      {link.name}
-                      {isActive && (
-                        <span className="absolute bottom-0 left-1/2 h-px w-5 -translate-x-1/2 bg-[#ff4655] shadow-[0_0_10px_rgba(255,70,85,0.8)]" />
-                      )}
-                    </>
-                  )}
-                </NavLink>
-              ))}
-
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={() => setMoreOpen((value) => !value)}
-                  className={`flex h-9 items-center gap-1.5 rounded-lg px-3.5 font-display text-[9px] font-black uppercase tracking-[0.12em] transition-all lg:px-4 ${
-                    isSecondaryActive || moreOpen
-                      ? 'bg-white/[0.05] text-white'
-                      : 'text-neutral-500 hover:bg-white/[0.04] hover:text-white'
-                  }`}
-                  aria-expanded={moreOpen}
-                >
-                  More
-                  <ChevronIcon open={moreOpen} />
-                </button>
-
-                {moreOpen && (
-                  <div className="absolute left-0 top-[calc(100%+9px)] w-48 overflow-hidden rounded-xl border border-white/[0.08] bg-[#090909]/96 p-1.5 shadow-2xl backdrop-blur-2xl">
-                    {secondaryLinks.map((link) => (
-                      <NavLink
-                        key={link.path}
-                        to={link.path}
-                        className={({ isActive }) =>
-                          `flex items-center rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[0.1em] transition-colors ${
-                            isActive
-                              ? 'bg-[#ff4655]/10 text-[#ff4655]'
-                              : 'text-neutral-400 hover:bg-white/[0.05] hover:text-white'
-                          }`
-                        }
-                      >
-                        {link.name}
-                      </NavLink>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </nav>
-
-            {/* Network status */}
-            <div className="ml-auto hidden items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.025] px-3 py-1.5 lg:flex">
-              <span className="relative flex h-1.5 w-1.5">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#ff4655] opacity-50" />
-                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#ff4655]" />
-              </span>
-              <span className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-neutral-500">
-                Network Live
-              </span>
-            </div>
-
-            {/* Admin */}
-            <Link
-              to="/admin/login"
-              className="hidden h-9 w-9 items-center justify-center rounded-lg border border-transparent text-neutral-600 transition-all hover:border-white/[0.08] hover:bg-white/[0.04] hover:text-neutral-200 sm:flex"
-              title="Admin Dashboard"
-              aria-label="Admin Dashboard"
-            >
-              <ShieldIcon />
-            </Link>
-
-            <div className="hidden h-5 w-px bg-white/[0.08] sm:block" />
-
-            {/* Account */}
-            {!user ? (
-              <button
-                onClick={loginWithGoogle}
-                className="group relative flex h-9 shrink-0 items-center gap-2 overflow-hidden rounded-lg border border-[#ff4655]/35 bg-[#ff4655]/[0.04] px-3 text-[9px] font-black uppercase tracking-[0.13em] text-white transition-all hover:border-[#ff4655]/80 hover:bg-[#ff4655]/10 active:scale-[0.97]"
-              >
-                <span className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[#ff4655]/15 to-transparent transition-transform duration-500 group-hover:translate-x-full" />
-                <GoogleIcon />
-                <span className="relative z-10">
-                  Connect <span className="text-[#ff4655]">ID</span>
-                </span>
-              </button>
-            ) : (
-              <div className="group relative flex h-9 shrink-0 items-center gap-2 rounded-lg border border-white/[0.08] bg-white/[0.035] px-1.5 sm:px-2">
-                <span className="absolute -right-0.5 -top-0.5 flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                </span>
-
-                {avatarImage ? (
-                  <img
-                    src={avatarImage}
-                    alt=""
-                    className="h-6 w-6 rounded-md border border-white/10 object-cover transition-colors group-hover:border-[#ff4655]/50"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] font-mono text-[10px] font-black text-white">
-                    {displayName?.charAt(0) || 'U'}
-                  </div>
-                )}
-
-                <div className="hidden max-w-[85px] flex-col justify-center sm:flex">
-                  <span className="truncate font-display text-[9px] font-bold uppercase tracking-[0.1em] leading-tight text-neutral-200">
-                    {displayName?.split(' ')[0] || 'USER'}
-                  </span>
-                  <span className="mt-0.5 font-mono text-[7px] uppercase tracking-widest text-emerald-400">
-                    Connected
-                  </span>
-                </div>
-
-                <Link to="/profile" className="hidden sm:block rounded-md border border-white/[0.06] px-2 py-1 font-mono text-[8px] text-neutral-500 hover:text-white">PROFILE</Link>
-                <Link to="/settings" className="hidden sm:block rounded-md border border-white/[0.06] px-2 py-1 font-mono text-[8px] text-neutral-500 hover:text-white">SETTINGS</Link>
-                <button
-                  onClick={logout}
-                  className="rounded-md border border-white/[0.06] bg-black/30 px-1.5 py-1 font-mono text-[8px] font-bold text-neutral-500 transition-all hover:border-[#ff4655]/30 hover:bg-[#ff4655]/10 hover:text-[#ff4655]"
-                  title="Terminate Session"
-                >
-                  ESC
-                </button>
-              </div>
-            )}
           </div>
         </div>
-      </header>
 
-      {/* Mobile navigation drawer */}
-      <div
-        className={`fixed inset-x-0 top-14 z-40 border-b border-white/[0.08] bg-[#080808]/96 px-3 pb-4 pt-3 shadow-2xl backdrop-blur-2xl transition-all duration-300 sm:top-16 md:hidden ${
-          isOpen
-            ? 'translate-y-0 opacity-100'
-            : '-translate-y-3 pointer-events-none opacity-0'
-        }`}
-      >
-        <div className="mb-3 flex items-center justify-between px-1">
-          <div>
-            <p className="font-mono text-[8px] font-bold uppercase tracking-[0.22em] text-[#ff4655]">
-              Navigation
-            </p>
-            <p className="mt-1 font-display text-xs font-black uppercase tracking-wider text-white">
-              VALO Community
-            </p>
-          </div>
-
-          <span className="rounded-full border border-white/[0.07] bg-white/[0.03] px-2 py-1 font-mono text-[7px] uppercase tracking-widest text-neutral-500">
-            {primaryLinks.length + secondaryLinks.length} routes
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2">
-          {[...primaryLinks, ...secondaryLinks].map((link) => {
-            const isActive =
-              link.end
-                ? location.pathname === link.path
-                : location.pathname === link.path
-
-            return (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`group relative overflow-hidden rounded-xl border px-3 py-3 text-left transition-all active:scale-[0.98] ${
-                  isActive
-                    ? 'border-[#ff4655]/35 bg-[#ff4655]/10 text-[#ff4655]'
-                    : 'border-white/[0.06] bg-white/[0.025] text-neutral-300 hover:border-white/[0.12] hover:bg-white/[0.05] hover:text-white'
-                }`}
-              >
-                <span
-                  className={`absolute left-0 top-0 h-full w-0.5 ${
-                    isActive ? 'bg-[#ff4655]' : 'bg-transparent'
-                  }`}
-                />
-                <span className="block font-display text-[9px] font-black uppercase tracking-[0.12em]">
-                  {link.name}
-                </span>
-                <span className="mt-1 block font-mono text-[7px] uppercase tracking-widest text-neutral-600">
-                  {isActive ? 'ACTIVE' : 'OPEN'}
-                </span>
-              </Link>
-            )
-          })}
+        <div className="hidden w-full items-center gap-3 md:flex">
+          <Link to="/" className="group flex shrink-0 items-center gap-2.5"><img src="https://iili.io/C93RwPf.png" alt="VALO Community" className="h-8 w-auto rounded-md sm:h-9"/><div className="hidden xl:block"><div className="font-display text-[11px] font-black uppercase tracking-[.18em] text-white">LET'S BUILD VALO</div><div className="mt-1 font-display text-[9px] font-black uppercase tracking-[.2em] text-[#ff4655]">Community</div></div></Link>
+          <div className="h-6 w-px bg-white/[.08]"/>
+          <nav className="flex min-w-0 flex-1 items-center gap-1">
+            {primaryLinks.map(link=><NavLink key={link.path} to={link.path} end={link.end} className={({isActive})=>`relative rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>{link.name}</NavLink>)}
+            <div className="relative"><button onClick={()=>setMoreOpen(v=>!v)} className={`flex items-center gap-1 rounded-lg px-3.5 py-2.5 font-display text-[9px] font-black uppercase tracking-[.12em] ${secondaryActive||moreOpen?'bg-white/[.05] text-white':'text-neutral-500 hover:bg-white/[.04] hover:text-white'}`}>More <span className={moreOpen?'rotate-180':''}>⌄</span></button>{moreOpen&&<div className="absolute left-0 top-[calc(100%+8px)] w-52 rounded-xl border border-white/[.08] bg-[#090909]/98 p-1.5 shadow-2xl backdrop-blur-2xl">{secondaryLinks.map(x=><NavLink key={x.path} to={x.path} className={({isActive})=>`block rounded-lg px-3 py-2.5 font-display text-[9px] font-black uppercase tracking-[.1em] ${isActive?'bg-[#ff4655]/10 text-[#ff4655]':'text-neutral-400 hover:bg-white/[.05] hover:text-white'}`}>{x.name}</NavLink>)}</div>}</div>
+          </nav>
+          <Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Notifications">♧{unread>0&&<span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>
+          <Link to={user?'/profile':'/'} className="flex h-9 items-center gap-2 rounded-lg border border-white/[.08] bg-white/[.035] px-2 hover:border-[#ff4655]/30">
+            {user?(avatar?<img src={avatar} alt="" className="h-6 w-6 rounded-md object-cover"/>:<span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] text-[10px] font-black text-white">{fallback}</span>):<span className="text-xs text-neutral-500">?</span>}
+            <span className="hidden max-w-24 truncate font-mono text-[8px] font-bold uppercase text-neutral-300 lg:block">{user?(user.user_metadata?.full_name||user.email?.split('@')[0]||'Profile'):'Sign in'}</span>
+          </Link>
+          {user?<button onClick={logout} className="rounded-lg border border-white/[.06] px-2 py-2 font-mono text-[8px] font-bold text-neutral-500 hover:border-[#ff4655]/30 hover:text-[#ff4655]">LOG OUT</button>:<button onClick={loginWithGoogle} className="rounded-lg border border-[#ff4655]/35 bg-[#ff4655]/[.05] px-3 py-2 text-[9px] font-black uppercase text-white">Connect ID</button>}
         </div>
       </div>
-    </>
-  )
-}
+    </header>
 
-function GoogleIcon() {
-  return (
-    <svg
-      className="h-3.5 w-3.5"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden="true"
-    >
-      <path d="M12.24 10.285V14.4h6.887c-.275 1.565-1.88 4.604-6.887 4.604-4.33 0-7.866-3.577-7.866-8s3.536-8 7.866-8c2.46 0 4.105 1.025 5.047 1.926l3.427-3.3c-2.2-2.05-5.033-3.302-8.474-3.302-6.623 0-12 5.377-12 12s5.377 12 12 12c6.923 0 11.52-4.864 11.52-11.727 0-.788-.083-1.398-.183-1.926H12.24z" />
-    </svg>
-  )
-}
-
-function MenuIcon() {
-  return (
-    <svg
-      width="19"
-      height="19"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    >
-      <line x1="4" y1="12" x2="20" y2="12" />
-      <line x1="4" y1="6" x2="20" y2="6" />
-      <line x1="4" y1="18" x2="20" y2="18" />
-    </svg>
-  )
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      width="19"
-      height="19"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-    >
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  )
-}
-
-function ChevronIcon({ open }) {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      className={`transition-transform ${open ? 'rotate-180' : ''}`}
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  )
-}
-
-function ShieldIcon() {
-  return (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.75"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6-8 10-8 10z" />
-    </svg>
-  )
+    <div className={`fixed inset-x-0 top-14 z-40 border-b border-white/[.08] bg-[#080808]/98 px-3 pb-4 pt-3 shadow-2xl backdrop-blur-2xl sm:top-16 md:hidden ${isOpen?'translate-y-0 opacity-100':'pointer-events-none -translate-y-3 opacity-0'}`}>
+      <div className="mb-3 px-1"><p className="font-mono text-[8px] font-bold uppercase tracking-[.22em] text-[#ff4655]">VALO COMMUNITY</p><p className="mt-1 text-xs font-black uppercase text-white">Where the community lives</p></div>
+      <div className="grid grid-cols-2 gap-2">
+        {[...primaryLinks,...secondaryLinks].map(x=><Link key={x.path} to={x.path} className={`rounded-xl border px-3 py-3 font-display text-[9px] font-black uppercase tracking-[.12em] ${location.pathname===x.path?'border-[#ff4655]/35 bg-[#ff4655]/10 text-[#ff4655]':'border-white/[.06] bg-white/[.025] text-neutral-300'}`}>{x.name}</Link>)}
+      </div>
+    </div>
+  </>
 }
