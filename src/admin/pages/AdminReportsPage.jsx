@@ -1,5 +1,5 @@
 import {useEffect,useState} from 'react'
-import AdminLayout from '../admin/layouts/AdminLayout'
+import AdminLayout from '../layouts/AdminLayout'
 import Icon from '../../components/common/Icon'
 import {apiGet,apiPatch} from '../../lib/api'
 
