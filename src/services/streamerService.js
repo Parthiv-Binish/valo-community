@@ -93,7 +93,7 @@ export async function updateSubmissionStatus(id, status) {
     .single()
   if (fetchError) throw fetchError
 
-  if (status === 'approved') {
+  if (status === 'approved' && submission.status !== 'approved') {
     let payload
     if (submission.platform === 'youtube') {
       const channelId = await resolveYouTubeChannelId(submission.url)
@@ -108,8 +108,20 @@ export async function updateSubmissionStatus(id, status) {
       throw new Error('Unsupported submission platform.')
     }
 
-    const { error: streamerError } = await supabase.from('streamers').insert(payload)
-    if (streamerError) throw streamerError
+    const column = submission.platform === 'youtube' ? 'youtube_channel_id' : 'kick_username'
+    const value = submission.platform === 'youtube' ? payload.youtube_channel_id : payload.kick_username
+    const { data: existing, error: existingError } = await supabase
+      .from('streamers')
+      .select('id')
+      .eq(column, value)
+      .limit(1)
+      .maybeSingle()
+    if (existingError) throw existingError
+
+    if (!existing) {
+      const { error: streamerError } = await supabase.from('streamers').insert(payload)
+      if (streamerError) throw streamerError
+    }
   }
 
   const { data, error } = await supabase
