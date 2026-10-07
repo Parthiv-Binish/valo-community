@@ -460,6 +460,8 @@ Production domain:
 
 `https://letsbuildvalocommunity.vercel.app/`
 
+Production deployments are generated from the repository's `main` branch.
+
 ### Backend
 
 The FastAPI backend is deployed through **Render**.
