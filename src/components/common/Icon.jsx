@@ -31,8 +31,8 @@ const paths={
   chevron:'m6 9 6 6 6-6'
 }
 
-export default function Icon({name,size=18,strokeWidth=1.8,className=''}) {
+export default function Icon({name,size=18,strokeWidth=1.8,fill='none',className=''}) {
  const d=paths[name]
  if(!d) return null
- return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><path d={d}/></svg>
+ return <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className}><path d={d}/></svg>
 }
