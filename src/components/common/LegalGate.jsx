@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { apiPost } from '../lib/api'
+import { apiPost } from '../../lib/api'
 
 const TERMS_VERSION = '2026-10-07'
 const PRIVACY_VERSION = '2026-10-07'
