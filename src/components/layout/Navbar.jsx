@@ -56,9 +56,9 @@ export default function Navbar() {
           <Link to="/" className="absolute left-1/2 -translate-x-1/2"><img src="https://iili.io/C93RwPf.png" alt="VALO Community" className="h-8 w-auto rounded-md"/></Link>
           <div className="flex items-center gap-1">
             {user&&<Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] bg-white/[.025] text-neutral-300" aria-label="Notifications"><Icon name="bell" size={17}/>{unread>0&&<span className="absolute right-0 top-0 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>}
-            <Link to={user?'/profile':'/'} className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-white/[.07] bg-white/[.025]">
-              {user&&avatar?<img src={avatar} alt="" className="h-full w-full object-cover"/>:<span className="text-[10px] font-black text-[#ff4655]">{user?fallback:'?'}</span>}
-            </Link>
+            {user?<Link to="/profile" className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg border border-white/[.07] bg-white/[.025]">
+              {avatar?<img src={avatar} alt="" className="h-full w-full object-cover"/>:<span className="text-[10px] font-black text-white">{fallback}</span>}
+            </Link>:<button onClick={loginWithGoogle} className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#ff4655]/35 bg-[#ff4655]/10 text-[9px] font-black uppercase text-[#ff4655]" aria-label="Sign in with Google" title="Sign in with Google">G</button>}
           </div>
         </div>
 
