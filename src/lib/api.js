@@ -44,10 +44,7 @@ export async function apiRequest(path, options = {}) {
     try {
       return await fetch(baseUrl + path, {
         ...options,
-        headers: {
-            ...buildHeaders(options, token),
-            ...(isAdminRequest ? { 'X-VALO-ADMIN-CLIENT': 'web-console' } : {}),
-          },
+        headers: buildHeaders(options, token),
       })
     } catch {
       const error = new Error('Community API is unreachable. Check the backend HTTPS certificate or API URL.')
