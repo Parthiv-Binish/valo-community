@@ -10,6 +10,7 @@ const navItems=[
  {to:'/admin/posts',label:'Posts',icon:'edit'},
  {to:'/admin/reports',label:'Reports',icon:'flag'},
  {to:'/admin/users',label:'Users',icon:'users'},
+ {to:'/admin/email',label:'Email',icon:'mail'},
  {to:'/admin/announcements',label:'Announcements',icon:'message'},
  {to:'/admin/banners',label:'Banners',icon:'image'},
  {to:'/admin/settings',label:'Settings',icon:'settings'},
