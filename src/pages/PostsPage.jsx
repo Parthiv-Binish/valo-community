@@ -49,21 +49,9 @@ export default function PostsPage(){
  }
  useEffect(()=>{load()},[user?.id,tab])
  useEffect(()=>{
-  const channel=supabase.channel('community-post-social')
+  const channel=supabase.channel('community-posts')
    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'posts'},payload=>{
     setPosts(current=>current.map(p=>p.id===payload.new.id?{...p,...payload.new}:p))
-   })
-   .on('postgres_changes',{event:'INSERT',schema:'public',table:'post_likes'},payload=>{
-    setPosts(current=>current.map(p=>p.id===payload.new.post_id?{...p,like_count:(p.like_count||0)+1}:p))
-   })
-   .on('postgres_changes',{event:'DELETE',schema:'public',table:'post_likes'},payload=>{
-    setPosts(current=>current.map(p=>p.id===payload.old.post_id?{...p,like_count:Math.max(0,(p.like_count||0)-1)}:p))
-   })
-   .on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments'},payload=>{
-    if(payload.new.status==='published')setPosts(current=>current.map(p=>p.id===payload.new.post_id?{...p,comment_count:(p.comment_count||0)+1}:p))
-   })
-   .on('postgres_changes',{event:'DELETE',schema:'public',table:'post_comments'},payload=>{
-    setPosts(current=>current.map(p=>p.id===payload.old.post_id?{...p,comment_count:Math.max(0,(p.comment_count||0)-1)}:p))
    })
    .subscribe()
   return()=>{supabase.removeChannel(channel)}
