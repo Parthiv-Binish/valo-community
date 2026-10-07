@@ -1,11 +1,13 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import LegalGate from '../components/common/LegalGate'
 
 const AuthContext = createContext({})
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [legalRequired, setLegalRequired] = useState(false)
 
   useEffect(() => {
     // 1. Check for an active session on mount
@@ -22,6 +24,17 @@ export function AuthProvider({ children }) {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  useEffect(() => {
+    let active = true
+    async function checkLegal() {
+      if (!user) { setLegalRequired(false); return }
+      const { data, error } = await supabase.from('legal_acceptances').select('id').eq('user_id', user.id).eq('terms_version', '2026-10-07').eq('privacy_version', '2026-10-07').limit(1)
+      if (active) setLegalRequired(!error && !(data || []).length)
+    }
+    checkLegal()
+    return () => { active = false }
+  }, [user?.id])
 
   // Login Trigger Function
   const loginWithGoogle = async () => {
