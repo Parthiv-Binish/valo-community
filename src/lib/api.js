@@ -4,7 +4,8 @@ const DEFAULT_API = 'https://valo-community-backend-1.onrender.com'
 const ADMIN_API = 'https://valo-community-backend-1.onrender.com'
 
 // Admin requests are intentionally isolated from the normal API route so a
-// stale/legacy backend URL cannot break the management console.\nconst ADMIN_PATH_PREFIX = '/api/admin/'
+// stale/legacy backend URL cannot break the management console.
+const ADMIN_PATH_PREFIX = '/api/admin/'
 
 export const API_BASE = (
   import.meta.env.VITE_API_URL ||
