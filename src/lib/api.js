@@ -1,18 +1,25 @@
 import { supabase } from './supabase'
 
-const DEFAULT_API = 'https://valo-community-backend-1.onrender.com'
-const ADMIN_API = 'https://valo-community-backend-1.onrender.com'
+const DEFAULT_PRIMARY_API = 'https://valo-community-backend-1.onrender.com'
+const DEFAULT_BACKUP_API = 'https://valo-community-backend.onrender.com'
 
-// Admin requests are intentionally isolated from the normal API route so a
-// stale/legacy backend URL cannot break the management console.
+// Requests are distributed across both Render backend instances.
+// Environment variables can override the defaults:
+// VITE_BACKEND_URL_PRIMARY and VITE_BACKEND_URL_BACKUP.
+const BACKEND_INSTANCES = [
+  import.meta.env.VITE_BACKEND_URL_PRIMARY || import.meta.env.VITE_API_URL || DEFAULT_PRIMARY_API,
+  import.meta.env.VITE_BACKEND_URL_BACKUP || DEFAULT_BACKUP_API,
+].filter(Boolean).map((url) => url.replace(/\/$/, ''))
+
 const ADMIN_PATH_PREFIX = '/api/admin/'
 
-export const API_BASE = (
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_BACKEND_URL ||
-  import.meta.env.VITE_BACKEND_URL_PRIMARY ||
-  DEFAULT_API
-).replace(/\/$/, '')
+let nextBackendIndex = 0
+
+function getNextBackendIndex() {
+  const index = nextBackendIndex % BACKEND_INSTANCES.length
+  nextBackendIndex = (nextBackendIndex + 1) % BACKEND_INSTANCES.length
+  return index
+}
 
 function buildHeaders(options = {}, token) {
   return {
@@ -36,23 +43,15 @@ async function readResponse(response) {
   return body
 }
 
+async function requestToBackend(index, path, options, token) {
+  const baseUrl = BACKEND_INSTANCES[index]
+  return fetch(baseUrl + path, {
+    ...options,
+    headers: buildHeaders(options, token),
+  })
+}
+
 export async function apiRequest(path, options = {}) {
-  const isAdminRequest = path.startsWith(ADMIN_PATH_PREFIX)
-  const baseUrl = isAdminRequest ? ADMIN_API : API_BASE
-
-  const request = async (token) => {
-    try {
-      return await fetch(baseUrl + path, {
-        ...options,
-        headers: buildHeaders(options, token),
-      })
-    } catch {
-      const error = new Error('Community API is unreachable. Check the backend HTTPS certificate or API URL.')
-      error.status = 0
-      throw error
-    }
-  }
-
   let { data: { session } } = await supabase.auth.getSession()
 
   if (!session && options.auth !== false) {
@@ -66,12 +65,36 @@ export async function apiRequest(path, options = {}) {
     throw error
   }
 
-  let response = await request(session?.access_token)
+  const primaryIndex = getNextBackendIndex()
+  const backupIndex = (primaryIndex + 1) % BACKEND_INSTANCES.length
+
+  let response
+
+  try {
+    response = await requestToBackend(primaryIndex, path, options, session?.access_token)
+  } catch (error) {
+    if (BACKEND_INSTANCES.length < 2) {
+      const unreachable = new Error('Community API is unreachable. Check the backend HTTPS certificate or API URL.')
+      unreachable.status = 0
+      throw unreachable
+    }
+
+    console.warn('[Backend Load Balancer] Primary instance unreachable; failing over to backup.')
+    try {
+      response = await requestToBackend(backupIndex, path, options, session?.access_token)
+    } catch {
+      const unreachable = new Error('Community API is unreachable. Both backend instances are unavailable.')
+      unreachable.status = 0
+      throw unreachable
+    }
+  }
 
   if (response.status === 401 && options.auth !== false) {
     const refreshed = await supabase.auth.refreshSession()
     const nextSession = refreshed.data?.session
-    if (nextSession?.access_token) response = await request(nextSession.access_token)
+    if (nextSession?.access_token) {
+      response = await requestToBackend(primaryIndex, path, options, nextSession.access_token)
+    }
   }
 
   return readResponse(response)
