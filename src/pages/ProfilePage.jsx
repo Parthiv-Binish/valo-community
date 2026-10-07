@@ -9,7 +9,7 @@ function Avatar({ name, url, large=false }) {
  return url?<img src={url} alt="" className={`${large?'h-24 w-24 sm:h-28 sm:w-28':'h-9 w-9'} rounded-full object-cover ring-2 ring-[#ff4655]/40`} referrerPolicy="no-referrer"/>:<div className={`${large?'h-24 w-24 sm:h-28 sm:w-28 text-2xl':'h-9 w-9 text-xs'} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff4655] via-[#8b5cf6] to-[#00e5ff] font-black text-white`}>{(name||'Player').slice(0,2).toUpperCase()}</div>
 }
 export default function ProfilePage(){
- const{user}=useAuth();const[p,setP]=useState({display_name:'',bio:'',avatar_url:'',email:''});const[posts,setPosts]=useState([]);const[stats,setStats]=useState({posts:0,followers:0,following:0});const[editing,setEditing]=useState(false);const[busy,setBusy]=useState(false)
+ const{user}=useAuth();const[p,setP]=useState({display_name:'',bio:'',avatar_url:'',email:''});const[posts,setPosts]=useState([]);const[stats,setStats]=useState({posts:0,followers:0,following:0});const[editing,setEditing]=useState(false);const[busy,setBusy]=useState(false);const[saveError,setSaveError]=useState('')
  async function load(){if(!user)return;const[{data:pr},{data:ps},{count:followers},{count:following}]=await Promise.all([
   supabase.from('user_profiles').select('display_name,bio,avatar_url,email,role').eq('id',user.id).single(),
   supabase.from('posts').select('id,content,media_url,media_type,created_at,like_count,comment_count').eq('author_id',user.id).eq('status','published').order('created_at',{ascending:false}).limit(12),
