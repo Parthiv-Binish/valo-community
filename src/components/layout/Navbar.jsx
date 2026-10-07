@@ -44,7 +44,8 @@ export default function Navbar() {
   },[user?.id,location.pathname])
 
   const avatar=user?.user_metadata?.avatar_url
-  const fallback=(user?.user_metadata?.full_name||user?.email||'U').slice(0,2).toUpperCase()
+  const displayName=user?.user_metadata?.display_name||user?.user_metadata?.full_name||user?.email||'Player'
+  const fallback=displayName.slice(0,2).toUpperCase()
   const secondaryActive=secondaryLinks.some(x=>location.pathname===x.path || location.pathname.startsWith(x.path+'/'))
 
   return <>
@@ -73,7 +74,7 @@ export default function Navbar() {
           <Link to="/notifications" className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-white/[.07] text-neutral-500 hover:bg-white/[.04] hover:text-white" title="Notifications"><Icon name="bell" size={17}/>{unread>0&&<span className="absolute -right-1 -top-1 min-w-4 rounded-full bg-[#ff4655] px-1 text-center text-[8px] font-black text-white">{unread>9?'9+':unread}</span>}</Link>
           <Link to={user?'/profile':'/'} className="flex h-9 items-center gap-2 rounded-lg border border-white/[.08] bg-white/[.035] px-2 hover:border-[#ff4655]/30">
             {user?(avatar?<img src={avatar} alt="" className="h-6 w-6 rounded-md object-cover"/>:<span className="flex h-6 w-6 items-center justify-center rounded-md bg-[#ff4655] text-[10px] font-black text-white">{fallback}</span>):<span className="text-xs text-neutral-500">?</span>}
-            <span className="hidden max-w-24 truncate font-mono text-[8px] font-bold uppercase text-neutral-300 lg:block">{user?(user.user_metadata?.full_name||user.email?.split('@')[0]||'Profile'):'Sign in'}</span>
+            <span className="hidden max-w-24 truncate font-mono text-[8px] font-bold uppercase text-neutral-300 lg:block">{user?displayName:'Sign in'}</span>
           </Link>
           {user?<button onClick={logout} className="rounded-lg border border-white/[.06] px-2 py-2 font-mono text-[8px] font-bold text-neutral-500 hover:border-[#ff4655]/30 hover:text-[#ff4655]">LOG OUT</button>:<button onClick={loginWithGoogle} className="rounded-lg border border-[#ff4655]/35 bg-[#ff4655]/[.05] px-3 py-2 text-[9px] font-black uppercase text-white">Connect ID</button>}
         </div>
