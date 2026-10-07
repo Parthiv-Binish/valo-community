@@ -35,7 +35,7 @@ function PostCard({post,profile,user,onRefresh,onPostCountDelta}){
    {replyTo&&<div className="mb-2 flex items-center justify-between rounded-lg bg-white/[.03] px-3 py-2 text-[10px] text-neutral-500">Replying to <b className="text-white">{commentProfiles[replyTo.author_id]?.display_name||commentProfiles[replyTo.author_id]?.email||'Player'}</b><button onClick={()=>setReplyTo(null)} aria-label="Cancel reply"><Icon name="close" size={13}/></button></div>}
    {user?<form onSubmit={submitComment} className="flex items-center gap-2 border-t border-white/[.05] pt-3"><Avatar profile={profile}/><input value={comment} onChange={e=>setComment(e.target.value)} onFocus={()=>{if(!showComments)loadComments();setShowComments(true)}} placeholder={replyTo?'Reply…':'Add a comment…'} maxLength={2000} className="min-w-0 flex-1 bg-transparent px-1 py-2 text-xs text-white outline-none placeholder:text-neutral-600"/><button disabled={commentBusy||!comment.trim()} aria-label="Send comment" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#ff4655] disabled:opacity-30"><Icon name="send" size={15}/></button></form>:<Link to="/login" className="block border-t border-white/[.05] pt-3 text-[11px] text-neutral-600 hover:text-white">Sign in to comment</Link>}
    <Link to={'/posts/'+post.id} className="mt-2 block text-[10px] font-semibold text-neutral-600 hover:text-white">Open full discussion</Link>
-  </div>}
+  </div>
  </article>
 }
 export default function PostsPage(){
