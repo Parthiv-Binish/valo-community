@@ -3,6 +3,9 @@ import { supabase } from './supabase'
 const DEFAULT_API = 'https://valo-community-backend-1.onrender.com'
 const ADMIN_API = 'https://valo-community-backend-1.onrender.com'
 
+// Admin requests are intentionally isolated from the normal API route so a
+// stale/legacy backend URL cannot break the management console.\nconst ADMIN_PATH_PREFIX = '/api/admin/'
+
 export const API_BASE = (
   import.meta.env.VITE_API_URL ||
   import.meta.env.VITE_BACKEND_URL ||
@@ -33,13 +36,17 @@ async function readResponse(response) {
 }
 
 export async function apiRequest(path, options = {}) {
-  const baseUrl = path.startsWith('/api/admin/') ? ADMIN_API : API_BASE
+  const isAdminRequest = path.startsWith(ADMIN_PATH_PREFIX)
+  const baseUrl = isAdminRequest ? ADMIN_API : API_BASE
 
   const request = async (token) => {
     try {
       return await fetch(baseUrl + path, {
         ...options,
-        headers: buildHeaders(options, token),
+        headers: {
+            ...buildHeaders(options, token),
+            ...(isAdminRequest ? { 'X-VALO-ADMIN-CLIENT': 'web-console' } : {}),
+          },
       })
     } catch {
       const error = new Error('Community API is unreachable. Check the backend HTTPS certificate or API URL.')
