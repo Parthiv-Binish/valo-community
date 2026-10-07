@@ -29,17 +29,32 @@ export default function PostDetailPage(){
   setLoading(false)
  }
  useEffect(()=>{load()},[id,user?.id])
+ useEffect(()=>{
+  const channel=supabase.channel('post-detail-'+id)
+   .on('postgres_changes',{event:'UPDATE',schema:'public',table:'posts',filter:`id=eq.${id}`},payload=>{
+    setPost(current=>current?{...current,...payload.new}:current)
+   })
+   .on('postgres_changes',{event:'INSERT',schema:'public',table:'post_comments',filter:`post_id=eq.${id}`},payload=>{
+    if(payload.new.status!=='published')return
+    setComments(current=>current.some(c=>c.id===payload.new.id)?current:[...current,payload.new].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at)))
+   })
+   .on('postgres_changes',{event:'DELETE',schema:'public',table:'post_comments',filter:`post_id=eq.${id}`},payload=>{
+    setComments(current=>current.filter(c=>c.id!==payload.old.id))
+   })
+   .subscribe()
+  return()=>{supabase.removeChannel(channel)}
+ },[id])
 
  const roots=useMemo(()=>comments.filter(c=>!c.parent_comment_id),[comments])
  const replies=useMemo(()=>comments.reduce((m,c)=>{if(c.parent_comment_id)(m[c.parent_comment_id]??=[]).push(c);return m},{}),[comments])
 
- async function toggleLike(){if(!user||busy)return;setBusy(true);const r=liked?await supabase.from('post_likes').delete().eq('post_id',id).eq('user_id',user.id):await supabase.from('post_likes').insert({post_id:id,user_id:user.id});if(!r.error)setLiked(!liked);setBusy(false);load()}
+ async function toggleLike(){if(!user||busy)return;setBusy(true);const next=!liked;const r=next?await supabase.from('post_likes').insert({post_id:id,user_id:user.id}):await supabase.from('post_likes').delete().eq('post_id',id).eq('user_id',user.id);if(!r.error){setLiked(next);setPost(p=>p?{...p,like_count:Math.max(0,(p.like_count||0)+(next?1:-1))}:p)}setBusy(false)}
  async function toggleSave(){if(!user)return;const r=saved?await supabase.from('post_bookmarks').delete().eq('post_id',id).eq('user_id',user.id):await supabase.from('post_bookmarks').insert({post_id:id,user_id:user.id});if(!r.error)setSaved(!saved)}
  async function saveEdit(){if(!user||post.author_id!==user.id||!editContent.trim())return;setBusy(true);const{error:e}=await supabase.from('posts').update({content:editContent.trim(),updated_at:new Date().toISOString()}).eq('id',id).eq('author_id',user.id);setBusy(false);if(e){setError(e.message);return}setEditing(false);load()}
  async function deletePost(){if(!user||post.author_id!==user.id)return;if(!window.confirm('Delete this post?'))return;const{error:e}=await supabase.from('posts').delete().eq('id',id).eq('author_id',user.id);if(e)setError(e.message);else nav('/posts')}
- async function submitComment(e){e.preventDefault();if(!user||!comment.trim())return;setBusy(true);const payload={post_id:id,author_id:user.id,content:comment.trim(),parent_comment_id:replyTo?.id||null};const{error:ce}=await supabase.from('post_comments').insert(payload);setBusy(false);if(ce){setError(ce.message);return}setComment('');setReplyTo(null);load()}
- async function deleteComment(c){if(!user||c.author_id!==user.id)return;if(!window.confirm('Delete this comment?'))return;const{error:e}=await supabase.from('post_comments').delete().eq('id',c.id).eq('author_id',user.id);if(e)setError(e.message);else load()}
- async function editComment(c){if(!user||c.author_id!==user.id)return;const next=window.prompt('Edit comment',c.content);if(next===null||!next.trim())return;const{error:e}=await supabase.from('post_comments').update({content:next.trim(),updated_at:new Date().toISOString()}).eq('id',c.id).eq('author_id',user.id);if(e)setError(e.message);else load()}
+ async function submitComment(e){e.preventDefault();if(!user||!comment.trim())return;setBusy(true);const payload={post_id:id,author_id:user.id,content:comment.trim(),parent_comment_id:replyTo?.id||null};const{data:created,error:ce}=await supabase.from('post_comments').insert(payload).select('id,post_id,parent_comment_id,author_id,content,created_at,updated_at').single();setBusy(false);if(ce){setError(ce.message);return}setComment('');setReplyTo(null);if(created)setComments(current=>current.some(c=>c.id===created.id)?current:[...current,created]);setPost(p=>p?{...p,comment_count:(p.comment_count||0)+1}:p)}
+ async function deleteComment(c){if(!user||c.author_id!==user.id)return;if(!window.confirm('Delete this comment?'))return;const{error:e}=await supabase.from('post_comments').delete().eq('id',c.id).eq('author_id',user.id);if(e)setError(e.message);else setComments(current=>current.filter(x=>x.id!==c.id))}
+ async function editComment(c){if(!user||c.author_id!==user.id)return;const next=window.prompt('Edit comment',c.content);if(next===null||!next.trim())return;const{error:e}=await supabase.from('post_comments').update({content:next.trim(),updated_at:new Date().toISOString()}).eq('id',c.id).eq('author_id',user.id);if(e)setError(e.message);else setComments(current=>current.map(x=>x.id===c.id?{...x,content:next.trim(),updated_at:new Date().toISOString()}:x))}
  async function share(){const url=window.location.origin+'/posts/'+id;if(navigator.share){try{await navigator.share({title:post.content?.slice(0,80)||'VALO Community post',url})}catch{}}else{await navigator.clipboard?.writeText(url);}}
  async function blockAuthor(){if(!user||user.id===post.author_id)return;if(!window.confirm('Block this user? Their content will no longer be shown to you.'))return;const{error:e}=await supabase.from('user_blocks').insert({blocker_id:user.id,blocked_id:post.author_id});if(e&&e.code!=='23505')setError(e.message);else nav('/posts')}
 
