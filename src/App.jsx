@@ -26,6 +26,7 @@ const AdminAnnouncements = lazy(() => import('./admin/pages/AdminAnnouncements.j
 const AdminBannersPage = lazy(() => import('./admin/pages/AdminBannersPage.jsx'))
 const AdminSettingsPage = lazy(() => import('./admin/pages/AdminSettingsPage.jsx'))
 const AdminUsersPage = lazy(() => import('./admin/pages/AdminUsersPage.jsx'))
+const AdminEmailPage = lazy(() => import('./admin/pages/AdminEmailPage.jsx'))
 const AdminAnalyticsPage = lazy(() => import('./admin/pages/AdminAnalyticsPage.jsx'))
 const AdminReportsPage = lazy(() => import('./admin/pages/AdminReportsPage.jsx'))
 const AdminPostsPage = lazy(() => import('./admin/pages/AdminPostsPage.jsx'))
@@ -221,6 +222,7 @@ function AppRouterContainer() {
           <Route path="/admin/banners" element={<AdminGuard><AdminBannersPage /></AdminGuard>} />  
           <Route path="/admin/settings" element={<AdminGuard><AdminSettingsPage /></AdminGuard>} />
           <Route path="/admin/users" element={<AdminGuard><AdminUsersPage /></AdminGuard>} />
+          <Route path="/admin/email" element={<AdminGuard><AdminEmailPage /></AdminGuard>} />
           <Route path="/admin/analytics" element={<AdminGuard><AdminAnalyticsPage /></AdminGuard>} />
           <Route path="/admin/reports" element={<AdminGuard><AdminReportsPage /></AdminGuard>} />
           <Route path="/admin/posts" element={<AdminGuard><AdminPostsPage /></AdminGuard>} />
