@@ -14,7 +14,7 @@ const navItems=[
  {to:'/admin/announcements',label:'Announcements',icon:'message'},
  {to:'/admin/banners',label:'Banners',icon:'image'},
  {to:'/admin/settings',label:'Settings',icon:'settings'},
- {to:'/admin/api-status',label:'API Status',icon:'shield'},
+ {to:'/admin/api-status',label:'System Status',icon:'shield'},
 ]
 
 export default function AdminLayout({children}){
