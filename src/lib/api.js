@@ -1,6 +1,7 @@
 import { supabase } from './supabase'
 
 const DEFAULT_API = 'https://valo-community-backend-1.onrender.com'
+const ADMIN_API = 'https://valo-community-backend-1.onrender.com'
 
 export const API_BASE = (
   import.meta.env.VITE_API_URL ||
@@ -32,9 +33,11 @@ async function readResponse(response) {
 }
 
 export async function apiRequest(path, options = {}) {
+  const baseUrl = path.startsWith('/api/admin/') ? ADMIN_API : API_BASE
+
   const request = async (token) => {
     try {
-      return await fetch(API_BASE + path, {
+      return await fetch(baseUrl + path, {
         ...options,
         headers: buildHeaders(options, token),
       })
