@@ -7,7 +7,7 @@ import Icon from '../components/common/Icon'
 import PostMedia from '../components/common/PostMedia'
 
 function Avatar({profile,size='sm'}){
- const name=profile?.display_name||'Player';const cls=size==='lg'?'h-11 w-11':'h-8 w-8'
+ const name=profile?.display_name||profile?.email||'Player';const cls=size==='lg'?'h-11 w-11':'h-8 w-8'
  return profile?.avatar_url?<img src={profile.avatar_url} alt="" className={`${cls} shrink-0 rounded-full object-cover ring-1 ring-white/10`}/>:<div className={`${cls} flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#ff4655] to-[#00e5ff] text-[10px] font-black text-white`}>{name.slice(0,2).toUpperCase()}</div>
 }
 
@@ -59,7 +59,7 @@ export default function PostDetailPage(){
  async function blockAuthor(){if(!user||user.id===post.author_id)return;if(!window.confirm('Block this user? Their content will no longer be shown to you.'))return;const{error:e}=await supabase.from('user_blocks').insert({blocker_id:user.id,blocked_id:post.author_id});if(e&&e.code!=='23505')setError(e.message);else nav('/posts')}
 
  function Comment({c,depth=0}){
-  const p=profiles[c.author_id];const name=p?.display_name||'Player';const childReplies=replies[c.id]||[]
+  const p=profiles[c.author_id];const name=p?.display_name||p?.email||'Player';const childReplies=replies[c.id]||[]
   return <div className={depth?'ml-8 border-l border-white/[.06] pl-3':''}>
    <div className="flex gap-3">
     <Link to={`/profile/${c.author_id}`}><Avatar profile={p}/></Link>
@@ -76,7 +76,7 @@ export default function PostDetailPage(){
  if(loading)return <MainLayout><div className="mx-auto max-w-2xl py-20 text-center text-sm text-neutral-600">Loading post…</div></MainLayout>
  if(error&&!post)return <MainLayout><div className="mx-auto max-w-xl py-20 text-center"><Icon name="flag" size={28} className="mx-auto text-[#ff4655]"/><p className="mt-3 text-sm text-neutral-500">{error}</p><Link to="/posts" className="mt-4 inline-block text-sm text-[#ff4655]">Back to community</Link></div></MainLayout>
 
- const author=profiles[post.author_id];const authorName=author?.display_name||'Player'
+ const author=profiles[post.author_id];const authorName=author?.display_name||author?.email||'Player'
  return <MainLayout><div className="mx-auto max-w-2xl">
   <div className="mb-4 flex items-center justify-between"><button onClick={()=>nav(-1)} className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-neutral-500 hover:text-white"><Icon name="arrow" size={15} className="rotate-180"/> Back</button><div className="flex items-center gap-1">{user&&user.id!==post.author_id&&<><Link to={`/report?type=post&id=${id}`} title="Report post" aria-label="Report post" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-white/[.04] hover:text-[#ff4655]"><Icon name="flag" size={16}/></Link><button onClick={blockAuthor} title="Block author" aria-label="Block author" className="flex h-9 w-9 items-center justify-center rounded-lg text-neutral-500 hover:bg-white/[.04] hover:text-[#ff4655]"><Icon name="ban" size={16}/></button></>}</div></div>
   <article className="overflow-hidden rounded-[24px] border border-white/[.08] bg-[#0d0d12]">
