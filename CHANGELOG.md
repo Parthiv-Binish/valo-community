@@ -1,3 +1,14 @@
+## 2026-10-09 — Removed admin 2D world/game prototype
+- **Type:** Removed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`, `src/App.jsx`, `src/admin/layouts/AdminLayout.jsx`
+- **What:** Completely removed the admin-only 2D World / Creator Kingdom game, including its page, lazy import, protected route, and Admin Console navigation item.
+- **Why:** The prototype introduced repeated JSX build failures and is no longer needed.
+- **Technical details:** Removed only the world-preview feature references; public routes and unrelated admin functionality remain unchanged.
+- **User impact:** Admin → 2D World is no longer available.
+- **Validation:** Source references were searched before removal; remaining historical changelog entries are retained.
+- **Deployment status:** Awaiting Vercel rebuild.
+- **Rollback:** Restore `AdminWorldPreviewPage.jsx` and the removed route/import/nav item from the prior commit.
+
 ## 2026-10-09 — Fixed missing selected-panel JSX closure
 - **Type:** Fixed
 - **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
