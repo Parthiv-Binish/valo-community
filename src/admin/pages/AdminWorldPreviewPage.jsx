@@ -215,6 +215,7 @@ export default function AdminWorldPreviewPage() {
           {selected.live && <button className="mt-3 w-full rounded-xl py-3 text-[9px] font-black uppercase tracking-[.18em] text-white" style={{background:selected.color,boxShadow:`0 8px 22px ${selected.color}44`}}>Open Live Stream</button>}
         </div>
       </div>
+    </div>}
     </div>
   </AdminLayout>
 }
