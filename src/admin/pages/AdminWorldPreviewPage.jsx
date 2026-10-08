@@ -1,220 +1,294 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import AdminLayout from '../layouts/AdminLayout'
 
 const creators = [
-  { id: 'kingster', name: 'KINGSTER', x: 22, y: 25, color: '#ff4655', viewers: '12.4K', live: true, level: 12, type: 'War Room' },
-  { id: 'nightowl', name: 'NIGHTOWL', x: 67, y: 24, color: '#7c5cff', viewers: '8.1K', live: true, level: 10, type: 'Creator House' },
-  { id: 'viper', name: 'VIPERLAB', x: 42, y: 55, color: '#36d399', viewers: '4.6K', live: true, level: 9, type: 'Creator House' },
-  { id: 'ace', name: 'ACECLUB', x: 78, y: 61, color: '#f5b83d', viewers: '—', live: false, level: 8, type: 'Training Camp' },
-  { id: 'nova', name: 'NOVA', x: 18, y: 70, color: '#35c7ff', viewers: '—', live: false, level: 7, type: 'Creator House' },
+  { id: 'kingster', name: 'KINGSTER', x: 560, y: 430, color: '#ff4655', viewers: 12400, live: true, level: 12, type: 'War Room' },
+  { id: 'nightowl', name: 'NIGHTOWL', x: 1540, y: 420, color: '#8b6cff', viewers: 8100, live: true, level: 10, type: 'Creator House' },
+  { id: 'viper', name: 'VIPERLAB', x: 980, y: 900, color: '#36d399', viewers: 4600, live: true, level: 9, type: 'Creator House' },
+  { id: 'ace', name: 'ACECLUB', x: 1760, y: 980, color: '#f5b83d', viewers: 0, live: false, level: 8, type: 'Training Camp' },
+  { id: 'nova', name: 'NOVA', x: 430, y: 1080, color: '#35c7ff', viewers: 0, live: false, level: 7, type: 'Creator House' },
 ]
 
-const trees = [
-  [7, 18], [13, 12], [31, 13], [54, 11], [86, 14], [93, 25], [9, 48], [30, 76],
-  [53, 79], [91, 73], [86, 86], [12, 84], [59, 27], [36, 31], [74, 42], [4, 64],
-]
-const rocks = [[28, 43], [61, 17], [88, 48], [51, 68], [73, 78], [35, 84], [4, 34], [96, 58]]
-const roads = [
-  { d: 'M 5 54 C 23 51 29 48 43 52 C 56 55 65 50 78 48 C 88 46 94 42 100 39', w: 6 },
-  { d: 'M 43 52 C 42 39 43 27 48 8', w: 5 },
-  { d: 'M 43 52 C 51 61 61 68 72 91', w: 5 },
-]
+const trees = Array.from({ length: 42 }, (_, i) => ({
+  x: 120 + ((i * 347) % 2050),
+  y: 120 + ((i * 193) % 1260),
+  s: 0.75 + ((i * 17) % 45) / 100,
+})).filter(t => !creators.some(c => Math.hypot(c.x - t.x, c.y - t.y) < 180))
 
-function Tree({ x, y, scale = 1 }) {
-  return <g transform={`translate(${x * 10} ${y * 6.5}) scale(${scale})`} className="world-tree">
-    <ellipse cx="0" cy="12" rx="11" ry="4" fill="#193e2a" opacity=".32" />
-    <path d="M-2 8 L0-3 L3 8Z" fill="#704d2b" />
-    <circle cx="-5" cy="0" r="7" fill="#245b36" />
-    <circle cx="4" cy="-3" r="8" fill="#2e7140" />
-    <circle cx="0" cy="-9" r="6" fill="#3b8750" />
-    <circle cx="-2" cy="-11" r="2" fill="#65a85b" opacity=".7" />
-  </g>
+const rocks = Array.from({ length: 18 }, (_, i) => ({
+  x: 90 + ((i * 521) % 2200),
+  y: 110 + ((i * 271) % 1380),
+}))
+
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v))
+
+function drawIsoTile(ctx, x, y, w, h, fill, stroke = 'rgba(255,255,255,.05)') {
+  ctx.beginPath()
+  ctx.moveTo(x, y - h / 2)
+  ctx.lineTo(x + w / 2, y)
+  ctx.lineTo(x, y + h / 2)
+  ctx.lineTo(x - w / 2, y)
+  ctx.closePath()
+  ctx.fillStyle = fill
+  ctx.fill()
+  ctx.strokeStyle = stroke
+  ctx.stroke()
 }
 
-function Rock({ x, y }) {
-  return <g transform={`translate(${x * 10} ${y * 6.5})`}>
-    <ellipse cx="0" cy="5" rx="9" ry="3" fill="#274132" opacity=".3" />
-    <path d="M-8 3 L-4-5 L4-7 L9 0 L5 6 L-5 7Z" fill="#738079" />
-    <path d="M-4-5 L4-7 L2-1 L-3 1Z" fill="#a0a8a1" opacity=".65" />
-  </g>
-}
+function GameWorld({ onSelect, onStats }) {
+  const canvasRef = useRef(null)
+  const stateRef = useRef({
+    player: { x: 1180, y: 790, speed: 250, dir: 0, bob: 0 },
+    camera: { x: 1180, y: 790, zoom: 0.72 },
+    keys: {},
+    selected: null,
+    coins: 120,
+    xp: 340,
+    visited: new Set(),
+    last: performance.now(),
+    raf: 0,
+  })
 
-function House({ item, selected, onSelect }) {
-  const sx = item.x * 10
-  const sy = item.y * 6.5
-  return <g
-    transform={`translate(${sx} ${sy})`}
-    onClick={() => onSelect(item)}
-    className="world-building"
-    role="button"
-    tabIndex="0"
-    onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onSelect(item)}
-  >
-    <ellipse cx="0" cy="31" rx="43" ry="12" fill="#193321" opacity=".38" />
-    <path d="M-38 2 L0-15 L38 2 L38 25 L0 43 L-38 25Z" fill="#b66a3f" stroke="#5e3828" strokeWidth="1.5" />
-    <path d="M-38 2 L0-15 L38 2 L0 21Z" fill={item.color} stroke="#4d2e27" strokeWidth="1.5" />
-    <path d="M0 21 L38 2 L38 25 L0 43Z" fill="#8c4f36" />
-    <path d="M-38 2 L0 21 L0 43 L-38 25Z" fill="#a45d3d" />
-    <path d="M-24 1 L0-10 L24 1" fill="none" stroke="#ffd6a1" strokeWidth="3" opacity=".5" />
-    <path d="M-8 27 L0 23 L8 27 L8 39 L-8 39Z" fill="#392c2b" />
-    <rect x="-25" y="8" width="11" height="9" rx="1" fill="#d7f2ef" opacity=".85" />
-    <rect x="14" y="8" width="11" height="9" rx="1" fill="#d7f2ef" opacity=".85" />
-    <path d="M-25 12H-14M-19.5 8V17M14 12H25M19.5 8V17" stroke="#54706a" strokeWidth="1" />
-    <rect x="-7" y="-9" width="14" height="5" rx="2" fill="#f6c35d" opacity=".9" />
-    {item.live && <g className="live-beacon"><circle cx="0" cy="-24" r="5" fill="#ff4655" /><circle cx="0" cy="-24" r="9" fill="#ff4655" opacity=".18" /></g>}
-    <text x="0" y="57" textAnchor="middle" className="world-label">{item.name}</text>
-    <text x="0" y="67" textAnchor="middle" className="world-level">LVL {item.level}</text>
-    {selected && <path d="M-45 34 Q0 51 45 34" fill="none" stroke="#fff" strokeWidth="2" opacity=".9" />}
-  </g>
-}
+  useEffect(() => {
+    const canvas = canvasRef.current
+    const ctx = canvas.getContext('2d')
+    const s = stateRef.current
+    const resize = () => {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2)
+      canvas.width = canvas.clientWidth * dpr
+      canvas.height = canvas.clientHeight * dpr
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+    resize()
+    const ro = new ResizeObserver(resize)
+    ro.observe(canvas)
 
-function Character({ x, y, color, flip = 1 }) {
-  return <g transform={`translate(${x * 10} ${y * 6.5}) scale(${flip} 1)`} className="world-character">
-    <ellipse cx="0" cy="15" rx="7" ry="2.5" fill="#163322" opacity=".45" />
-    <path d="M-5 4 L5 4 L6 14 L-6 14Z" fill={color} stroke="#252d28" strokeWidth="1" />
-    <circle cx="0" cy="-2" r="6" fill="#d99b70" stroke="#513a30" strokeWidth="1" />
-    <path d="M-6-3 Q0-11 6-3 L5-6 Q0-12-5-6Z" fill="#2b2630" />
-    <circle cx="-2" cy="-1" r="1" fill="#27221f" /><circle cx="2" cy="-1" r="1" fill="#27221f" />
-    <path d="M-2 2 Q0 4 2 2" fill="none" stroke="#8d4e4a" strokeWidth="1" />
-    <path d="M-7 7 L-11 11 M7 7 L11 11" stroke="#d99b70" strokeWidth="2" strokeLinecap="round" />
-  </g>
-}
+    const down = e => {
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D','e','E',' '].includes(e.key)) e.preventDefault()
+      s.keys[e.key.toLowerCase()] = true
+      if (e.key.toLowerCase() === 'e') interact()
+    }
+    const up = e => { s.keys[e.key.toLowerCase()] = false }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
 
-function WorldSvg({ selected, onSelect }) {
-  return <svg viewBox="0 0 1000 650" preserveAspectRatio="xMidYMid slice" className="world-svg">
-    <defs>
-      <linearGradient id="grass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#68a84f"/><stop offset=".5" stopColor="#4f8d45"/><stop offset="1" stopColor="#3e753b"/></linearGradient>
-      <pattern id="grassTexture" width="42" height="42" patternUnits="userSpaceOnUse">
-        <path d="M5 25l3-5M19 8l2-4M31 31l3-5M36 13l2-3" stroke="#8fc56a" strokeWidth="1" opacity=".22" />
-        <circle cx="12" cy="14" r="1" fill="#315f35" opacity=".25" /><circle cx="26" cy="20" r="1" fill="#315f35" opacity=".2" />
-      </pattern>
-      <filter id="softShadow"><feGaussianBlur stdDeviation="7" /></filter>
-      <linearGradient id="road" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#c79b68"/><stop offset="1" stopColor="#a87d50"/></linearGradient>
-      <radialGradient id="water"><stop stopColor="#69cde1"/><stop offset="1" stopColor="#318ca6"/></radialGradient>
-    </defs>
-    <rect width="1000" height="650" fill="#24452d" />
-    <path d="M35 0 H965 Q1010 0 1010 45 V605 Q1010 650 965 650 H35 Q0 650 0 605 V45Q0 0 35 0Z" fill="url(#grass)" />
-    <rect x="0" y="0" width="1000" height="650" fill="url(#grassTexture)" opacity=".75" />
-    <path d="M0 600 Q180 560 300 610 T600 600 T1000 590 V650 H0Z" fill="#2e6036" opacity=".5" />
-    <path d="M30 475 Q140 430 220 455 T420 500 T620 475 T820 490 T1000 450" fill="none" stroke="#356b3a" strokeWidth="34" opacity=".28" />
-    {roads.map((r, i) => <g key={i}><path d={r.d} fill="none" stroke="#8d6949" strokeWidth={r.w + 5} strokeLinecap="round" opacity=".45" /><path d={r.d} fill="none" stroke="url(#road)" strokeWidth={r.w} strokeLinecap="round" /></g>)}
-    <path d="M7 54 C23 51 29 48 43 52 C56 55 65 50 78 48 C88 46 94 42 100 39" fill="none" stroke="#e1bb86" strokeWidth="1.5" strokeDasharray="2 8" opacity=".7" />
-    <g transform="translate(455 310)">
-      <ellipse cx="0" cy="26" rx="72" ry="22" fill="#24472d" opacity=".4" />
-      <path d="M-48 0 L0-27 L48 0 L0 27Z" fill="#d6c08b" stroke="#806e4c" strokeWidth="2" />
-      <path d="M-31 0 L0-17 L31 0 L0 17Z" fill="#9a7b54" />
-      <path d="M-11 2 L0-4 L11 2 L11 20 L-11 20Z" fill="#3c342b" />
-      <circle cx="0" cy="-3" r="5" fill="#f3ca58" opacity=".85" />
-      <text x="0" y="46" textAnchor="middle" className="world-label">COMMUNITY TOWN HALL</text>
-    </g>
-    <g transform="translate(790 330)">
-      <ellipse cx="0" cy="25" rx="58" ry="18" fill="#24472d" opacity=".35" />
-      <path d="M-38 0 L0-20 L38 0 L0 20Z" fill="url(#water)" stroke="#2c6d7c" strokeWidth="2" />
-      <path d="M-15-1 L0-9 L15-1 L0 7Z" fill="#d6c08b" />
-      <path d="M-5 1 L0-2 L5 1 L5 11 L-5 11Z" fill="#765333" />
-      <text x="0" y="38" textAnchor="middle" className="world-label">FAN LAKE</text>
-    </g>
-    {trees.map(([x,y], i) => <Tree key={i} x={x} y={y} scale={.72 + (i % 3) * .12} />)}
-    {rocks.map(([x,y], i) => <Rock key={i} x={x} y={y} />)}
-    <House item={creators[0]} selected={selected?.id === creators[0].id} onSelect={onSelect} />
-    <House item={creators[1]} selected={selected?.id === creators[1].id} onSelect={onSelect} />
-    <House item={creators[2]} selected={selected?.id === creators[2].id} onSelect={onSelect} />
-    <House item={creators[3]} selected={selected?.id === creators[3].id} onSelect={onSelect} />
-    <House item={creators[4]} selected={selected?.id === creators[4].id} onSelect={onSelect} />
-    <Character x={34} y={50} color="#ff4655" />
-    <Character x={55} y={48} color="#7c5cff" flip={-1} />
-    <Character x={61} y={57} color="#36d399" />
-    <Character x={28} y={61} color="#35c7ff" flip={-1} />
-    <Character x={73} y={52} color="#f5b83d" />
-    <Character x={48} y={38} color="#ff4655" />
-  </svg>
+    const pointer = e => {
+      const r = canvas.getBoundingClientRect()
+      const mx = e.clientX - r.left
+      const my = e.clientY - r.top
+      const w = canvas.clientWidth
+      const h = canvas.clientHeight
+      const cam = s.camera
+      const wx = (mx - w / 2) / cam.zoom + cam.x
+      const wy = (my - h / 2) / cam.zoom + cam.y
+      const hit = creators.find(c => Math.hypot(c.x - wx, c.y - wy) < 135)
+      if (hit) {
+        s.selected = hit
+        s.visited.add(hit.id)
+        s.coins += hit.live ? 10 : 3
+        s.xp += hit.live ? 25 : 8
+        onSelect(hit, s.coins, s.xp, s.visited.size)
+      }
+    }
+    canvas.addEventListener('pointerdown', pointer)
+
+    function interact() {
+      const p = s.player
+      const hit = creators.find(c => Math.hypot(c.x - p.x, c.y - p.y) < 190)
+      if (hit) {
+        s.selected = hit
+        s.visited.add(hit.id)
+        s.coins += hit.live ? 10 : 3
+        s.xp += hit.live ? 25 : 8
+        onSelect(hit, s.coins, s.xp, s.visited.size)
+      }
+    }
+
+    const draw = now => {
+      const dt = Math.min((now - s.last) / 1000, 0.04)
+      s.last = now
+      const p = s.player
+      const k = s.keys
+      let dx = 0, dy = 0
+      if (k.w || k.arrowup) dy -= 1
+      if (k.s || k.arrowdown) dy += 1
+      if (k.a || k.arrowleft) dx -= 1
+      if (k.d || k.arrowright) dx += 1
+      if (dx || dy) {
+        const len = Math.hypot(dx, dy)
+        dx /= len; dy /= len
+        p.x = clamp(p.x + dx * p.speed * dt, 80, 2320)
+        p.y = clamp(p.y + dy * p.speed * dt, 80, 1520)
+        p.dir = Math.atan2(dy, dx)
+        p.bob += dt * 12
+      }
+      s.camera.x += (p.x - s.camera.x) * Math.min(1, dt * 5)
+      s.camera.y += (p.y - s.camera.y) * Math.min(1, dt * 5)
+
+      const w = canvas.clientWidth, h = canvas.clientHeight
+      ctx.clearRect(0, 0, w, h)
+      ctx.fillStyle = '#101c16'
+      ctx.fillRect(0, 0, w, h)
+      ctx.save()
+      ctx.translate(w / 2, h / 2)
+      ctx.scale(s.camera.zoom, s.camera.zoom)
+      ctx.translate(-s.camera.x, -s.camera.y)
+
+      // Terrain
+      ctx.fillStyle = '#4d8b48'
+      ctx.fillRect(0, 0, 2400, 1600)
+      for (let y = 0; y < 1600; y += 64) {
+        for (let x = 0; x < 2400; x += 64) {
+          drawIsoTile(ctx, x + 32, y + 32, 88, 44, ((x + y) / 64) % 2 ? '#548f4a' : '#518c47')
+        }
+      }
+
+      // River
+      ctx.beginPath()
+      ctx.moveTo(0, 1380); ctx.bezierCurveTo(520, 1180, 820, 1450, 1200, 1260)
+      ctx.bezierCurveTo(1580, 1080, 1900, 1320, 2400, 1120)
+      ctx.lineWidth = 95; ctx.strokeStyle = '#3989a1'; ctx.stroke()
+      ctx.lineWidth = 74; ctx.strokeStyle = '#55b1c4'; ctx.stroke()
+
+      // Roads
+      ctx.lineCap = 'round'
+      ctx.lineWidth = 105; ctx.strokeStyle = '#a47b51'
+      const road = p => { ctx.beginPath(); p(); ctx.stroke() }
+      road(() => { ctx.moveTo(40, 790); ctx.lineTo(2360, 790) })
+      road(() => { ctx.moveTo(1180, 80); ctx.lineTo(1180, 1510) })
+      ctx.lineWidth = 72; ctx.strokeStyle = '#d0a16b'
+      road(() => { ctx.moveTo(40, 790); ctx.lineTo(2360, 790) })
+      road(() => { ctx.moveTo(1180, 80); ctx.lineTo(1180, 1510) })
+
+      // Walls around the central village
+      ctx.strokeStyle = '#d7c48e'; ctx.lineWidth = 22
+      ctx.strokeRect(270, 250, 1820, 1110)
+      ctx.strokeStyle = '#8d7c55'; ctx.lineWidth = 5
+      ctx.strokeRect(270, 250, 1820, 1110)
+
+      // Environment
+      for (const t of trees) {
+        ctx.save(); ctx.translate(t.x, t.y); ctx.scale(t.s, t.s)
+        ctx.fillStyle = 'rgba(22,51,30,.28)'; ctx.beginPath(); ctx.ellipse(0, 32, 36, 12, 0, 0, Math.PI*2); ctx.fill()
+        ctx.fillStyle = '#6b452b'; ctx.fillRect(-8, 4, 16, 34)
+        ctx.fillStyle = '#2e6739'; ctx.beginPath(); ctx.arc(-18, 0, 30, 0, Math.PI*2); ctx.arc(16, -4, 34, 0, Math.PI*2); ctx.arc(0, -27, 29, 0, Math.PI*2); ctx.fill()
+        ctx.fillStyle = '#4b8b49'; ctx.beginPath(); ctx.arc(-9, -30, 13, 0, Math.PI*2); ctx.fill()
+        ctx.restore()
+      }
+      for (const r of rocks) {
+        ctx.fillStyle = 'rgba(28,50,33,.25)'; ctx.beginPath(); ctx.ellipse(r.x, r.y+10, 24, 9, 0, 0, Math.PI*2); ctx.fill()
+        ctx.fillStyle = '#778277'; ctx.beginPath(); ctx.moveTo(r.x-22,r.y+5);ctx.lineTo(r.x-9,r.y-18);ctx.lineTo(r.x+17,r.y-14);ctx.lineTo(r.x+25,r.y+4);ctx.lineTo(r.x+5,r.y+16);ctx.closePath();ctx.fill()
+      }
+
+      // Town hall
+      drawBuilding(ctx, { x: 1080, y: 610, color: '#f0c65b', name: 'VALO TOWN HALL', level: 5, live: false, central: true })
+
+      // Creator buildings + live beacons
+      for (const c of creators) drawBuilding(ctx, c)
+
+      // NPCs
+      const npcs = [
+        [760,690,'#4cc9f0'],[1430,690,'#f72585'],[820,1010,'#90be6d'],[1380,1040,'#f9c74f'],[1080,1040,'#577590']
+      ]
+      for (const [x,y,col] of npcs) drawCharacter(ctx, x, y, col, now / 300)
+
+      // Player
+      drawCharacter(ctx, p.x, p.y, '#ff4655', p.bob)
+
+      ctx.restore()
+
+      // Game HUD is intentionally minimal; gameplay remains visible.
+      onStats({ coins: s.coins, xp: s.xp, visited: s.visited.size, live: creators.filter(c => c.live).length })
+      s.raf = requestAnimationFrame(draw)
+    }
+
+    function drawBuilding(ctx, c) {
+      const x = c.x, y = c.y
+      ctx.save()
+      ctx.translate(x, y)
+      ctx.fillStyle = 'rgba(20,42,27,.35)'; ctx.beginPath(); ctx.ellipse(0, 72, 105, 32, 0, 0, Math.PI*2); ctx.fill()
+      ctx.fillStyle = c.central ? '#a96d3e' : '#9b5c3b'
+      ctx.beginPath(); ctx.moveTo(-82,5);ctx.lineTo(0,-45);ctx.lineTo(82,5);ctx.lineTo(82,66);ctx.lineTo(0,105);ctx.lineTo(-82,66);ctx.closePath();ctx.fill()
+      ctx.fillStyle = c.color || '#c78d52'
+      ctx.beginPath();ctx.moveTo(-82,5);ctx.lineTo(0,-45);ctx.lineTo(82,5);ctx.lineTo(0,50);ctx.closePath();ctx.fill()
+      ctx.fillStyle = '#e8c38b'; ctx.fillRect(-18,50,36,55)
+      ctx.fillStyle = '#b9e5e8'; ctx.fillRect(-57,22,25,22);ctx.fillRect(32,22,25,22)
+      ctx.fillStyle = '#3a2b26'; ctx.fillRect(-7,74,14,31)
+      if (c.live) {
+        ctx.fillStyle = '#ff4655'; ctx.beginPath(); ctx.arc(0,-72,10,0,Math.PI*2);ctx.fill()
+        ctx.strokeStyle = 'rgba(255,70,85,.35)';ctx.lineWidth=8;ctx.beginPath();ctx.arc(0,-72,18,0,Math.PI*2);ctx.stroke()
+      }
+      ctx.fillStyle = '#fff'; ctx.font = '900 22px system-ui';ctx.textAlign='center';ctx.strokeStyle='#173021';ctx.lineWidth=6
+      ctx.strokeText(c.name,0,145);ctx.fillText(c.name,0,145)
+      ctx.fillStyle = '#f5d68b';ctx.font='800 15px system-ui';ctx.strokeStyle='#173021';ctx.lineWidth=4
+      ctx.strokeText('LVL ' + c.level,0,167);ctx.fillText('LVL ' + c.level,0,167)
+      ctx.restore()
+    }
+
+    function drawCharacter(ctx, x, y, color, phase) {
+      ctx.save(); ctx.translate(x, y + Math.sin(phase) * 3)
+      ctx.fillStyle='rgba(20,42,27,.35)';ctx.beginPath();ctx.ellipse(0,24,20,8,0,0,Math.PI*2);ctx.fill()
+      ctx.fillStyle='#d89b70';ctx.beginPath();ctx.arc(0,-9,17,0,Math.PI*2);ctx.fill()
+      ctx.fillStyle='#20252d';ctx.beginPath();ctx.arc(0,-15,17,Math.PI,Math.PI*2);ctx.fill()
+      ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(-17,7,34,32,7);ctx.fill()
+      ctx.fillStyle='#20252d';ctx.fillRect(-14,38,10,20);ctx.fillRect(4,38,10,20)
+      ctx.restore()
+    }
+
+    s.raf = requestAnimationFrame(draw)
+    return () => {
+      cancelAnimationFrame(s.raf)
+      ro.disconnect()
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+      canvas.removeEventListener('pointerdown', pointer)
+    }
+  }, [onSelect, onStats])
+
+  return <canvas ref={canvasRef} className="h-full w-full touch-none" aria-label="Playable VALO Community village game" />
 }
 
 export default function AdminWorldPreviewPage() {
   const [selected, setSelected] = useState(null)
-  const [zoom, setZoom] = useState(1)
-  const [pan, setPan] = useState({ x: 0, y: 0 })
-  const liveCount = useMemo(() => creators.filter(c => c.live).length, [])
-
-  const reset = () => { setZoom(1); setPan({ x: 0, y: 0 }) }
+  const [stats, setStats] = useState({ coins: 120, xp: 340, visited: 0, live: 3 })
 
   return <AdminLayout>
-    <style>{`
-      .world-shell{position:relative;height:calc(100vh - 105px);min-height:680px;overflow:hidden;border-radius:24px;background:#203b29;border:1px solid rgba(255,255,255,.1);box-shadow:0 24px 80px rgba(0,0,0,.35)}
-      .world-viewport{position:absolute;inset:0;overflow:hidden;cursor:grab;background:#24452d}
-      .world-viewport:active{cursor:grabbing}
-      .world-stage{position:absolute;left:50%;top:50%;width:min(1100px,100vw);height:715px;transform-origin:center;transition:transform .18s ease;will-change:transform}
-      .world-svg{width:100%;height:100%;display:block;overflow:visible}
-      .world-building{cursor:pointer;transition:filter .18s ease,transform .18s ease}
-      .world-building:hover{filter:brightness(1.12) drop-shadow(0 8px 10px rgba(0,0,0,.25))}
-      .world-character{animation:worldWalk 3.5s ease-in-out infinite}
-      .world-character:nth-of-type(2n){animation-delay:-1.2s}
-      .world-tree{transform-box:fill-box;transform-origin:center bottom}
-      .world-label{font:900 12px Inter,system-ui,sans-serif;letter-spacing:1.4px;fill:#fff;paint-order:stroke;stroke:#173021;stroke-width:4px;stroke-linejoin:round}
-      .world-level{font:800 9px Inter,system-ui,sans-serif;letter-spacing:1.5px;fill:#f5d68b;paint-order:stroke;stroke:#173021;stroke-width:3px}
-      .world-ui{font-family:Inter,system-ui,sans-serif}
-      @keyframes worldWalk{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-      @media(max-width:900px){.world-shell{height:calc(100vh - 90px);min-height:620px}.world-stage{width:1000px;height:650px}.world-label{font-size:11px}}
-    `}</style>
-    <div className="world-shell world-ui">
-      <div className="absolute inset-x-0 top-0 z-30 flex items-start justify-between p-5 pointer-events-none">
-        <div className="pointer-events-auto rounded-2xl border border-white/20 bg-[#1d3325]/90 px-4 py-3 shadow-xl backdrop-blur-md">
-          <div className="text-[9px] font-black uppercase tracking-[.28em] text-[#f4d78d]">VALO COMMUNITY</div>
-          <div className="mt-1 text-xl font-black tracking-tight text-white">CREATOR VILLAGE</div>
-          <div className="mt-1 text-[10px] font-bold text-white/55">WORLD 01 · ADMIN PREVIEW</div>
+    <div className="relative min-h-[calc(100vh-105px)] overflow-hidden rounded-3xl border border-white/10 bg-[#101c16] shadow-2xl">
+      <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between p-4 pointer-events-none">
+        <div className="pointer-events-auto rounded-2xl border border-white/10 bg-[#16271c]/90 px-4 py-3 backdrop-blur">
+          <div className="text-[9px] font-black uppercase tracking-[.25em] text-[#f5d68b]">VALO COMMUNITY</div>
+          <div className="text-xl font-black text-white">CREATOR KINGDOM</div>
+          <div className="text-[10px] font-bold text-white/45">PLAYABLE ADMIN WORLD · {stats.visited}/5 HOUSES VISITED</div>
         </div>
         <div className="pointer-events-auto flex gap-2">
-          <div className="rounded-xl border border-white/15 bg-[#1d3325]/90 px-4 py-3 text-center shadow-xl backdrop-blur-md">
-            <div className="text-[8px] font-black tracking-widest text-white/45">LIVE</div>
-            <div className="text-lg font-black text-white">{liveCount}</div>
-          </div>
-          <div className="rounded-xl border border-white/15 bg-[#1d3325]/90 px-4 py-3 text-center shadow-xl backdrop-blur-md">
-            <div className="text-[8px] font-black tracking-widest text-white/45">VILLAGE</div>
-            <div className="mt-1 flex items-center gap-1.5 text-[9px] font-black text-emerald-300"><span className="h-2 w-2 animate-pulse rounded-full bg-emerald-300" /> ONLINE</div>
-          </div>
+          <div className="rounded-xl border border-white/10 bg-[#16271c]/90 px-4 py-2 text-center"><div className="text-[8px] text-white/40">LIVE</div><b className="text-white">{stats.live}</b></div>
+          <div className="rounded-xl border border-white/10 bg-[#16271c]/90 px-4 py-2 text-center"><div className="text-[8px] text-white/40">COINS</div><b className="text-[#f5d68b]">{stats.coins}</b></div>
+          <div className="rounded-xl border border-white/10 bg-[#16271c]/90 px-4 py-2 text-center"><div className="text-[8px] text-white/40">XP</div><b className="text-white">{stats.xp}</b></div>
         </div>
       </div>
 
-      <div className="world-viewport"
-        onWheel={e => { e.preventDefault(); setZoom(z => Math.min(1.45, Math.max(.72, z - e.deltaY * .0007))) }}
-        onPointerDown={e => {
-          const start = {x:e.clientX,y:e.clientY,p:pan}
-          e.currentTarget.setPointerCapture(e.pointerId)
-          const move = ev => setPan({x:start.p.x + ev.clientX-start.x,y:start.p.y + ev.clientY-start.y})
-          const up = () => { e.currentTarget.removeEventListener('pointermove',move); e.currentTarget.removeEventListener('pointerup',up) }
-          e.currentTarget.addEventListener('pointermove',move); e.currentTarget.addEventListener('pointerup',up)
-        }}>
-        <div className="world-stage" style={{transform:`translate(calc(-50% + ${pan.x}px),calc(-50% + ${pan.y}px)) scale(${zoom})`}}>
-          <WorldSvg selected={selected} onSelect={setSelected} />
+      <GameWorld
+        onSelect={(c, coins, xp, visited) => setSelected({ ...c, coins, xp, visited })}
+        onStats={setStats}
+      />
+
+      <div className="absolute bottom-4 left-4 z-20 rounded-2xl border border-white/10 bg-[#16271c]/90 px-4 py-3 text-white/70 backdrop-blur">
+        <div className="text-[9px] font-black uppercase tracking-[.2em] text-[#f5d68b]">HOW TO PLAY</div>
+        <div className="mt-1 text-[11px]">WASD / Arrow Keys · Walk · E / Click · Interact</div>
+      </div>
+
+      {selected && <div className="absolute right-4 top-24 z-30 w-[300px] rounded-2xl border border-white/15 bg-[#14261b]/96 p-5 text-white shadow-2xl backdrop-blur-xl">
+        <div className="flex items-start justify-between">
+          <div><div className="text-[8px] font-black tracking-[.25em] text-white/40">CREATOR HOUSE</div><div className="mt-1 text-2xl font-black">{selected.name}</div><div className="mt-1 text-[10px] font-bold text-white/45">{selected.type} · LEVEL {selected.level}</div></div>
+          <button type="button" onClick={() => setSelected(null)} className="rounded-lg px-2 py-1 text-xl text-white/40 hover:bg-white/10">×</button>
         </div>
-      </div>
-
-      <div className="absolute bottom-5 left-5 z-30 flex items-center gap-1 rounded-2xl border border-white/15 bg-[#1d3325]/92 p-1.5 shadow-xl backdrop-blur-md">
-        <button onClick={() => setZoom(z => Math.min(1.45,z+.1))} className="h-9 w-9 rounded-xl text-lg font-black text-white/80 hover:bg-white/10">+</button>
-        <div className="w-12 text-center text-[9px] font-black text-white/55">{Math.round(zoom*100)}%</div>
-        <button onClick={() => setZoom(z => Math.max(.72,z-.1))} className="h-9 w-9 rounded-xl text-lg font-black text-white/80 hover:bg-white/10">−</button>
-        <button onClick={reset} className="ml-1 rounded-xl px-3 py-2 text-[9px] font-black uppercase tracking-widest text-white/60 hover:bg-white/10 hover:text-white">Reset</button>
-      </div>
-
-      <div className="absolute bottom-5 right-5 z-30 max-w-[330px] rounded-2xl border border-white/15 bg-[#1d3325]/94 p-4 shadow-xl backdrop-blur-md">
-        <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[.2em] text-white/45"><span className="h-2 w-2 rounded-full bg-[#f5d68b]" /> World controls</div>
-        <div className="mt-2 text-[10px] font-semibold leading-relaxed text-white/65">Drag to explore · scroll to zoom · tap a creator house for details</div>
-      </div>
-
-      {selected && <div className="absolute right-5 top-28 z-40 w-[290px] overflow-hidden rounded-2xl border border-white/15 bg-[#173021]/96 shadow-2xl backdrop-blur-xl">
-        <div className="h-2" style={{background:selected.color}} />
-        <div className="p-5">
-          <div className="flex items-start justify-between">
-            <div><div className="text-[8px] font-black tracking-[.25em] text-white/40">CREATOR HOUSE</div><div className="mt-1 text-xl font-black text-white">{selected.name}</div><div className="mt-1 text-[10px] font-bold text-white/45">{selected.type} · LEVEL {selected.level}</div></div>
-            <button onClick={() => setSelected(null)} className="rounded-lg px-2 py-1 text-xl text-white/40 hover:bg-white/10 hover:text-white">×</button>
-          </div>
-          <div className="mt-5 grid grid-cols-2 gap-2">
-            <div className="rounded-xl bg-black/15 p-3"><div className="text-[8px] font-black tracking-widest text-white/35">STATUS</div><div className={`mt-1 text-xs font-black ${selected.live?'text-red-300':'text-white/65'}`}>{selected.live?'● LIVE':'OFFLINE'}</div></div>
-            <div className="rounded-xl bg-black/15 p-3"><div className="text-[8px] font-black tracking-widest text-white/35">VIEWERS</div><div className="mt-1 text-xs font-black text-white">{selected.viewers}</div></div>
-          </div>
-          {selected.live && <button className="mt-3 w-full rounded-xl py-3 text-[9px] font-black uppercase tracking-[.18em] text-white" style={{background:selected.color,boxShadow:`0 8px 22px ${selected.color}44`}}>Open Live Stream</button>}
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <div className="rounded-xl bg-black/20 p-3"><div className="text-[8px] text-white/35">STATUS</div><div className={`mt-1 text-xs font-black ${selected.live ? 'text-red-300' : 'text-white/60'}`}>{selected.live ? '● LIVE' : 'OFFLINE'}</div></div>
+          <div className="rounded-xl bg-black/20 p-3"><div className="text-[8px] text-white/35">VIEWERS</div><div className="mt-1 text-xs font-black">{selected.live ? selected.viewers.toLocaleString() : '—'}</div></div>
         </div>
-      </div>}
+        {selected.live && <button type="button" className="mt-3 w-full rounded-xl bg-[#ff4655] py-3 text-[10px] font-black uppercase tracking-widest text-white hover:brightness-110">Open Live Stream</button>}
+        <div className="mt-3 text-[10px] text-white/45">Interaction reward: +{selected.live ? 10 : 3} coins · +{selected.live ? 25 : 8} XP</div>
+      </div>
     </div>
   </AdminLayout>
 }
