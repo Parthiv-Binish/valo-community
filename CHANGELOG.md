@@ -42,3 +42,15 @@
 - **Why:** Vite reported an unterminated regular expression at line 218 because the conditional `selected && <div>` was missing its closing `}`.
 - **Validation:** Vercel build logs identified the exact parser failure; fix applied to the main branch.
 - **Deployment status:** Awaiting automatic Vercel rebuild.
+
+
+## 2026-10-09 — Fixed remaining 2D world JSX brace
+- **Type:** Fixed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
+- **What:** Removed the extra closing `}` after the world shell JSX.
+- **Why:** The previous JSX correction still left one unmatched brace, so Vite continued reporting `Unterminated regular expression` at the end of the page.
+- **Technical details:** Corrected the final `selected && <div>` close and the enclosing world shell close so the `AdminLayout` return tree is balanced.
+- **User impact:** The Admin → 2D World page can compile once the new Vercel deployment completes.
+- **Validation:** Source was inspected directly from `main`; Vercel deployment `dpl_AVefop4igwKcpuabhXUJ3bRF2PVK` is building commit `7f0ab83`.
+- **Deployment status:** Automatic production rebuild in progress.
+- **Rollback:** Revert commit `7f0ab836ec9a47f8345a633affa99c739588cdca`.
