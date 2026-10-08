@@ -34,3 +34,11 @@
 - **Deployment status:** Committed to `Parthiv-Binish/valo-community` main; production deployment not independently verified.
 - **Rollback:** Remove the 2D World navigation item, route/import, and `AdminWorldPreviewPage.jsx`.
 
+
+## 2026-10-09 — Fixed 2D world JSX build error
+- **Type:** Fixed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
+- **What:** Closed the conditional creator-details JSX expression correctly.
+- **Why:** Vite reported an unterminated regular expression at line 218 because the conditional `selected && <div>` was missing its closing `}`.
+- **Validation:** Vercel build logs identified the exact parser failure; fix applied to the main branch.
+- **Deployment status:** Awaiting automatic Vercel rebuild.
