@@ -54,3 +54,16 @@
 - **Validation:** Source was inspected directly from `main`; Vercel deployment `dpl_AVefop4igwKcpuabhXUJ3bRF2PVK` is building commit `7f0ab83`.
 - **Deployment status:** Automatic production rebuild in progress.
 - **Rollback:** Revert commit `7f0ab836ec9a47f8345a633affa99c739588cdca`.
+
+## 2026-10-09 — Converted 2D world preview into playable game
+- **Type:** Added/Changed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
+- **What:** Replaced the dashboard-style world mockup with a playable Creator Kingdom mini-game. Players can move with WASD/arrow keys, interact with creator houses using E or click, earn coins/XP, discover live creators, and inspect live/offline creator status.
+- **Why:** The requested experience is a game, not a static world preview.
+- **Technical details:** Added a self-contained HTML5 Canvas game loop with a large scrolling/isometric-inspired village, roads, river, walls, buildings, NPCs, player movement, camera following, interaction detection, rewards, and game HUD. No new runtime dependency was added.
+- **Reference:** Gameplay/world composition was informed by `Sir-Teo/web-coc`'s isometric village architecture. Native/proprietary Clash of Clans assets were not copied.
+- **Performance:** HUD updates are throttled and React callbacks are stabilized so the canvas loop does not restart on every frame.
+- **User impact:** Admin → 2D World now behaves like a playable VALO Community game prototype.
+- **Validation:** Source committed to `main`; production build still requires Vercel verification.
+- **Deployment status:** Automatic Vercel deployment expected from the new commits.
+- **Rollback:** Revert commits `e277ac9` and `d17f0a3`.
