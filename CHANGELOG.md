@@ -1,3 +1,12 @@
+## 2026-10-09 — Fixed missing selected-panel JSX closure
+- **Type:** Fixed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
+- **What:** Added the missing closing brace for the `{selected && <div>...}` conditional.
+- **Why:** The Vercel parser correctly pointed at the end of the page because the conditional JSX expression was never closed; the reward text itself was not the root cause.
+- **Validation:** Inspected the exact final JSX structure around lines 265–305 and corrected the unmatched conditional closure.
+- **Deployment status:** Awaiting Vercel rebuild.
+- **Rollback:** Revert this commit.
+
 ## 2026-10-09 — Fixed world game JSX expression compatibility
 - **Type:** Fixed
 - **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
