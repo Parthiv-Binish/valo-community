@@ -1,3 +1,13 @@
+## 2026-10-09 — Fixed world game JSX expression compatibility
+- **Type:** Fixed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
+- **What:** Removed the template literal from the creator reward JSX and replaced it with a direct conditional string.
+- **Why:** Vercel/esbuild continued to report `Unterminated regular expression` at the closing JSX tag even after the first parser fix.
+- **Technical details:** The reward output now uses a simple conditional string expression with no nested template-literal syntax.
+- **Validation:** Applied against the exact line shown in the latest failed deployment log.
+- **Deployment status:** Awaiting Vercel rebuild.
+- **Rollback:** Revert this commit.
+
 ## 2026-10-09 — Fixed creator reward JSX parser error
 - **Type:** Fixed
 - **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
