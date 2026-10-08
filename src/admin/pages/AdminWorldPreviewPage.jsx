@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import AdminLayout from '../layouts/AdminLayout'
 
 const creators = [
@@ -198,7 +198,7 @@ function GameWorld({ onSelect, onStats }) {
       ctx.restore()
 
       // Game HUD is intentionally minimal; gameplay remains visible.
-      onStats({ coins: s.coins, xp: s.xp, visited: s.visited.size, live: creators.filter(c => c.live).length })
+      if (now - (s.lastHud || 0) > 250) { s.lastHud = now; onStats({ coins: s.coins, xp: s.xp, visited: s.visited.size, live: creators.filter(c => c.live).length }) }
       s.raf = requestAnimationFrame(draw)
     }
 
@@ -251,6 +251,8 @@ function GameWorld({ onSelect, onStats }) {
 export default function AdminWorldPreviewPage() {
   const [selected, setSelected] = useState(null)
   const [stats, setStats] = useState({ coins: 120, xp: 340, visited: 0, live: 3 })
+  const handleSelect = useCallback((c, coins, xp, visited) => setSelected({ ...c, coins, xp, visited }), [])
+  const handleStats = useCallback(next => setStats(next), [])
 
   return <AdminLayout>
     <div className="relative min-h-[calc(100vh-105px)] overflow-hidden rounded-3xl border border-white/10 bg-[#101c16] shadow-2xl">
@@ -268,8 +270,8 @@ export default function AdminWorldPreviewPage() {
       </div>
 
       <GameWorld
-        onSelect={(c, coins, xp, visited) => setSelected({ ...c, coins, xp, visited })}
-        onStats={setStats}
+        onSelect={handleSelect}
+        onStats={handleStats}
       />
 
       <div className="absolute bottom-4 left-4 z-20 rounded-2xl border border-white/10 bg-[#16271c]/90 px-4 py-3 text-white/70 backdrop-blur">
