@@ -290,7 +290,7 @@ export default function AdminWorldPreviewPage() {
         </div>
         {selected.live && <button type="button" className="mt-3 w-full rounded-xl bg-[#ff4655] py-3 text-[10px] font-black uppercase tracking-widest text-white hover:brightness-110">Open Live Stream</button>}
         <div className="mt-3 text-[10px] text-white/45">{selected.live ? "Interaction reward: +10 coins · +25 XP" : "Interaction reward: +3 coins · +8 XP"}</div>
-      </div>
+      </div>}
     </div>
   </AdminLayout>
 }
