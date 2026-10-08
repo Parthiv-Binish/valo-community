@@ -1,3 +1,13 @@
+## 2026-10-09 — Fixed creator reward JSX parser error
+- **Type:** Fixed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
+- **What:** Rewrote the selected-creator reward line as a single JSX expression.
+- **Why:** The latest Vercel Vite/esbuild build reported `Unterminated regular expression` at the closing JSX tag around line 294.
+- **Technical details:** The reward message is now constructed with one template-literal expression, preserving the same coins/XP values.
+- **Validation:** Patch targets the exact line reported by the latest Vercel build log; a fresh production build is required to confirm.
+- **Deployment status:** Awaiting automatic Vercel rebuild.
+- **Rollback:** Revert the commit containing this parser fix.
+
 # Changelog
 
 ## 2026-10-09 — Rebuilt admin 2D world as a COC-style creator village
