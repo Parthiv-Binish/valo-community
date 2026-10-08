@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-10-09 — Rebuilt admin 2D world as a COC-style creator village
+- **Type:** Changed
+- **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`
+- **What:** Replaced the previous dashboard-like room prototype with a complete top-down/isometric-style village world: terrain texture, roads, water landmark, trees, rocks, creator houses, town hall, characters, live beacons, labels, camera pan/zoom, and interactive creator-house details.
+- **Why:** The previous prototype looked like a dated dashboard/90s mockup rather than a game world. The new direction is intentionally closer to a polished mobile strategy-game village while keeping VALO Community branding.
+- **Technical details:** Self-contained SVG scene and CSS animation; no new external dependencies. Creator houses are interactive and expose live/offline state. Pointer drag pans the map and wheel/buttons control zoom.
+- **User impact:** Admins can explore a real game-like village from **Admin → 2D World** and inspect creator houses without affecting public routes.
+- **Validation:** Component rebuilt against the existing React/Vite admin route; no new packages introduced.
+- **Deployment status:** Committed to `Parthiv-Binish/valo-community` main. Production deployment still requires the Vercel project to be correctly linked to this repository.
+- **Rollback:** Restore the previous `AdminWorldPreviewPage.jsx` revision.
+
+# Changelog
+
 ## 2026-10-09 — Added admin 2D gaming-world prototype
 - **Type:** Added
 - **Area/files:** `src/admin/pages/AdminWorldPreviewPage.jsx`, `src/App.jsx`, `src/admin/layouts/AdminLayout.jsx`
