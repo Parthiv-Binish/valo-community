@@ -289,7 +289,7 @@ export default function AdminWorldPreviewPage() {
           <div className="rounded-xl bg-black/20 p-3"><div className="text-[8px] text-white/35">VIEWERS</div><div className="mt-1 text-xs font-black">{selected.live ? selected.viewers.toLocaleString() : '—'}</div></div>
         </div>
         {selected.live && <button type="button" className="mt-3 w-full rounded-xl bg-[#ff4655] py-3 text-[10px] font-black uppercase tracking-widest text-white hover:brightness-110">Open Live Stream</button>}
-        <div className="mt-3 text-[10px] text-white/45">{`Interaction reward: +${selected.live ? 10 : 3} coins · +${selected.live ? 25 : 8} XP`}</div>
+        <div className="mt-3 text-[10px] text-white/45">{selected.live ? "Interaction reward: +10 coins · +25 XP" : "Interaction reward: +3 coins · +8 XP"}</div>
       </div>
     </div>
   </AdminLayout>
