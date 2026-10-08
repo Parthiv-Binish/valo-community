@@ -31,6 +31,7 @@ const AdminAnalyticsPage = lazy(() => import('./admin/pages/AdminAnalyticsPage.j
 const AdminReportsPage = lazy(() => import('./admin/pages/AdminReportsPage.jsx'))
 const AdminPostsPage = lazy(() => import('./admin/pages/AdminPostsPage.jsx'))
 const AdminApiStatusPage = lazy(() => import('./admin/pages/AdminApiStatusPage.jsx'))
+const AdminWorldPreviewPage = lazy(() => import('./admin/pages/AdminWorldPreviewPage.jsx'))
 const TermsPage = lazy(() => import('./pages/TermsPage.jsx'))
 const CommunityGuidelinesPage = lazy(() => import('./pages/CommunityGuidelinesPage.jsx'))
 const ContentPolicyPage = lazy(() => import('./pages/ContentPolicyPage.jsx'))
@@ -226,7 +227,8 @@ function AppRouterContainer() {
           <Route path="/admin/analytics" element={<AdminGuard><AdminAnalyticsPage /></AdminGuard>} />
           <Route path="/admin/reports" element={<AdminGuard><AdminReportsPage /></AdminGuard>} />
           <Route path="/admin/posts" element={<AdminGuard><AdminPostsPage /></AdminGuard>} />
-          <Route path="/admin/api-status" element={<AdminGuard><AdminApiStatusPage /></AdminGuard>} />  
+          <Route path="/admin/api-status" element={<AdminGuard><AdminApiStatusPage /></AdminGuard>} />
+          <Route path="/admin/world-preview" element={<AdminGuard><AdminWorldPreviewPage /></AdminGuard>} />  
 
           {/* 🚨 DYNAMIC INTERCEPT ROUTER ENGINE */}
           {isMaintenanceActive && !isAdminUser ? (
